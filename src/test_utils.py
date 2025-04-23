@@ -38,6 +38,7 @@ def test_isbn_13():
     assert is_valid_isbn_13("97818619787691") == False  # Too long
     assert is_valid_isbn_13("978186197876A") == False  # Invalid character
     assert is_valid_isbn_13("") == False  # Empty string
+    assert is_valid_isbn_13("9780132350884A") == False  # Too long with
 
 
 def test_isbn_10_to_13():
