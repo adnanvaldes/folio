@@ -39,7 +39,9 @@ def is_valid_isbn_13(isbn: str | int) -> bool:
 
     Procedure taken from https://isbn-information.com/the-13-digit-isbn.html
     """
-    isbn = re.sub(r"[^0-9]", "", str(isbn))
+
+    # Handle case where there are 13 digits and 1 or more characters
+    isbn = re.sub(r"[^a-zA-Z0-9]", "", str(isbn))
     isbn_chars = list(str(isbn))
 
     # Check that ISBN is exactly 13 digits long and contains only digits
