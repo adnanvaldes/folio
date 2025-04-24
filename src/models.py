@@ -4,6 +4,8 @@ from typing import List
 import uuid
 import re
 
+from .utils import is_valid_isbn_13, convert_isbn_10_to_13
+
 
 class Author(BaseModel):
     """Represents contributor to a book; can be author or editor, translator, etc. as required"""
@@ -29,17 +31,17 @@ class Book(BaseModel):
 
     @validator("isbn")
     def validate_isbn(cls, isbn):
-        pass
-        # if isbn is None:
-        #     return None
+        if isbn is None:
+            return None
 
-        # isbn = re.sub(r"[^a-zA-Z0-9]", "", isbn)
+        if is_valid_isbn_13(isbn):
+            return isbn
 
-        # # Check ISBN-10
-        # if is_isbn_10(isbn):
-        #     if isbn[-1]:
-        #         pass
-        # # TODO
+        isbn_13 = convert_isbn_10_to_13(isbn)
+        if isbn_13 is not None:
+            return isbn_13
+
+        raise ValueError(f"Invalid ISBN: {isbn} - must be valid ISBN-10 or ISBN-13")
 
 
 class Review(BaseModel):
