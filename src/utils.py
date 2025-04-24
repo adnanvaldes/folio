@@ -82,7 +82,7 @@ def is_valid_isbn_13(isbn: str | int) -> bool:
     return checksum % 10 == 0
 
 
-def convert_isbn_10_to_13(isbn_10: str | int) -> str:
+def convert_isbn_10_to_13(isbn_10: str | int) -> str | None:
     """
     Convert a valid ISBN-10 to ISBN-13 format.
 
