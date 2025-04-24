@@ -3,12 +3,24 @@ import re
 
 def is_valid_isbn_10(isbn: str | int) -> bool:
     """
-    Checks if a number is a valid ISBN-10.
+    Validates if a number is a valid ISBN-10.
 
-    Procedure taken from https://isbn-information.com/the-10-digit-isbn.html
+    ISBN-10 validation uses a weighted sum algorithm where each digit
+    is multiplied by its position (10 to 1), and the sum must be divisible by 11.
+
+    Args:
+        isbn: The ISBN-10 number as string or integer
+
+    Returns:
+        bool: True if the ISBN-10 is valid, False otherwise
+
+    Note:
+        Hyphens and spaces are removed before validation
+        The check digit 'X' represents the value 10
     """
-    isbn = re.sub(r"[^a-zA-Z0-9]", "", str(isbn))
-    isbn_chars = list(str(isbn).lower())
+    # Remove any non-alphanumeric characters (spaces, hyphens)
+    isbn_cleaned = re.sub(r"[^a-zA-Z0-9]", "", str(isbn))
+    isbn_chars = list(isbn_cleaned.lower())
 
     # ISBN-10 must be exactly 10 characters
     if len(isbn_chars) != 10:
@@ -35,14 +47,24 @@ def is_valid_isbn_10(isbn: str | int) -> bool:
 
 def is_valid_isbn_13(isbn: str | int) -> bool:
     """
-    Checks if a number is a valid ISBN-13.
+    Validates if a number is a valid ISBN-13.
 
-    Procedure taken from https://isbn-information.com/the-13-digit-isbn.html
+    ISBN-13 validation uses an alternating weight algorithm where digits are multiplied
+    by alternating 1 and 3, and the sum must be divisible by 10.
+
+    Args:
+        isbn: The ISBN-13 number as string or integer
+
+    Returns:
+        bool: True if the ISBN-13 is valid, False otherwise
+
+    Note:
+        Hyphens and spaces are removed before validation
+        Only numeric digits are allowed in ISBN-13
     """
-
-    # Handle case where there are 13 digits and 1 or more characters
-    isbn = re.sub(r"[^a-zA-Z0-9]", "", str(isbn))
-    isbn_chars = list(str(isbn))
+    # Remove any non-alphanumeric characters (spaces, hyphens)
+    isbn_cleaned = re.sub(r"[^a-zA-Z0-9]", "", str(isbn))
+    isbn_chars = list(isbn_cleaned)
 
     # Check that ISBN is exactly 13 digits long and contains only digits
     if len(isbn_chars) != 13 or not all(char.isdigit() for char in isbn_chars):
@@ -50,15 +72,46 @@ def is_valid_isbn_13(isbn: str | int) -> bool:
 
     isbn_digits = list(map(int, isbn_chars))
 
-    # Apply ISBN-13 algorithm by alternating multipliers (1,3,1,3,...) to each digit
-    products = []
+    # Apply ISBN-13 algorithm by alternating weights (1,3,1,3,...) to each digit
+    checksum = 0
     for i, digit in enumerate(isbn_digits):
-        multiplier = 1 if i % 2 == 0 else 3
-        products.append(digit * multiplier)
+        weight = 1 if i % 2 == 0 else 3
+        checksum += digit * weight
 
     # ISBN-13 is valid if checksum is divisible by 10
-    return sum(products) % 10 == 0
+    return checksum % 10 == 0
 
 
-def convert_isbn_10_to_13(isbn10: str) -> str:
-    pass
+def convert_isbn_10_to_13(isbn_10: str | int) -> str:
+    """
+    Convert a valid ISBN-10 to ISBN-13 format.
+
+    Args:
+        isbn_10: A valid ISBN-10 number as string or integer
+
+    Returns:
+        ISBN-13 as string if valid, None otherwise
+    """
+    if is_valid_isbn_10(isbn_10):
+        # Remove any non-alphanumeric characters first
+        isbn_10_cleaned = re.sub(r"[^a-zA-Z0-9]", "", str(isbn_10))
+
+        # ISBN-13 starts with "978" prefix + first 9 digits of ISBN-10
+        isbn_13_chars = ["9", "7", "8"] + list(isbn_10_cleaned[:-1])
+        isbn_13_digits = list(map(int, isbn_13_chars))
+
+        # Calculate ISBN-13 check digit using alternating 1,3 weight pattern
+        checksum = 0
+        for i, digit in enumerate(isbn_13_digits):
+            weight = 1 if i % 2 == 0 else 3
+            checksum += digit * weight
+
+        # Check digit is (10 - remainder) unless remainder is 0
+        remainder = checksum % 10
+        check_digit = 0 if remainder == 0 else 10 - remainder
+
+        # Append check digit and join to form final ISBN-13
+        isbn_13_chars.append(str(check_digit))
+        return "".join(isbn_13_chars)
+
+    return None
