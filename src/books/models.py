@@ -2,7 +2,6 @@ from sqlmodel import SQLModel, Field, Relationship
 from pydantic import validator
 from datetime import date
 from typing import List
-import uuid
 
 from utils import is_valid_isbn_13, convert_isbn_10_to_13
 
