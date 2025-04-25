@@ -1,9 +1,10 @@
-from sqlmodel import SQLModel, Field, Relationship, validator
+from sqlmodel import SQLModel, Field, Relationship
+from pydantic import validator
 from datetime import date
 from typing import List
 import uuid
 
-from .utils import is_valid_isbn_13, convert_isbn_10_to_13
+from utils import is_valid_isbn_13, convert_isbn_10_to_13
 
 
 class Work(SQLModel):
@@ -24,7 +25,7 @@ class Work(SQLModel):
     author: str = Field(index=True)
     year: int | None = None  # Allow for negative years to represent BCE
     genre: str | None = None
-    is_read: bool = Fields(default=False, index=True)
+    is_read: bool = Field(default=False, index=True)
 
     books: List["Book"] = Relationship(back_populates="work", cascade_delete=True)
     reviews: List["Review"] = Relationship(back_populates="review", cascade_delete=True)
@@ -37,7 +38,7 @@ class Book(SQLModel):
     Attributes:
         id: Unique identifier for the book (auto-incremented in DB)
         pages: Number of pages in this edition
-        format: Format of the book (hardcover, paperback, ebook, etc.)
+        format: Format of the book (print, audiobook, ebook, etc.)
         isbn: International Standard Book Number (ISBN-13 format)
         work_id: Reference to the literary work this book contains
     """
