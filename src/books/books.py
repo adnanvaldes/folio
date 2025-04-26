@@ -7,6 +7,8 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from db import get_session
+from books.models import Book, Work, Review
 
 # Create Typer app
 app = typer.Typer(help="Book collection manager")
@@ -78,15 +80,30 @@ class BookCommands:
         add_book: BookArguments.add_book = True,
     ):
         """Add a new work to the collection"""
-        # Logic to add a book
+        with get_session() as session:
+            work = Work(title=title,
+                        author=author,
+                        year=year,
+                        genre=genre,
+                        is_read=is_read,
+                        review=None)
+            session.add(work)
+    
+            if add_book:
+                book = Book(pages=pages,
+                            format=format,
+                            isbn=isbn,
+                            work=work)
+                session.add(book)
 
-        console.print(f"Adding book: {title} by {author} ({year})")
-        console.print(f"Genre: {genre}, Read: {is_read}, Add book: {add_book}")
+            session.commit()            
+            session.refresh(work)
 
-    @staticmethod
-    @app.command()
-    def add_book_interactive():
-        pass
+            if add_book:
+                session.refresh(book)
+
+            console.print(f"Adding book: {title} by {author} ({year})\n {work}")
+            console.print(f"Genre: {genre}, Read: {is_read}, Add book: {add_book}")
 
     # @staticmethod
     # @app.command()

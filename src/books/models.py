@@ -6,7 +6,7 @@ from typing import List
 from utils import is_valid_isbn_13, convert_isbn_10_to_13
 
 
-class Work(SQLModel):
+class Work(SQLModel, table=True):
     """
     Represents the abstract creative content of a book, independent of its physical form.
 
@@ -27,10 +27,10 @@ class Work(SQLModel):
     is_read: bool = Field(default=False, index=True)
 
     books: List["Book"] = Relationship(back_populates="work", cascade_delete=True)
-    reviews: List["Review"] = Relationship(back_populates="review", cascade_delete=True)
+    reviews: List["Review"] = Relationship(back_populates="work", cascade_delete=True)
 
 
-class Book(SQLModel):
+class Book(SQLModel, table=True):
     """
     Represents a specific edition or instance of a literary work.
 
@@ -70,7 +70,7 @@ class Book(SQLModel):
         return format.lower()
 
 
-class Review(SQLModel):
+class Review(SQLModel, table=True):
     """
     Represents your review and thoughts about a literary work.
 
