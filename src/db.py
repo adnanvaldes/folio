@@ -1,9 +1,12 @@
 # db.py
-from sqlmodel import SQLModel, create_engine
-from books import models
+from sqlmodel import create_engine, Session
+
+DATABASE_NAME = "folio.db"
+DATABASE_URL = f"sqlite:///{DATABASE_NAME}"
+
+engine = create_engine(DATABASE_URL)
 
 
-sqlite_file_name = "folio.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-
-engine = create_engine(sqlite_url)
+def get_session():
+    """Return a new SQLModel session"""
+    return Session(engine)
