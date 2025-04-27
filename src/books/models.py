@@ -96,7 +96,7 @@ class Review(SQLModel, table=True):
     notes: str | None = None
     date_read: date = Field(default_factory=date.today)
 
-    @validator("date_read")
+    @field_validator("date_read")
     def validate_date_read(cls, date_read):
         # Check if date is in the future
         if date_read > date.today():
