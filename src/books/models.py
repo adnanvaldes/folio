@@ -1,5 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
-from pydantic import validator
+from sqlalchemy import UniqueConstraint
+from pydantic import field_validator
 from datetime import date
 from typing import List
 
@@ -18,6 +19,9 @@ class Work(SQLModel, table=True):
         genre: The literary genre or category of the work
         is_read: Whether the work has been read (automatically set when reviewed)
     """
+    __table_args__ = (
+        UniqueConstraint("title", "author", name="unique_title_author"),
+    )
 
     id: int | None = Field(default=None, primary_key=True)
     title: str = Field(index=True)
@@ -50,7 +54,7 @@ class Book(SQLModel, table=True):
     work_id: int | None = Field(default=None, foreign_key="work.id", ondelete="CASCADE")
     work: Work | None = Relationship(back_populates="books")
 
-    @validator("isbn")
+    @field_validator("isbn")
     def validate_isbn(cls, isbn):
         if isbn is None:
             return None
@@ -64,7 +68,7 @@ class Book(SQLModel, table=True):
 
         raise ValueError(f"Invalid ISBN: {isbn} - must be valid ISBN-10 or ISBN-13")
 
-    @validator("format")
+    @field_validator("format")
     def validate_format(cls, format):
         # TODO
         return format.lower()
