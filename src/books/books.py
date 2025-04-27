@@ -1,14 +1,17 @@
 import os
 from enum import Enum
 from typing import Annotated, List, Optional
+from sqlite3 import IntegrityError
 
 
 import typer
 from rich.console import Console
 from rich.table import Table
+from sqlmodel import select
 
 from db import get_session
 from books.models import Book, Work, Review
+from utils import validate_isbn
 
 # Create Typer app
 app = typer.Typer(help="Book collection manager")
@@ -81,30 +84,74 @@ class BookCommands:
     ):
         """Add a new work to the collection"""
         with get_session() as session:
-            work = Work(title=title,
+            # Validate ISBN if provided
+            if add_book and isbn:
+                try:
+                    isbn = validate_isbn(isbn)
+                except ValueError:
+                    console.print(f"Invalid ISBN: {isbn} - must be valid ISBN-10 or ISBN-13")
+                    
+                    if typer.confirm("Continue with NULL ISBN?"):
+                        isbn = None
+                    else:
+                        console.print("Exiting...")
+                        raise typer.Abort()
+            
+            # Check if work already exists
+            existing_work = session.exec(
+                select(Work).where(
+                    Work.title == title,
+                    Work.author == author
+                )
+            ).first()
+            
+            if existing_work:
+                console.print(f"{title} by {author} already exists in the database.")
+                
+                if add_book and typer.confirm("Add book to existing work?"):
+                    book = Book(pages=pages,
+                            format=format,
+                            isbn=isbn,
+                            work_id=existing_work.id)  # Use work_id directly
+                    session.add(book)
+                    try:
+                        session.commit()
+                        console.print(f"Added book to existing work '{existing_work.title}'")
+                    except IntegrityError as e:
+                        session.rollback()
+                        console.print("Error: This book may already exist for this work")
+                        console.print(f"Details: {str(e)}")
+                else:
+                    console.print("No changes made.")
+            else:
+                # Work doesn't exist, create it
+                work = Work(title=title,
                         author=author,
                         year=year,
                         genre=genre,
                         is_read=is_read,
                         review=None)
-            session.add(work)
-    
-            if add_book:
-                book = Book(pages=pages,
+                session.add(work)
+                
+                if add_book:
+                    book = Book(pages=pages,
                             format=format,
                             isbn=isbn,
                             work=work)
-                session.add(book)
-
-            session.commit()            
-            session.refresh(work)
-
-            if add_book:
-                session.refresh(book)
-
-            console.print(f"Adding book: {title} by {author} ({year})\n {work}")
-            console.print(f"Genre: {genre}, Read: {is_read}, Add book: {add_book}")
-
+                    session.add(book)
+                
+                try:
+                    session.commit()
+                    console.print(f"Added {title} by {author} to database")
+                    
+                    if add_book:
+                        session.refresh(work)
+                        session.refresh(book)
+                        console.print(f"Also added book: {book}")
+                except IntegrityError as e:
+                    session.rollback()
+                    console.print(f"Error adding record: {str(e)}")
+                    console.print("This might be due to a race condition or another constraint violation.")
     # @staticmethod
     # @app.command()
     # def search_books(
