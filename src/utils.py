@@ -115,3 +115,14 @@ def convert_isbn_10_to_13(isbn_10: str | int) -> str | None:
         return "".join(isbn_13_chars)
 
     return None
+
+
+def validate_isbn(isbn) -> str | None:
+    if isbn is None:
+        return None
+    if is_valid_isbn_13(isbn):
+        return isbn
+    isbn_13 = convert_isbn_10_to_13(isbn)
+    if isbn_13 is not None:
+        return isbn_13
+    raise ValueError(f"Invalid ISBN: {isbn} - must be valid ISBN-10 or ISBN-13")
