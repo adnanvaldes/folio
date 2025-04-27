@@ -1,6 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import UniqueConstraint
-from pydantic import field_validator
 from datetime import date
 from typing import List
 
@@ -54,24 +53,26 @@ class Book(SQLModel, table=True):
     work_id: int | None = Field(default=None, foreign_key="work.id", ondelete="CASCADE")
     work: Work | None = Relationship(back_populates="books")
 
-    @field_validator("isbn")
-    def validate_isbn(cls, isbn):
-        if isbn is None:
-            return None
+    # TODO
+    # This does not currently work, validation needs to be done on the user input side
+    # See: https://github.com/fastapi/sqlmodel/issues/52#issuecomment-1311987732
+    # @field_validator("isbn", mode="after")
+    # def validate_isbn(cls, isbn) -> str | None:
+    #     if isbn is None:
+    #         return None
 
-        if is_valid_isbn_13(isbn):
-            return isbn
+    #     if is_valid_isbn_13(isbn):
+    #         return isbn
 
-        isbn_13 = convert_isbn_10_to_13(isbn)
-        if isbn_13 is not None:
-            return isbn_13
+    #     isbn_13 = convert_isbn_10_to_13(isbn)
+    #     if isbn_13 is not None:
+    #         return isbn_13
 
-        raise ValueError(f"Invalid ISBN: {isbn} - must be valid ISBN-10 or ISBN-13")
+    #     raise ValueError(f"Invalid ISBN: {isbn} - must be valid ISBN-10 or ISBN-13")
 
-    @field_validator("format")
-    def validate_format(cls, format):
-        # TODO
-        return format.lower()
+    # @field_validator("format")
+    # def validate_format(cls, format):
+    #     return format.lower()
 
 
 class Review(SQLModel, table=True):
@@ -96,10 +97,13 @@ class Review(SQLModel, table=True):
     notes: str | None = None
     date_read: date = Field(default_factory=date.today)
 
-    @field_validator("date_read")
-    def validate_date_read(cls, date_read):
-        # Check if date is in the future
-        if date_read > date.today():
-            raise ValueError("Date read cannot be in the future")
+    # TODO
+    # This does not currently work, validation needs to be done on the user input side
+    # See: https://github.com/fastapi/sqlmodel/issues/52#issuecomment-1311987732
+    # @field_validator("date_read")
+    # def validate_date_read(cls, date_read):
+    #     # Check if date is in the future
+    #     if date_read > date.today():
+    #         raise ValueError("Date read cannot be in the future")
 
-        return date_read
+    #     return date_read
