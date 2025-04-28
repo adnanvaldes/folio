@@ -3,9 +3,6 @@ from sqlalchemy import UniqueConstraint
 from datetime import date
 from typing import List
 
-from utils import is_valid_isbn_13, convert_isbn_10_to_13
-
-
 class Work(SQLModel, table=True):
     """
     Represents the abstract creative content of a book, independent of its physical form.

@@ -1,6 +1,5 @@
 import re
 
-
 def is_valid_isbn_10(isbn: str | int) -> bool:
     """
     Validates if a number is a valid ISBN-10.
