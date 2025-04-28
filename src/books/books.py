@@ -87,16 +87,7 @@ class BookCommands:
         with get_session() as session:
             # Validate ISBN if provided
             if add_book and isbn:
-                try:
-                    isbn = validate_isbn(isbn)
-                except ValueError:
-                    console.print(f"Invalid ISBN: {isbn} - must be valid ISBN-10 or ISBN-13")
-                    
-                    if typer.confirm("Continue with NULL ISBN?"):
-                        isbn = None
-                    else:
-                        console.print("Exiting...")
-                        raise typer.Abort()
+                isbn = BookCommands._validate_isbn(isbn)
             
             # Check if work already exists
             work_exists = BookCommands._get_existing_work(title, author) 
@@ -225,6 +216,19 @@ class BookCommands:
 
         return existing_work
         
+    @staticmethod
+    def _validate_isbn(isbn):
+        try:
+            return validate_isbn(isbn)
+        except ValueError:
+            console.print(f"Invalid ISBN: {isbn} - must be valid ISBN-10 or ISBN-13")
+            
+            if typer.confirm("Continue with NULL ISBN?"):
+                isbn = None
+            else:
+                console.print("Exiting...")
+                raise typer.Abort()
+
     # @staticmethod
     # @app.command()
     # def search_books(
