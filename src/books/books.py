@@ -90,54 +90,30 @@ class BookCommands:
                 isbn = BookCommands._validate_isbn(isbn)
             
             # Check if work already exists
-            work_exists = BookCommands._find_work(session,title, author) 
-            if work_exists:
+            existing_work = BookCommands._find_work(session,title, author) 
+            if existing_work:
                 console.print(f"{title} by {author} already exists in the database.")
                 
                 if add_book and typer.confirm("Add book to existing work?"):
-                    book = Book(pages=pages,
-                            format=format,
-                            isbn=isbn,
-                            work_id=work_exists.id)  # Use work_id directly
-                    session.add(book)
-                    try:
-                        session.commit()
-                        console.print(f"Added book to existing work '{work_exists.title}'")
-                    except IntegrityError as e:
-                        session.rollback()
-                        console.print("Error: This book may already exist for this work")
-                        console.print(f"Details: {str(e)}")
+                    BookCommands._add_book_to_work(session=session,
+                                                   work=existing_work,
+                                                   pages=pages,
+                                                   format=format,
+                                                   isbn=isbn)
                 else:
                     console.print("No changes made.")
             else:
-                # Work doesn't exist, create it
-                work = Work(title=title,
-                        author=author,
-                        year=year,
-                        genre=genre,
-                        is_read=is_read,
-                        review=None)
-                session.add(work)
-                
-                if add_book:
-                    book = Book(pages=pages,
-                            format=format,
-                            isbn=isbn,
-                            work=work)
-                    session.add(book)
-                
-                try:
-                    session.commit()
-                    console.print(f"Added {title} by {author} to database")
-                    
-                    if add_book:
-                        session.refresh(work)
-                        session.refresh(book)
-                        console.print(f"Also added book: {book}")
-                except IntegrityError as e:
-                    session.rollback()
-                    console.print(f"Error adding record: {str(e)}")
-                    console.print("This might be due to a race condition or another constraint violation.")
+                # Create new work and optoinally new book
+                BookCommands._create_work_and_book(session=session,
+                                                   title=title,
+                                                   author=author,
+                                                   year=year,
+                                                   genre=genre,
+                                                   is_read=is_read,
+                                                   add_book=add_book,
+                                                   pages=pages,
+                                                   format=format,
+                                                   isbn=isbn)
 
     @staticmethod
     @app.command()
@@ -213,6 +189,56 @@ class BookCommands:
                     Work.author == author.lower()
                 )
             ).first()
+    
+    @staticmethod
+    def _create_work_and_book(session,
+                              title: WorkArguments.title,
+                              author=WorkArguments.author,
+                              year=WorkArguments.year,
+                              genre=WorkArguments.genre,
+                              is_read=WorkArguments.is_read,
+                              add_book=BookArguments.add_book,
+                              pages=BookArguments.pages,
+                              format=BookArguments.format,
+                              isbn=BookArguments.isbn):
+        """Create a new work, optionally add a book"""
+        work = Work(title=title,
+                    author=author,
+                    year=year,
+                    genre=genre,
+                    is_read=is_read)
+        session.add(work)
+        session.commit()
+
+        if add_book:
+            book = BookCommands._add_book_to_work(session=session,
+                                           work=work,
+                                           pages=pages,
+                                           format=format,
+                                           isbn=isbn)
+            return work, book
+        return work
+
+    
+    @staticmethod
+    def _add_book_to_work(session,
+                          work,
+                          pages: BookArguments.pages,
+                          format: BookArguments.format,
+                          isbn: BookArguments.isbn):
+        """Add a new  book to an existing work"""
+        book = Book(pages=pages, format=format, isbn=isbn, work_id=work.id)
+        session.add(book)
+        try:
+            session.commit()
+            console.print(f"added book to existing work '{work.title}'")
+            return book
+        except IntegrityError as e:
+            session.rollback()
+            console.print("Error: This book may already exist for this work")
+            console.print(f"Details: {str(e)}")
+            return None
+            
         
     @staticmethod
     def _validate_isbn(isbn):
