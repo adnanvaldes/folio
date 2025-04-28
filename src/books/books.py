@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 from sqlmodel import select
 
-from db import get_session
+from db import _get_session
 from books.models import Book, Work, Review
 from utils import validate_isbn, lowercase_args
 
@@ -84,7 +84,7 @@ class BookCommands:
         add_book: BookArguments.add_book = True,
     ):
         """Add a new work (and book) to the collection"""
-        with get_session() as session:
+        with _get_session() as session:
             # Validate ISBN if provided
             if add_book and isbn:
                 isbn = BookCommands._validate_isbn(isbn)
@@ -149,7 +149,7 @@ class BookCommands:
         format: BookArguments.format = None,
         isbn: BookArguments.isbn = None,
     ):
-        with get_session() as session:
+        with _get_session() as session:
         # Get existing work to associate book with
             work = BookCommands._find_work(session,title, author)
             book = Book(pages=pages,
@@ -182,7 +182,7 @@ class BookCommands:
             is_read: WorkArguments.is_read = True,
             ):
         """Add a new work to the collection"""
-        with get_session() as session:
+        with _get_session() as session:
             # Check if work already exists
             work_exists = BookCommands._find_work(session,title, author) 
             if work_exists:
