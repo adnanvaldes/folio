@@ -9,9 +9,9 @@ from rich.console import Console
 from rich.table import Table
 from sqlmodel import select
 
-from db import _get_session
-from books.models import Book, Work, Review
-from utils import validate_isbn, lowercase_args
+from folio.db import _get_session
+from folio.books.models import Book, Work, Review
+from folio.utils import validate_isbn, lowercase_args
 
 # Create Typer app
 app = typer.Typer(help="Book collection manager")

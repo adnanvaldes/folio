@@ -1,4 +1,4 @@
-from src.utils import is_valid_isbn_10, is_valid_isbn_13, convert_isbn_10_to_13
+from folio.utils import is_valid_isbn_10, is_valid_isbn_13, convert_isbn_10_to_13
 
 """
 Tests created with the help of Claude 3.7 Sonnet.
