@@ -71,7 +71,7 @@ class BookCommands:
 
     @staticmethod
     @app.command()
-    def add_book(
+    def add(
         title: WorkArguments.title,
         author: WorkArguments.author,
         year: WorkArguments.year = None,
@@ -82,7 +82,7 @@ class BookCommands:
         is_read: WorkArguments.is_read = True,
         add_book: BookArguments.add_book = True,
     ):
-        """Add a new work to the collection"""
+        """Add a new work (and book) to the collection"""
         with get_session() as session:
             # Validate ISBN if provided
             if add_book and isbn:
