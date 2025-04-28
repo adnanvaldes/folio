@@ -11,7 +11,7 @@ from sqlmodel import select
 
 from db import get_session
 from books.models import Book, Work, Review
-from utils import validate_isbn
+from utils import validate_isbn, lowercase_args
 
 # Create Typer app
 app = typer.Typer(help="Book collection manager")
@@ -29,11 +29,11 @@ class WorkArguments:
 
     title = Annotated[
         str,
-        typer.Argument(help="Title of the work"),
+        typer.Argument(help="Title of the work", show_default=False),
     ]
     author = Annotated[
         str,
-        typer.Argument(help="Author of the work"),
+        typer.Argument(help="Author of the work", show_default=False),
     ]
     year = Annotated[
         int,
@@ -71,6 +71,7 @@ class BookCommands:
 
     @staticmethod
     @app.command()
+    @lowercase_args
     def add(
         title: WorkArguments.title,
         author: WorkArguments.author,
@@ -98,25 +99,19 @@ class BookCommands:
                         raise typer.Abort()
             
             # Check if work already exists
-            existing_work = session.exec(
-                select(Work).where(
-                    Work.title == title,
-                    Work.author == author
-                )
-            ).first()
-            
-            if existing_work:
+            work_exists = BookCommands._get_existing_work(title, author) 
+            if work_exists:
                 console.print(f"{title} by {author} already exists in the database.")
                 
                 if add_book and typer.confirm("Add book to existing work?"):
                     book = Book(pages=pages,
                             format=format,
                             isbn=isbn,
-                            work_id=existing_work.id)  # Use work_id directly
+                            work_id=work_exists.id)  # Use work_id directly
                     session.add(book)
                     try:
                         session.commit()
-                        console.print(f"Added book to existing work '{existing_work.title}'")
+                        console.print(f"Added book to existing work '{work_exists.title}'")
                     except IntegrityError as e:
                         session.rollback()
                         console.print("Error: This book may already exist for this work")
@@ -152,6 +147,84 @@ class BookCommands:
                     session.rollback()
                     console.print(f"Error adding record: {str(e)}")
                     console.print("This might be due to a race condition or another constraint violation.")
+
+    @staticmethod
+    @app.command()
+    @lowercase_args
+    def add_book(
+        title: WorkArguments.title,
+        author: WorkArguments.author,
+        pages: BookArguments.pages = None,
+        format: BookArguments.format = None,
+        isbn: BookArguments.isbn = None,
+    ):
+        with get_session() as session:
+        # Get existing work to associate book with
+            work = BookCommands._get_existing_work(title, author)
+            book = Book(pages=pages,
+                        format=format,
+                        isbn=validate_isbn(isbn),
+                        work=work)
+            if work:
+                    session.add(book)
+                    session.commit()
+                    console.print(f"Added {title} by {author} book to database")
+            else:
+                if typer.confirm("Work not found. Do you want to add it now?"):
+                    work = BookCommands.add_work(title, author)
+                    book.work = work
+                    session.add(book)
+                    session.commit()
+                    console.print(f"Added {title} by {author} book instance to database")
+                    raise typer.Exit(code=0)
+                
+                console.print(f"No changes made.")
+
+    @staticmethod
+    @app.command()
+    @lowercase_args
+    def add_work(
+            title: WorkArguments.title,
+            author: WorkArguments.author,
+            year: WorkArguments.year = None,
+            genre: WorkArguments.genre = None,
+            is_read: WorkArguments.is_read = True,
+            ):
+        """Add a new work to the collection"""
+        with get_session() as session:
+            # Check if work already exists
+            work_exists = BookCommands._get_existing_work(title, author) 
+            if work_exists:
+                console.print(f"{title} by {author} already exists in the database.")
+                console.print("No changes made.")
+                raise typer.Exit(code=1)
+
+            work = Work(title=title,
+                        author=author,
+                        year=year,
+                        genre=genre,
+                        is_read=is_read,
+                        review=None)
+            session.add(work)
+            session.commit()
+            console.print(f"Added {title} by {author} to database")
+            
+            return work
+
+    @staticmethod
+    @lowercase_args
+    def _get_existing_work(title: WorkArguments.title,
+                           author: WorkArguments.author):
+        with get_session() as session:
+            existing_work =  session.exec(
+                select(Work).where(
+                    Work.title == title.lower(),
+                    Work.author == author.lower()
+                )
+            ).first()
+
+        return existing_work
+        
     # @staticmethod
     # @app.command()
     # def search_books(
