@@ -90,7 +90,7 @@ class BookCommands:
                 isbn = BookCommands._validate_isbn(isbn)
             
             # Check if work already exists
-            work_exists = BookCommands._find_work(title, author) 
+            work_exists = BookCommands._find_work(session,title, author) 
             if work_exists:
                 console.print(f"{title} by {author} already exists in the database.")
                 
@@ -151,7 +151,7 @@ class BookCommands:
     ):
         with get_session() as session:
         # Get existing work to associate book with
-            work = BookCommands._find_work(title, author)
+            work = BookCommands._find_work(session,title, author)
             book = Book(pages=pages,
                         format=format,
                         isbn=validate_isbn(isbn),
@@ -184,7 +184,7 @@ class BookCommands:
         """Add a new work to the collection"""
         with get_session() as session:
             # Check if work already exists
-            work_exists = BookCommands._find_work(title, author) 
+            work_exists = BookCommands._find_work(session,title, author) 
             if work_exists:
                 console.print(f"{title} by {author} already exists in the database.")
                 console.print("No changes made.")
@@ -204,17 +204,15 @@ class BookCommands:
 
     @staticmethod
     @lowercase_args
-    def _find_work(title: WorkArguments.title,
-                           author: WorkArguments.author):
-        with get_session() as session:
-            existing_work =  session.exec(
+    def _find_work(session,
+                title: WorkArguments.title,
+                author: WorkArguments.author):
+        return session.exec(
                 select(Work).where(
                     Work.title == title.lower(),
                     Work.author == author.lower()
                 )
             ).first()
-
-        return existing_work
         
     @staticmethod
     def _validate_isbn(isbn):
