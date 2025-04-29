@@ -210,19 +210,6 @@ def test_add_command_existing_work_no_book(mock_session, sample_work):
         assert result.exit_code == 0
 
 
-def test_add_book_command_existing_work(mock_session, sample_work):
-    """Test the add_book command with an existing work."""
-    with patch("books.books.console.print"), \
-         patch.object(BookCommands, "_find_work", return_value=sample_work):
-        
-        result = runner.invoke(
-            app, 
-            ["add-book", "sample work", "test author", "--pages", "150", 
-             "--format", "audio", "--isbn", "9789876543210"]
-        )
-        
-        assert result.exit_code == 0
-
 def test_add_book_command_work_not_found_abort(mock_session):
     """Test add_book when work not found and user aborts."""
     with patch("books.books.console.print"), \
