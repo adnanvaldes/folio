@@ -9,9 +9,9 @@ from rich.console import Console
 from rich.table import Table
 from sqlmodel import select
 
-from folio.db import _get_session
-from folio.books.models import Book, Work, Review
-from folio.utils import validate_isbn, lowercase_args
+from db import _get_session
+from books.models import Book, Work, Review
+from utils import validate_isbn, lowercase_args
 
 # Create Typer app
 app = typer.Typer(help="Book collection manager")
@@ -128,6 +128,10 @@ class BookCommands:
         isbn: BookArguments.isbn = None,
     ):
         """Add a book instance to an existing work, or create a new work if needed"""
+
+        ####
+        # TODO
+        # Use logic in _add_book_to_work to simplify function
         with _get_session() as session:
         # Get existing work to associate book with
             if isbn:
@@ -221,7 +225,7 @@ class BookCommands:
 
         # Add book if add_book and there is information available
         book_added = False
-        if add_book and any([pages, format, isbn]):
+        if add_book:
             book = BookCommands._add_book_to_work(
                 session=session,
                 work=work,
@@ -229,13 +233,12 @@ class BookCommands:
                 format=format,
                 isbn=isbn
             )
-            book_added = book is not None
 
         session.commit()
 
         console.print(f"Added {title.capitalize()} by {author.title()} to collection (read: {is_read})")
         # Only print additional information if add_book was requested but not completed
-        if add_book and not book_added:
+        if add_book and not book:
             reason = "due to errors" if any([pages, format, isbn]) else "no information provided"
             console.print(f"Book was not added ({reason})")
 
@@ -249,17 +252,20 @@ class BookCommands:
         format: BookArguments.format,
         isbn: BookArguments.isbn):
         """Add a new  book to an existing work"""
-        book = Book(pages=pages, format=format, isbn=isbn, work_id=work.id)
-        session.add(book)
-        try:
-            session.commit()
-            console.print(f"Added book to existing work '{work.title}'")
-            return book
-        except IntegrityError as e:
-            session.rollback()
-            console.print("Error: This book may already exist for this work")
-            console.print(f"Details: {str(e)}")
-            return None
+        if any([pages, format, isbn]):
+            book = Book(pages=pages, format=format, isbn=isbn, work_id=work.id)
+            session.add(book)
+            try:
+                session.commit()
+                console.print(f"Added book to existing work '{work.title}'")
+                return book
+            except IntegrityError as e:
+                session.rollback()
+                console.print("Error: This book may already exist for this work")
+                console.print(f"Details: {str(e)}")
+                return None
+        console.print("No data entered for book. No changes made.")
+        return None
             
     @staticmethod
     def _validate_isbn(isbn):
