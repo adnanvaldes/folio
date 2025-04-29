@@ -18,9 +18,9 @@ project_root = str(Path(__file__).parent.parent.absolute())
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from folio.books.models import Book, Work, Review 
-from folio.books.books import BookCommands, BookFormat, app
-from folio.db import _get_session
+from books.models import Book, Work, Review 
+from books.books import BookCommands, BookFormat, app
+from db import _get_session
 
 # Test runner for CLI commands
 runner = CliRunner()
