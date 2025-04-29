@@ -45,7 +45,7 @@ class Book(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     pages: int | None = None
     format: str | None = Field(default=None, index=True)
-    isbn: str | None = None  # ISBN-13 (or ISBN-10 converted to -13)
+    isbn: str | None = Field(None, unique=True)  # ISBN-13 (or ISBN-10 converted to -13)
 
     work_id: int | None = Field(default=None, foreign_key="work.id", ondelete="CASCADE")
     work: Work | None = Relationship(back_populates="books")
