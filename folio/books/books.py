@@ -226,7 +226,7 @@ class BookCommands:
         session.flush()  # To get work.id
 
         # Add book if add_book and there is information available
-        book_added = False
+        book = None
         if add_book:
             book = BookCommands._add_book_to_work(
                 session=session, work=work, pages=pages, format=format, isbn=isbn
