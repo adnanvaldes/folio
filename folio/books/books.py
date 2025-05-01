@@ -88,34 +88,40 @@ class BookCommands:
             # Validate ISBN if provided
             if add_book and isbn:
                 isbn = BookCommands._validate_isbn(isbn)
-            
+
             # Check if work already exists
-            existing_work = BookCommands._find_work(session,title, author) 
+            existing_work = BookCommands._find_work(session, title, author)
 
             if existing_work:
-                console.print(f"{title.capitalize()} by {author.title()} already exists in the database.")
-                
-                if add_book and any([pages, format, isbn]): 
+                console.print(
+                    f"{title.capitalize()} by {author.title()} already exists in the database."
+                )
+
+                if add_book and any([pages, format, isbn]):
                     if typer.confirm("Add book to existing work?"):
-                        BookCommands._add_book_to_work(session=session,
-                                                       work=existing_work,
-                                                       pages=pages,
-                                                       format=format,
-                                                       isbn=isbn)
+                        BookCommands._add_book_to_work(
+                            session=session,
+                            work=existing_work,
+                            pages=pages,
+                            format=format,
+                            isbn=isbn,
+                        )
                 else:
                     console.print("No changes made.")
             else:
                 # Create new work and optoinally new book
-                BookCommands._create_work_and_book(session=session,
-                                                   title=title,
-                                                   author=author,
-                                                   year=year,
-                                                   genre=genre,
-                                                   is_read=is_read,
-                                                   add_book=add_book,
-                                                   pages=pages,
-                                                   format=format,
-                                                   isbn=isbn)
+                BookCommands._create_work_and_book(
+                    session=session,
+                    title=title,
+                    author=author,
+                    year=year,
+                    genre=genre,
+                    is_read=is_read,
+                    add_book=add_book,
+                    pages=pages,
+                    format=format,
+                    isbn=isbn,
+                )
 
     @staticmethod
     @app.command()
@@ -128,32 +134,31 @@ class BookCommands:
         isbn: BookArguments.isbn = None,
     ):
         """Add a book instance to an existing work, or create a new work if needed"""
-
-        ####
-        # TODO
-        # Use logic in _add_book_to_work to simplify function
         with _get_session() as session:
-        # Get existing work to associate book with
+            # Get existing work to associate book with
             if isbn:
                 isbn = BookCommands._validate_isbn(isbn)
             work = BookCommands._find_work(session, title, author)
-            book = Book(pages=pages,
-                        format=format,
-                        isbn=isbn,
-                        work=work)
+
             if work:
-                    session.add(book)
-                    session.commit()
-                    console.print(f"Added {title.capitalize()} by {author.title()} book to database")
+                BookCommands._add_book_to_work(
+                    session=session, work=work, pages=pages, format=format, isbn=isbn
+                )
+                console.print(
+                    f"Added {title.capitalize()} by {author.title()} book to database"
+                )
             else:
                 if typer.confirm("Work not found. Do you want to add it now?"):
-                    work = BookCommands.add_work(title, author)
-                    book.work = work
-                    session.add(book)
-                    session.commit()
-                    console.print(f"Added {title.capitalize()} by {author.title()} book instance to database")
+                    BookCommands._create_work_and_book(
+                        session=session,
+                        title=title,
+                        author=author,
+                        pages=pages,
+                        format=format,
+                        isbn=isbn,
+                    )
                     raise typer.Exit(code=0)
-                
+
             console.print(f"No changes made.")
 
     @staticmethod
@@ -165,42 +170,42 @@ class BookCommands:
         year: WorkArguments.year = None,
         genre: WorkArguments.genre = None,
         is_read: WorkArguments.is_read = True,
-        ):
+    ):
         """Add a new work to the collection"""
         with _get_session() as session:
             # Check if work already exists
-            work_exists = BookCommands._find_work(session,title, author) 
+            work_exists = BookCommands._find_work(session, title, author)
             if work_exists:
-                console.print(f"{title.capitalize()} by {author.title()} already exists in the database.")
+                console.print(
+                    f"{title.capitalize()} by {author.title()} already exists in the database."
+                )
                 console.print("No changes made.")
                 raise typer.Exit(code=1)
 
-            work = Work(title=title,
-                        author=author,
-                        year=year,
-                        genre=genre,
-                        is_read=is_read,
-                        review=None)
+            work = Work(
+                title=title,
+                author=author,
+                year=year,
+                genre=genre,
+                is_read=is_read,
+                review=None,
+            )
             session.add(work)
             session.commit()
             console.print(f"Added {title.capitalize()} by {author.title()} to database")
-            
+
             return work
 
     @staticmethod
     @lowercase_args
-    def _find_work(
-        session,
-        title: WorkArguments.title,
-        author: WorkArguments.author):
+    def _find_work(session, title: WorkArguments.title, author: WorkArguments.author):
         """Find a work by title and author"""
         return session.exec(
-                select(Work).where(
-                    Work.title == title.lower(),
-                    Work.author == author.lower()
-                )
-            ).first()
-    
+            select(Work).where(
+                Work.title == title.lower(), Work.author == author.lower()
+            )
+        ).first()
+
     @staticmethod
     def _create_work_and_book(
         session,
@@ -212,45 +217,44 @@ class BookCommands:
         add_book=BookArguments.add_book,
         pages=BookArguments.pages,
         format=BookArguments.format,
-        isbn=BookArguments.isbn
-        ):
+        isbn=BookArguments.isbn,
+    ):
         """Create a new work, optionally add a book"""
-        work = Work(title=title,
-                    author=author,
-                    year=year,
-                    genre=genre,
-                    is_read=is_read)
+        work = Work(title=title, author=author, year=year, genre=genre, is_read=is_read)
         session.add(work)
-        session.flush() # To get work.id
+        session.flush()  # To get work.id
 
         # Add book if add_book and there is information available
         book_added = False
         if add_book:
             book = BookCommands._add_book_to_work(
-                session=session,
-                work=work,
-                pages=pages,
-                format=format,
-                isbn=isbn
+                session=session, work=work, pages=pages, format=format, isbn=isbn
             )
 
         session.commit()
 
-        console.print(f"Added {title.capitalize()} by {author.title()} to collection (read: {is_read})")
+        console.print(
+            f"Added {title.capitalize()} by {author.title()} to collection (read: {is_read})"
+        )
         # Only print additional information if add_book was requested but not completed
         if add_book and not book:
-            reason = "due to errors" if any([pages, format, isbn]) else "no information provided"
+            reason = (
+                "due to errors"
+                if any([pages, format, isbn])
+                else "no information provided"
+            )
             console.print(f"Book was not added ({reason})")
 
         return work
-    
+
     @staticmethod
     def _add_book_to_work(
         session,
         work,
         pages: BookArguments.pages,
         format: BookArguments.format,
-        isbn: BookArguments.isbn):
+        isbn: BookArguments.isbn,
+    ):
         """Add a new  book to an existing work"""
         if any([pages, format, isbn]):
             book = Book(pages=pages, format=format, isbn=isbn, work_id=work.id)
@@ -266,7 +270,7 @@ class BookCommands:
                 return None
         console.print("No data entered for book. No changes made.")
         return None
-            
+
     @staticmethod
     def _validate_isbn(isbn):
         """Validate ISBN and handle errors"""
@@ -274,7 +278,7 @@ class BookCommands:
             return validate_isbn(isbn)
         except ValueError:
             console.print(f"Invalid ISBN: {isbn} - must be valid ISBN-10 or ISBN-13")
-            
+
             if typer.confirm("Continue with NULL ISBN?"):
                 isbn = None
             else:
