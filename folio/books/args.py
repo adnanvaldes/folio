@@ -51,57 +51,57 @@ class SearchArguments:
 
     title = Annotated[
         Optional[List[str]],
-        typer.Option("--title", "-t", help="Title of the work"),
+        Option("--title", "-t", help="Title of the work"),
     ]
     author = Annotated[
         Optional[List[str]],
-        typer.Option("--author", "-a", help="Author of the work"),
+        Option("--author", "-a", help="Author of the work"),
     ]
     year = Annotated[
         Optional[List[int]],
-        typer.Option("--year", "-y", help="Year written"),
+        Option("--year", "-y", help="Year written"),
     ]
     year_from = Annotated[
         Optional[int],
-        typer.Option("--year-from", help="Start year for range search"),
+        Option("--year-from", help="Start year for range search"),
     ]
     year_to = Annotated[
         Optional[int],
-        typer.Option("--year-to", help="End year for range search"),
+        Option("--year-to", help="End year for range search"),
     ]
     genre = Annotated[
         Optional[List[str]],
-        typer.Option("--genre", "-g", help="Genre of the work"),
+        Option("--genre", "-g", help="Genre of the work"),
     ]
     is_read = Annotated[
         Optional[bool],
-        typer.Option("--read/--unread", help="Filter by read status"),
+        Option("--read/--unread", help="Filter by read status"),
     ]
     pages = Annotated[
         Optional[List[int]],
-        typer.Option("--pages", help="Number of pages"),
+        Option("--pages", help="Number of pages"),
     ]
     pages_min = Annotated[
         Optional[int],
-        typer.Option("--pages-min", help="Minimum number of pages"),
+        Option("--pages-min", help="Minimum number of pages"),
     ]
     pages_max = Annotated[
         Optional[int],
-        typer.Option("--pages-max", help="Maximum number of pages"),
+        Option("--pages-max", help="Maximum number of pages"),
     ]
     format = Annotated[
         Optional[BookFormat],
-        typer.Option(
+        Option(
             "--format", "-f", case_sensitive=False, help="Format/medium of the book"
         ),
     ]
     isbn = Annotated[
         Optional[List[str]],
-        typer.Option("--isbn", "-i", help="ISBN-13 or ISBN-10 of the book"),
+        Option("--isbn", "-i", help="ISBN-13 or ISBN-10 of the book"),
     ]
     limit = Annotated[
         int,
-        typer.Option(
+        Option(
             "--limit",
             "-l",
             help="Maximum number of results to display",
