@@ -199,6 +199,25 @@ class BookCommands:
 
     @staticmethod
     @lowercase_args
+    @app.command()
+    def search():
+        """TODO: Not implemented"""
+        pass
+
+    @staticmethod
+    @app.command()
+    def update():
+        """TODO: Not implemented"""
+        pass
+
+    @staticmethod
+    @app.command()
+    def delete():
+        """TODO: Not implemented"""
+        pass
+
+    @staticmethod
+    @lowercase_args
     def _find_work(session, title: WorkArguments.title, author: WorkArguments.author):
         """Find a work by title and author"""
         return session.exec(
