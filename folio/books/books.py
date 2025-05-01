@@ -1,19 +1,21 @@
+# Stanard imports
 import os
 from enum import Enum
 from typing import Annotated, List, Optional
 from sqlite3 import IntegrityError
 
-
+# Third-party imports
 import typer
 from rich.console import Console
 from rich.table import Table
 from sqlmodel import select
 
+# Folio imports
 from db import _get_session
 from books.models import Book, Work, Review
 from utils import validate_isbn, lowercase_args
 
-# Create Typer app
+
 app = typer.Typer(help="Book collection manager")
 console = Console()
 
@@ -157,9 +159,8 @@ class BookCommands:
                         format=format,
                         isbn=isbn,
                     )
-                    raise typer.Exit(code=0)
-
-            console.print(f"No changes made.")
+                else:
+                    console.print(f"No changes made.")
 
     @staticmethod
     @app.command()
@@ -210,14 +211,14 @@ class BookCommands:
     def _create_work_and_book(
         session,
         title: WorkArguments.title,
-        author=WorkArguments.author,
-        year=WorkArguments.year,
-        genre=WorkArguments.genre,
-        is_read=WorkArguments.is_read,
-        add_book=BookArguments.add_book,
-        pages=BookArguments.pages,
-        format=BookArguments.format,
-        isbn=BookArguments.isbn,
+        author: WorkArguments.author,
+        year: WorkArguments.year = None,
+        genre: WorkArguments.genre = None,
+        is_read: WorkArguments.is_read = True,
+        add_book: BookArguments.add_book = True,
+        pages: BookArguments.pages = None,
+        format: BookArguments.format = None,
+        isbn: BookArguments.isbn = None,
     ):
         """Create a new work, optionally add a book"""
         work = Work(title=title, author=author, year=year, genre=genre, is_read=is_read)
@@ -312,25 +313,3 @@ class BookCommands:
     #         console.print(f"New genre: {genre}")
     #     if is_read is not None:
     #         console.print(f"Read status: {is_read}")
-
-
-# class WorkCommands:
-#     """Class containing all work-related commands"""
-
-#     @staticmethod
-#     @app.command()
-#     def add_work(
-#         title: WorkArguments.title,
-#         author: WorkArguments.author,
-#         year: WorkArguments.year,
-#         medium: WorkArguments.medium,
-#     ):
-#         """Add a new work to the collection"""
-#         # Logic to add a work
-#         console.print(f"Adding work: {title.capitalize()} by {author.title()} ({year})")
-#         console.print(f"Medium: {medium}")
-
-
-# # Main function to run the app
-# if __name__ == "__main__":
-#     app()
