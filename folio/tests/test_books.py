@@ -18,12 +18,13 @@ project_root = str(Path(__file__).parent.parent.absolute())
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from books.models import Book, Work, Review 
+from books.models import Book, Work, Review
 from books.books import BookCommands, BookFormat, app
-from db import _get_session
+from db.db import _get_session
 
 # Test runner for CLI commands
 runner = CliRunner()
+
 
 # Create in-memory database for testing
 @pytest.fixture
@@ -33,7 +34,7 @@ def session():
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
     SQLModel.metadata.create_all(engine)
-    
+
     with Session(engine) as session:
         yield session
 
@@ -51,7 +52,13 @@ def mock_session(session):
 @pytest.fixture
 def sample_work(session):
     """Create a sample work in the database."""
-    work = Work(title="sample work", author="test author", year=2020, genre="fiction", is_read=True)
+    work = Work(
+        title="sample work",
+        author="test author",
+        year=2020,
+        genre="fiction",
+        is_read=True,
+    )
     session.add(work)
     session.commit()
     return work
@@ -71,14 +78,14 @@ def test_find_work(session, sample_work):
     found_work = BookCommands._find_work(session, "sample work", "test author")
     assert found_work is not None
     assert found_work.id == sample_work.id
-    
+
     not_found = BookCommands._find_work(session, "nonexistent", "nobody")
     assert not_found is None
 
 
 def test_validate_isbn():
     """Test the _validate_isbn method."""
-    with patch("typer.confirm", return_value=True):      
+    with patch("typer.confirm", return_value=True):
         assert BookCommands._validate_isbn("invalid-isbn") is None
 
 
@@ -95,14 +102,13 @@ def test_add_book_to_work(session, sample_work):
         work=sample_work,
         pages=300,
         format=BookFormat.ebook,
-        isbn="9780987654321"
+        isbn="9780987654321",
     )
-    
+
     assert book is not None
     assert book.work_id == sample_work.id
     assert book.pages == 300
     assert book.format == "ebook"
-    
 
 
 def test_create_work_and_book(session):
@@ -118,13 +124,13 @@ def test_create_work_and_book(session):
             add_book=True,
             pages=250,
             format=BookFormat.print,
-            isbn="9781122334455"
+            isbn="9781122334455",
         )
-    
+
     assert work is not None
     assert work.title == "new work"
     assert work.author == "new author"
-    
+
     books = session.query(Book).filter(Book.work_id == work.id).all()
     assert len(books) == 1
     assert books[0].pages == 250
@@ -144,28 +150,43 @@ def test_create_work_without_book(session):
             add_book=True,
             pages=None,
             format=None,
-            isbn=None
+            isbn=None,
         )
-    
+
     assert work is not None
     assert work.title == "work only"
-    
+
     books = session.query(Book).filter(Book.work_id == work.id).all()
     assert len(books) == 0
 
 
 def test_add_command_new_work(mock_session):
     """Test the add command for creating a new work and book."""
-    with patch("books.books.console.print"), \
-         patch.object(BookCommands, "_find_work", return_value=None), \
-         patch.object(BookCommands, "_create_work_and_book") as mock_create:
-        
+    with (
+        patch("books.books.console.print"),
+        patch.object(BookCommands, "_find_work", return_value=None),
+        patch.object(BookCommands, "_create_work_and_book") as mock_create,
+    ):
+
         result = runner.invoke(
-            app, 
-            ["add", "new book", "new author", "--year", "2023", "--genre", "fantasy", 
-             "--pages", "400", "--format", "print", "--isbn", "9781234567897"]
+            app,
+            [
+                "add",
+                "new book",
+                "new author",
+                "--year",
+                "2023",
+                "--genre",
+                "fantasy",
+                "--pages",
+                "400",
+                "--format",
+                "print",
+                "--isbn",
+                "9781234567897",
+            ],
         )
-        
+
         mock_create.assert_called_once()
         call_args = mock_create.call_args[1]
         assert call_args["title"] == "new book"
@@ -179,17 +200,28 @@ def test_add_command_new_work(mock_session):
 
 def test_add_command_existing_work(mock_session, sample_work):
     """Test the add command when the work already exists."""
-    with patch("books.books.console.print"), \
-         patch.object(BookCommands, "_find_work", return_value=sample_work), \
-         patch("typer.confirm", return_value=True), \
-         patch.object(BookCommands, "_add_book_to_work") as mock_add_book:
-        
+    with (
+        patch("books.books.console.print"),
+        patch.object(BookCommands, "_find_work", return_value=sample_work),
+        patch("typer.confirm", return_value=True),
+        patch.object(BookCommands, "_add_book_to_work") as mock_add_book,
+    ):
+
         result = runner.invoke(
-            app, 
-            ["add", "sample work", "test author", "--pages", "350", 
-             "--format", "ebook", "--isbn", "9780987654321"]
+            app,
+            [
+                "add",
+                "sample work",
+                "test author",
+                "--pages",
+                "350",
+                "--format",
+                "ebook",
+                "--isbn",
+                "9780987654321",
+            ],
         )
-        
+
         mock_add_book.assert_called_once()
         call_args = mock_add_book.call_args[1]
         assert call_args["work"] == sample_work
@@ -199,52 +231,61 @@ def test_add_command_existing_work(mock_session, sample_work):
 
 def test_add_command_existing_work_no_book(mock_session, sample_work):
     """Test the add command when work exists but no book is added."""
-    with patch("books.books.console.print"), \
-         patch.object(BookCommands, "_find_work", return_value=sample_work):
-        
-        result = runner.invoke(
-            app, 
-            ["add", "sample work", "test author"]
-        )
-        
+    with (
+        patch("books.books.console.print"),
+        patch.object(BookCommands, "_find_work", return_value=sample_work),
+    ):
+
+        result = runner.invoke(app, ["add", "sample work", "test author"])
+
         assert result.exit_code == 0
 
 
 def test_add_book_command_work_not_found_abort(mock_session):
     """Test add_book when work not found and user aborts."""
-    with patch("books.books.console.print"), \
-         patch.object(BookCommands, "_find_work", return_value=None), \
-         patch("typer.confirm", return_value=False):
-        
+    with (
+        patch("books.books.console.print"),
+        patch.object(BookCommands, "_find_work", return_value=None),
+        patch("typer.confirm", return_value=False),
+    ):
+
         result = runner.invoke(
-            app, 
-            ["add-book", "unknown work", "unknown author", "--pages", "100"]
+            app, ["add-book", "unknown work", "unknown author", "--pages", "100"]
         )
-        
+
         assert result.exit_code == 0
 
 
 def test_add_work_command_new(mock_session):
     """Test the add_work command for a new work."""
-    with patch("books.books.console.print"), \
-         patch.object(BookCommands, "_find_work", return_value=None):
-        
+    with (
+        patch("books.books.console.print"),
+        patch.object(BookCommands, "_find_work", return_value=None),
+    ):
+
         result = runner.invoke(
-            app, 
-            ["add-work", "new work", "new author", "--year", "2021", "--genre", "history"]
+            app,
+            [
+                "add-work",
+                "new work",
+                "new author",
+                "--year",
+                "2021",
+                "--genre",
+                "history",
+            ],
         )
-        
+
         assert result.exit_code == 0
 
 
 def test_add_work_command_existing(mock_session, sample_work):
     """Test the add_work command when work already exists."""
-    with patch("books.books.console.print"), \
-         patch.object(BookCommands, "_find_work", return_value=sample_work):
-        
-        result = runner.invoke(
-            app, 
-            ["add-work", "sample work", "test author"]
-        )
-        
+    with (
+        patch("books.books.console.print"),
+        patch.object(BookCommands, "_find_work", return_value=sample_work),
+    ):
+
+        result = runner.invoke(app, ["add-work", "sample work", "test author"])
+
         assert result.exit_code == 1

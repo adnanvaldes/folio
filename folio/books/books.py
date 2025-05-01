@@ -9,7 +9,7 @@ from rich.table import Table
 from sqlmodel import select
 
 # Folio imports
-from db import _get_session
+from db.db import _get_session
 from books.args import BookFormat, WorkArguments, BookArguments
 from books.models import Book, Work, Review
 from utils import validate_isbn, lowercase_args
