@@ -10,7 +10,8 @@ from sqlmodel import select
 
 # Folio imports
 from db.db import _get_session
-from books.args import BookFormat, WorkArguments, BookArguments
+from db.query_builder import QueryBuilder as query
+from books.args import BookFormat, WorkArguments, BookArguments, SearchArguments
 from books.models import Book, Work, Review
 from utils import validate_isbn, lowercase_args
 
@@ -151,7 +152,21 @@ class BookCommands:
     @staticmethod
     @lowercase_args
     @app.command()
-    def search():
+    def search(
+        title: SearchArguments.title = None,
+        author: SearchArguments.author = None,
+        year: SearchArguments.year = None,
+        year_from: SearchArguments.year_from = None,
+        year_to: SearchArguments.year_to = None,
+        genre: SearchArguments.genre = None,
+        is_read: SearchArguments.is_read = True,
+        pages: SearchArguments.pages = None,
+        pages_min: SearchArguments.pages_min = None,
+        pages_max: SearchArguments.pages_max = None,
+        format: SearchArguments.format = None,
+        isbn: SearchArguments.isbn = None,
+        limit: SearchArguments.limit = None,
+    ):
         """TODO: Not implemented"""
         pass
 
