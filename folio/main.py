@@ -1,6 +1,6 @@
 import typer
 
-from db import engine, SQLModel, create_db_and_tables
+from db.db import engine, SQLModel, create_db_and_tables
 from books import books
 
 app = typer.Typer()
