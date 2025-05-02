@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from typer.testing import CliRunner
 import typer
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 from sqlmodel.pool import StaticPool
 
 import sys
@@ -131,7 +131,7 @@ def test_create_work_and_book(session):
     assert work.title == "new work"
     assert work.author == "new author"
 
-    books = session.query(Book).filter(Book.work_id == work.id).all()
+    books = session.exec(select(Book).where(Book.work_id == work.id)).all()
     assert len(books) == 1
     assert books[0].pages == 250
     assert books[0].format == "print"
@@ -156,7 +156,7 @@ def test_create_work_without_book(session):
     assert work is not None
     assert work.title == "work only"
 
-    books = session.query(Book).filter(Book.work_id == work.id).all()
+    books = session.exec(select(Book).where(Book.work_id == work.id)).all()
     assert len(books) == 0
 
 
