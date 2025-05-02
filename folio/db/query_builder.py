@@ -29,7 +29,7 @@ class QueryBuilder(Generic[T]):
             self.filters_applied += 1
         return self
 
-    def range(
+    def range_filter(
         self,
         field,
         min_value: int | None = None,
@@ -39,19 +39,16 @@ class QueryBuilder(Generic[T]):
         if exact_value is not None:
             self.query = self.query.where(col(field) == exact_value)
             self.filters_applied += 1
+        else:
+            conditions = []
+            if min_value is not None:
+                conditions.append(col(field) >= min_value)
+            if max_value is not None:
+                conditions.append(col(field) <= max_value)
 
-        elif min_value and max_value:
-            # Use inclusive values
-            self.query = self.query.where(
-                and_(col(field) >= min_value, col(field) <= max_value)
-            )
-            self.filters_applied += 1
-        elif min_value:
-            self.query = self.query.where(col(field) >= min_value)
-            self.filters_applied += 1
-        elif max_value:
-            self.query = self.query.where(col(field) <= max_value)
-            self.filters_applied += 1
+            if conditions:
+                self.query = self.query.where(and_(*conditions))
+                self.filters_applied += 1
         return self
 
     def reset(self):
