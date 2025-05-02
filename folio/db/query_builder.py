@@ -38,7 +38,6 @@ class QueryBuilder(Generic[T]):
     ):
         if exact_value is not None:
             self.query = self.query.where(col(field) == exact_value)
-            print(self.query)
             self.filters_applied += 1
 
         elif min_value and max_value:
@@ -46,7 +45,6 @@ class QueryBuilder(Generic[T]):
             self.query = self.query.where(
                 and_(col(field) >= min_value, col(field) <= max_value)
             )
-            print(self.query)
             self.filters_applied += 1
         elif min_value:
             self.query = self.query.where(col(field) >= min_value)
@@ -61,7 +59,7 @@ class QueryBuilder(Generic[T]):
         self.filters_applied = 0
         return self
 
-    def get_results(self, limit: int | None = None):
+    def run(self, limit: int | None = None):
         if limit:
             self.query = self.query.limit(limit)
         return self.session.exec(self.query).all()
