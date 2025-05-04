@@ -1,5 +1,5 @@
 from typing import TypeVar, Generic, Type, Any
-from sqlmodel import SQLModel, Session, select, func, and_, col
+from sqlmodel import SQLModel, Session, select, func, and_, or_, col
 
 
 T = TypeVar("T", bound=SQLModel)
@@ -14,12 +14,14 @@ class QueryBuilder(Generic[T]):
         self.query: select = select(model)
         self.filters_applied = 0
 
-    def text_filter(self, field, value: str | None, partial: bool = True):
+    def text_filter(self, field, value: list[str] | None, partial: bool = True):
         if value:
+            value = [v.lower() for v in value]
             if partial:
-                self.query = self.query.where(col(field).ilike(f"%{value.lower()}%"))
+                conditions = [col(field).ilike(f"%{v}%") for v in value if v]
+                self.query = self.query.where(or_(*conditions))
             else:
-                self.query = self.query.where(func.lower(col(field)) == value.lower())
+                self.query = self.query.where(func.lower(col(field)).in_(value))
             self.filters_applied += 1
         return self
 
@@ -37,10 +39,10 @@ class QueryBuilder(Generic[T]):
         field,
         min_value: int | None = None,
         max_value: int | None = None,
-        exact_value: int | None = None,
+        exact_value: list[int] | None = None,
     ):
         if exact_value is not None:
-            self.query = self.query.where(col(field) == exact_value)
+            self.query = self.query.where(col(field).in_(exact_value))
             self.filters_applied += 1
         else:
             conditions = []

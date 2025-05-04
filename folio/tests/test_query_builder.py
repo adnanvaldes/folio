@@ -45,14 +45,14 @@ def session():
 
 def test_text_exact_match(session):
     qb = QueryBuilder(session, BookTest)
-    results = qb.text_filter(BookTest.title, "foundation").run()
+    results = qb.text_filter(BookTest.title, ["foundation"]).run()
     assert len(results) == 1
     assert results[0].author == "Isaac Asimov"
 
 
 def test_text_partial_match(session):
     qb = QueryBuilder(session, BookTest)
-    results = qb.text_filter(BookTest.title, "dun", partial=True).run()
+    results = qb.text_filter(BookTest.title, ["dun"], partial=True).run()
     assert len(results) == 1
     assert results[0].title == "Dune"
 
@@ -85,9 +85,9 @@ def test_range_min_max(session):
 
 def test_range_exact_val(session):
     qb = QueryBuilder(session, BookTest)
-    res_1 = qb.range_filter(BookTest.year, exact_value=2000).run()
+    res_1 = qb.range_filter(BookTest.year, exact_value=[2000]).run()
     qb.reset()
-    res_2 = qb.range_filter(BookTest.year, exact_value=1984).run()
+    res_2 = qb.range_filter(BookTest.year, exact_value=[1984]).run()
 
     assert len(res_1) == 0
     assert len(res_2) == 1
@@ -96,7 +96,7 @@ def test_range_exact_val(session):
 def test_reset(session):
     qb = QueryBuilder(session, BookTest)
 
-    results_1 = qb.range_filter(BookTest.year, exact_value=1984).run()
+    results_1 = qb.range_filter(BookTest.year, exact_value=[1984]).run()
     assert qb.filters_applied == 1
 
     qb.reset()
