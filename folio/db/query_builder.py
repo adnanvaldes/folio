@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Type
+from typing import TypeVar, Generic, Type, Any
 from sqlmodel import SQLModel, Session, select, func, and_, col
 
 
@@ -23,11 +23,14 @@ class QueryBuilder(Generic[T]):
             self.filters_applied += 1
         return self
 
-    def exact_match(self, field, value: str | None):
-        if value:
+    def exact_match(self, field, value: Any = None):
+        if value is not None:
             self.query = self.query.where(col(field) == value)
             self.filters_applied += 1
         return self
+
+    def boolean_filter(self, field, value: bool | None = None):
+        return self.exact_match(field=field, value=value)
 
     def range_filter(
         self,
