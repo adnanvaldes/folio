@@ -418,7 +418,7 @@ def test_search_by_year_exact(mock_session, search_data):
 
 
 def test_search_by_year_exact_multiple(mock_session, search_data):
-    """Test searching by exact year."""
+    """Test searching by multiple exact years."""
     with patch("books.books.console.print"):
         result = BookCommands.search(year=[1937, 1988])
         assert len(result) == 2
