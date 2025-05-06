@@ -411,10 +411,17 @@ def test_search_by_author(mock_session, search_data):
 def test_search_by_year_exact(mock_session, search_data):
     """Test searching by exact year."""
     with patch("books.books.console.print"):
-        result = BookCommands.search(year=1937)
+        result = BookCommands.search(year=[1937])
         assert len(result) == 1
         assert result[0].title == "the hobbit"
         assert result[0].year == 1937
+
+
+def test_search_by_year_exact_multiple(mock_session, search_data):
+    """Test searching by exact year."""
+    with patch("books.books.console.print"):
+        result = BookCommands.search(year=[1937, 1988])
+        assert len(result) == 2
 
 
 def test_search_by_year_range(mock_session, search_data):
@@ -468,7 +475,7 @@ def test_search_by_read_status(mock_session, search_data):
 def test_search_by_pages_exact(mock_session, search_data):
     """Test searching by exact page count."""
     with patch("books.books.console.print"):
-        result = BookCommands.search(pages=496)
+        result = BookCommands.search(pages=[496])
         assert len(result) == 1
         assert result[0].title == "project hail mary"
 
