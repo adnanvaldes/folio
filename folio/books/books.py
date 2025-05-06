@@ -156,10 +156,10 @@ class BookCommands:
         title: SearchArguments.title = None,
         author: SearchArguments.author = None,
         year: SearchArguments.year = None,
-        year_from: SearchArguments.year_from = None,
-        year_to: SearchArguments.year_to = None,
+        year_min: SearchArguments.year_from = None,
+        year_max: SearchArguments.year_to = None,
         genre: SearchArguments.genre = None,
-        is_read: SearchArguments.is_read = True,
+        is_read: SearchArguments.is_read = None,
         pages: SearchArguments.pages = None,
         pages_min: SearchArguments.pages_min = None,
         pages_max: SearchArguments.pages_max = None,
@@ -167,8 +167,34 @@ class BookCommands:
         isbn: SearchArguments.isbn = None,
         limit: SearchArguments.limit = None,
     ):
-        """TODO: Not implemented"""
-        pass
+
+        from db.query_builder import QueryBuilder as Query
+
+        with _get_session() as session:
+            query = (
+                Query(session=session, model=Work)
+                .join(Book)
+                .text_filter(Work.title, title)
+                .text_filter(Work.author, author)
+                .range_filter(
+                    Work.year,
+                    min_value=year_min,
+                    max_value=year_max,
+                    exact_value=year,
+                )
+                .text_filter(Work.genre, genre)
+                .boolean_filter(Work.is_read, is_read)
+                .range_filter(
+                    Book.pages,
+                    min_value=pages_min,
+                    max_value=pages_max,
+                    exact_value=pages,
+                )
+                .text_filter(Book.format, format)
+                .exact_match(Book.isbn, value=isbn)
+            )
+
+            return query.run(limit=limit)
 
     @staticmethod
     @app.command()
