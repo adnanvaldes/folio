@@ -118,11 +118,15 @@ class SearchArguments:
     ]
     work_id = Annotated[
         Optional[int],
-        Option("--work", "-w", help="ID of the work in database", show_default=False),
+        Option(
+            "--work-id", "-wid", help="ID of the work in database", show_default=False
+        ),
     ]
     book_id = Annotated[
         Optional[int],
-        Option("--book", "-b", help="ID of the book in database", show_default=False),
+        Option(
+            "--book-id", "-bid", help="ID of the book in database", show_default=False
+        ),
     ]
     limit = Annotated[
         int,
