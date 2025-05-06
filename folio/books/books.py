@@ -165,6 +165,8 @@ class BookCommands:
         pages_max: SearchArguments.pages_max = None,
         format: SearchArguments.format = None,
         isbn: SearchArguments.isbn = None,
+        work_id: SearchArguments.work_id = None,
+        book_id: SearchArguments.book_id = None,
         limit: SearchArguments.limit = None,
     ):
 
@@ -192,14 +194,16 @@ class BookCommands:
                 )
                 .text_filter(Book.format, format)
                 .exact_match(Book.isbn, value=isbn)
+                .exact_match(Work.id, work_id)
+                .exact_match(Book.id, book_id)
             )
 
             return query.run(limit=limit)
 
     @staticmethod
     @app.command()
-    def update():
-        """TODO: Not implemented"""
+    def update(**kwargs):
+        BookCommands.search(**kwargs)
         pass
 
     @staticmethod

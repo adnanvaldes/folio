@@ -113,8 +113,16 @@ class SearchArguments:
         ),
     ]
     isbn = Annotated[
-        Optional[List[str]],
+        Optional[str],
         Option("--isbn", "-i", help="ISBN-13 of the book", show_default=False),
+    ]
+    work_id = Annotated[
+        Optional[int],
+        Option("--work", "-w", help="ID of the work in database", show_default=False),
+    ]
+    book_id = Annotated[
+        Optional[int],
+        Option("--book", "-b", help="ID of the book in database", show_default=False),
     ]
     limit = Annotated[
         int,
