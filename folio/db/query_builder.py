@@ -16,6 +16,8 @@ class QueryBuilder(Generic[T]):
 
     def text_filter(self, field, value: list[str] | None, partial: bool = True):
         if value:
+            if isinstance(value, str):
+                value = [value]
             value = [v.lower() for v in value]
             if partial:
                 conditions = [col(field).ilike(f"%{v}%") for v in value if v]
@@ -42,6 +44,8 @@ class QueryBuilder(Generic[T]):
         exact_value: list[int] | None = None,
     ):
         if exact_value is not None:
+            if not isinstance(exact_value, (list, tuple)):
+                exact_value = [exact_value]
             self.query = self.query.where(col(field).in_(exact_value))
             self.filters_applied += 1
         else:
@@ -56,12 +60,35 @@ class QueryBuilder(Generic[T]):
                 self.filters_applied += 1
         return self
 
+    def join(
+        self,
+        target_model: Type[SQLModel],
+        on_condition=None,
+        outer_join: bool = False,
+        full_join: bool = False,
+    ):
+
+        if full_join:
+            self.query = self.query.outerjoin(target_model, on_condition, full=True)
+        elif outer_join:
+            self.query = self.query.outerjoin(target_model, on_condition)
+        else:
+            self.query = self.query.join(target_model, on_condition)
+
+        return self
+
     def reset(self):
         self.query = select(self.model)
         self.filters_applied = 0
         return self
 
-    def run(self, limit: int | None = None):
+    def run(self, limit: int | None = None, distinct: bool = True):
         if limit:
             self.query = self.query.limit(limit)
+
+        if distinct:
+            self.query = self.query.distinct()
+
+        # To avoid returning blank records
+        self.query = self.query.where(col(self.model.id).isnot(None))
         return self.session.exec(self.query).all()
