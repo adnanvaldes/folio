@@ -28,7 +28,7 @@ class QueryBuilder(Generic[T]):
         return self
 
     def exact_match(self, field, value: Any = None):
-        if value is not None:
+        if value is not None and isinstance(value, (str, int)):
             self.query = self.query.where(col(field) == value)
             self.filters_applied += 1
         return self
@@ -44,8 +44,6 @@ class QueryBuilder(Generic[T]):
         exact_value: list[int] | None = None,
     ):
         if exact_value is not None:
-            if not isinstance(exact_value, (list, tuple)):
-                exact_value = [exact_value]
             self.query = self.query.where(col(field).in_(exact_value))
             self.filters_applied += 1
         else:
