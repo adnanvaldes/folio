@@ -296,31 +296,3 @@ class BookCommands:
             else:
                 console.print("Exiting...")
                 raise typer.Abort()
-
-    # @staticmethod
-    # @app.command()
-    # def search_books(
-    #     search_term: BookArguments.search_term,
-    #     limit: BookArguments.limit = 10,
-    # ):
-    #     """Search for books in the collection"""
-    #     # Logic to search books
-    #     console.print(f"Searching for '{search_term}' (limit: {limit})")
-
-    # @staticmethod
-    # @app.command()
-    # def update_book(
-    #     title: BookArguments.title,
-    #     author: Optional[BookArguments.author] = None,
-    #     genre: Optional[BookArguments.genre] = None,
-    #     is_read: Optional[BookArguments.is_read] = None,
-    # ):
-    #     """Update an existing book in the collection"""
-    #     # Logic to update a book
-    #     console.print(f"Updating book: {title.capitalize()}")
-    #     if author:
-    #         console.print(f"New author: {author.title()}")
-    #     if genre:
-    #         console.print(f"New genre: {genre}")
-    #     if is_read is not None:
-    #         console.print(f"Read status: {is_read}")
