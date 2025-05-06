@@ -16,7 +16,7 @@ from books.models import Book, Work, Review
 from utils import validate_isbn, lowercase_args
 
 
-app = typer.Typer(help="Book collection manager")
+app = typer.Typer(help="Book collection manager", no_args_is_help=True)
 console = Console()
 
 
