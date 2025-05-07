@@ -15,11 +15,11 @@ class WorkArguments:
 
     title = Annotated[
         str,
-        Argument(help="Title of the work", show_default=False),
+        Option("--title", "-t", help="Title of the work", show_default=False),
     ]
     author = Annotated[
         str,
-        Argument(help="Author of the work", show_default=False),
+        Option("--author", "-a", help="Author of the work", show_default=False),
     ]
     year = Annotated[
         int,

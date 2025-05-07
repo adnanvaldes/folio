@@ -172,7 +172,9 @@ def test_add_command_new_work(mock_session):
             app,
             [
                 "add",
+                "-t",
                 "new book",
+                "-a",
                 "new author",
                 "--year",
                 "2023",
@@ -211,7 +213,9 @@ def test_add_command_existing_work(mock_session, sample_work):
             app,
             [
                 "add",
+                "-t",
                 "sample work",
+                "-a",
                 "test author",
                 "--pages",
                 "350",
@@ -236,7 +240,7 @@ def test_add_command_existing_work_no_book(mock_session, sample_work):
         patch.object(BookCommands, "_find_work", return_value=sample_work),
     ):
 
-        result = runner.invoke(app, ["add", "sample work", "test author"])
+        result = runner.invoke(app, ["add", "-t", "sample work", "-a", "test author"])
 
         assert result.exit_code == 0
 
@@ -250,7 +254,16 @@ def test_add_book_command_work_not_found_abort(mock_session):
     ):
 
         result = runner.invoke(
-            app, ["add-book", "unknown work", "unknown author", "--pages", "100"]
+            app,
+            [
+                "add-book",
+                "-t",
+                "unknown work",
+                "-a",
+                "unknown author",
+                "--pages",
+                "100",
+            ],
         )
 
         assert result.exit_code == 0
@@ -267,7 +280,9 @@ def test_add_work_command_new(mock_session):
             app,
             [
                 "add-work",
+                "-t",
                 "new work",
+                "-a",
                 "new author",
                 "--year",
                 "2021",
@@ -286,7 +301,9 @@ def test_add_work_command_existing(mock_session, sample_work):
         patch.object(BookCommands, "_find_work", return_value=sample_work),
     ):
 
-        result = runner.invoke(app, ["add-work", "sample work", "test author"])
+        result = runner.invoke(
+            app, ["add-work", "-t", "sample work", "-a", "test author"]
+        )
 
         assert result.exit_code == 1
 
