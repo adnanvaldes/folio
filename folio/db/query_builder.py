@@ -15,12 +15,15 @@ class QueryBuilder(Generic[T]):
         self.filters_applied = 0
 
     def text_filter(self, field, value: list[str] | None, partial: bool = True):
+        # Always searches in lowercase
         if value:
             if isinstance(value, str):
                 value = [value]
             value = [v.lower() for v in value]
             if partial:
-                conditions = [col(field).ilike(f"%{v}%") for v in value if v]
+                conditions = [
+                    func.lower(col(field)).ilike(f"%{v}%") for v in value if v
+                ]
                 self.query = self.query.where(or_(*conditions))
             else:
                 self.query = self.query.where(func.lower(col(field)).in_(value))
