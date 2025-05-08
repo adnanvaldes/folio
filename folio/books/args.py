@@ -10,7 +10,7 @@ class BookFormat(str, Enum):
     audio = "audiobook"
 
 
-class WorkArguments:
+class WorkArgs:
     """Class to store argument definitions for work-related commands"""
 
     title = Annotated[
@@ -44,7 +44,7 @@ class WorkArguments:
     ]
 
 
-class BookArguments:
+class BookArgs:
     """Class to store argument definitions for book-related commands"""
 
     pages = Annotated[
@@ -67,8 +67,12 @@ class BookArguments:
     add_book = Annotated[bool, Option(help="Associate work with book a in database")]
 
 
-class SearchArguments(WorkArguments, BookArguments):
-    """Class to store argument definitions for search-related commands. Inherits all arguments from WorkArguments and BookArguments."""
+class CreateArgs(WorkArgs, BookArgs):
+    """Class to store argument definitions for add-related commands"""
+
+
+class SearchArgs(WorkArgs, BookArgs):
+    """Class to store argument definitions for search-related commands. Inherits all arguments from WorkArgs and BookArgs."""
 
     year_from = Annotated[
         Optional[int],
@@ -115,3 +119,7 @@ class SearchArguments(WorkArguments, BookArguments):
             show_default=False,
         ),
     ]
+
+
+class UpdateArgs(SearchArgs):
+    pass
