@@ -159,6 +159,7 @@ class BookCommands:
         work_id: SearchArgs.work_id = None,
         book_id: SearchArgs.book_id = None,
         limit: SearchArgs.limit = None,
+        _return_session: SearchArgs._return_session = False,
     ):
 
         from db.query_builder import QueryBuilder as Query
@@ -189,7 +190,10 @@ class BookCommands:
                 .exact_match(Book.id, book_id)
             )
 
-            return query.run(limit=limit)
+            if _return_session:
+                return session, query.run(limit=limit)
+            else:
+                return query.run(limit=limit)
 
     @staticmethod
     @app.command()
