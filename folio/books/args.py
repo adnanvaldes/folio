@@ -124,7 +124,7 @@ class SearchArgs(WorkArgs, BookArgs):
 
 
 class UpdateArgs:
-    """Class to store argument definitions for add-related commands"""
+    """Class to store argument definitions for update-related commands"""
 
     set_title = Annotated[
         str,
