@@ -11,7 +11,11 @@ from sqlmodel import select
 # Folio imports
 from db.db import _get_session
 from db.query_builder import QueryBuilder as query
-from books.args import BookFormat, WorkArguments, BookArguments, SearchArguments
+from books.args import (
+    BookFormat,
+    SearchArgs,
+    CreateArgs,
+)
 from books.models import Book, Work, Review
 from utils import validate_isbn, lowercase_args
 
@@ -27,15 +31,15 @@ class BookCommands:
     @app.command()
     @lowercase_args
     def add(
-        title: WorkArguments.title,
-        author: WorkArguments.author,
-        year: WorkArguments.year = None,
-        genre: WorkArguments.genre = None,
-        pages: BookArguments.pages = None,
-        format: BookArguments.format = None,
-        isbn: BookArguments.isbn = None,
-        is_read: WorkArguments.is_read = True,
-        add_book: BookArguments.add_book = True,
+        title: CreateArgs.title,
+        author: CreateArgs.author,
+        year: CreateArgs.year = None,
+        genre: CreateArgs.genre = None,
+        pages: CreateArgs.pages = None,
+        format: CreateArgs.format = None,
+        isbn: CreateArgs.isbn = None,
+        is_read: CreateArgs.is_read = True,
+        add_book: CreateArgs.add_book = True,
     ):
         """Add a new work (and book) to the collection"""
         with _get_session() as session:
@@ -81,11 +85,11 @@ class BookCommands:
     @app.command()
     @lowercase_args
     def add_book(
-        title: WorkArguments.title,
-        author: WorkArguments.author,
-        pages: BookArguments.pages = None,
-        format: BookArguments.format = None,
-        isbn: BookArguments.isbn = None,
+        title: CreateArgs.title,
+        author: CreateArgs.author,
+        pages: CreateArgs.pages = None,
+        format: CreateArgs.format = None,
+        isbn: CreateArgs.isbn = None,
     ):
         """Add a book instance to an existing work, or create a new work if needed"""
         with _get_session() as session:
@@ -118,11 +122,11 @@ class BookCommands:
     @app.command()
     @lowercase_args
     def add_work(
-        title: WorkArguments.title,
-        author: WorkArguments.author,
-        year: WorkArguments.year = None,
-        genre: WorkArguments.genre = None,
-        is_read: WorkArguments.is_read = True,
+        title: CreateArgs.title,
+        author: CreateArgs.author,
+        year: CreateArgs.year = None,
+        genre: CreateArgs.genre = None,
+        is_read: CreateArgs.is_read = True,
     ):
         """Add a new work to the collection"""
         with _get_session() as session:
@@ -153,21 +157,21 @@ class BookCommands:
     @lowercase_args
     @app.command()
     def search(
-        title: SearchArguments.title = None,
-        author: SearchArguments.author = None,
-        year: SearchArguments.year = None,
-        year_min: SearchArguments.year_from = None,
-        year_max: SearchArguments.year_to = None,
-        genre: SearchArguments.genre = None,
-        is_read: SearchArguments.is_read = None,
-        pages: SearchArguments.pages = None,
-        pages_min: SearchArguments.pages_min = None,
-        pages_max: SearchArguments.pages_max = None,
-        format: SearchArguments.format = None,
-        isbn: SearchArguments.isbn = None,
-        work_id: SearchArguments.work_id = None,
-        book_id: SearchArguments.book_id = None,
-        limit: SearchArguments.limit = None,
+        title: SearchArgs.title = None,
+        author: SearchArgs.author = None,
+        year: SearchArgs.year = None,
+        year_min: SearchArgs.year_from = None,
+        year_max: SearchArgs.year_to = None,
+        genre: SearchArgs.genre = None,
+        is_read: SearchArgs.is_read = None,
+        pages: SearchArgs.pages = None,
+        pages_min: SearchArgs.pages_min = None,
+        pages_max: SearchArgs.pages_max = None,
+        format: SearchArgs.format = None,
+        isbn: SearchArgs.isbn = None,
+        work_id: SearchArgs.work_id = None,
+        book_id: SearchArgs.book_id = None,
+        limit: SearchArgs.limit = None,
     ):
 
         from db.query_builder import QueryBuilder as Query
@@ -202,8 +206,24 @@ class BookCommands:
 
     @staticmethod
     @app.command()
-    def update(**kwargs):
-        BookCommands.search(**kwargs)
+    def update(
+        title: SearchArgs.title = None,
+        author: SearchArgs.author = None,
+        year: SearchArgs.year = None,
+        year_min: SearchArgs.year_from = None,
+        year_max: SearchArgs.year_to = None,
+        genre: SearchArgs.genre = None,
+        is_read: SearchArgs.is_read = None,
+        pages: SearchArgs.pages = None,
+        pages_min: SearchArgs.pages_min = None,
+        pages_max: SearchArgs.pages_max = None,
+        format: SearchArgs.format = None,
+        isbn: SearchArgs.isbn = None,
+        work_id: SearchArgs.work_id = None,
+        book_id: SearchArgs.book_id = None,
+    ):
+        results = BookCommands.search(**locals())
+
         pass
 
     @staticmethod
@@ -214,7 +234,7 @@ class BookCommands:
 
     @staticmethod
     @lowercase_args
-    def _find_work(session, title: WorkArguments.title, author: WorkArguments.author):
+    def _find_work(session, title: SearchArgs.title, author: SearchArgs.author):
         """Find a work by title and author"""
         return session.exec(
             select(Work).where(
@@ -225,15 +245,15 @@ class BookCommands:
     @staticmethod
     def _create_work_and_book(
         session,
-        title: WorkArguments.title,
-        author: WorkArguments.author,
-        year: WorkArguments.year = None,
-        genre: WorkArguments.genre = None,
-        is_read: WorkArguments.is_read = True,
-        add_book: BookArguments.add_book = True,
-        pages: BookArguments.pages = None,
-        format: BookArguments.format = None,
-        isbn: BookArguments.isbn = None,
+        title: CreateArgs.title,
+        author: CreateArgs.author,
+        year: CreateArgs.year = None,
+        genre: CreateArgs.genre = None,
+        is_read: CreateArgs.is_read = True,
+        add_book: CreateArgs.add_book = True,
+        pages: CreateArgs.pages = None,
+        format: CreateArgs.format = None,
+        isbn: CreateArgs.isbn = None,
     ):
         """Create a new work, optionally add a book"""
         work = Work(title=title, author=author, year=year, genre=genre, is_read=is_read)
@@ -267,9 +287,9 @@ class BookCommands:
     def _add_book_to_work(
         session,
         work,
-        pages: BookArguments.pages,
-        format: BookArguments.format,
-        isbn: BookArguments.isbn,
+        pages: CreateArgs.pages,
+        format: CreateArgs.format,
+        isbn: CreateArgs.isbn,
     ):
         """Add a new  book to an existing work"""
         if any([pages, format, isbn]):
