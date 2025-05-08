@@ -81,6 +81,10 @@ class QueryBuilder(Generic[T]):
         return self
 
     def run(self, limit: int | None = None, distinct: bool = True):
+        if self.filters_applied == 0:
+            print("No filters applied. Query aborted")
+            return []
+
         if limit:
             self.query = self.query.limit(limit)
 
