@@ -122,4 +122,63 @@ class SearchArgs(WorkArgs, BookArgs):
 
 
 class UpdateArgs(SearchArgs):
-    pass
+    """Class to store argument definitions for add-related commands"""
+
+    set_title = Annotated[
+        str,
+        Option(
+            "--set-title", "-st", help="Set new title of the work", show_default=False
+        ),
+    ]
+    set_author = Annotated[
+        str,
+        Option(
+            "--set-author", "-sa", help="Set new author of the work", show_default=False
+        ),
+    ]
+    set_year = Annotated[
+        int,
+        Option(
+            "--set-year",
+            "-sy",
+            help="Set mew year written (use negative int for BCE)",
+            show_default=False,
+        ),
+    ]
+    set_genre = Annotated[
+        str,
+        Option(
+            "--set-genre", "-sg", help="Set new genre of the work", show_default=False
+        ),
+    ]
+    set_is_read = Annotated[
+        bool,
+        Option(
+            "--set-is-read/--set-no-read",
+            "-sr/-SR",
+            help="Set new read status",
+            show_default=False,
+        ),
+    ]
+    set_pages = Annotated[
+        int,
+        Option(
+            "--set-pages", "-sp", help="Set new number of pages", show_default=False
+        ),
+    ]
+    set_format = Annotated[
+        BookFormat,
+        Option(
+            "--set-format",
+            "-sf",
+            case_sensitive=False,
+            help="Set new format/medium of the book",
+            show_default=False,
+        ),
+    ]
+    set_isbn = Annotated[
+        str,
+        Option(
+            "--set-isbn", "-si", help="Set new ISBN-13 of the book", show_default=False
+        ),
+    ]

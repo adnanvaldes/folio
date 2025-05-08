@@ -11,11 +11,7 @@ from sqlmodel import select
 # Folio imports
 from db.db import _get_session
 from db.query_builder import QueryBuilder as query
-from books.args import (
-    BookFormat,
-    SearchArgs,
-    CreateArgs,
-)
+from books.args import BookFormat, SearchArgs, CreateArgs, UpdateArgs
 from books.models import Book, Work, Review
 from utils import validate_isbn, lowercase_args
 
@@ -207,6 +203,8 @@ class BookCommands:
     @staticmethod
     @app.command()
     def update(
+        work_id: SearchArgs.work_id = None,
+        book_id: SearchArgs.book_id = None,
         title: SearchArgs.title = None,
         author: SearchArgs.author = None,
         year: SearchArgs.year = None,
@@ -219,8 +217,15 @@ class BookCommands:
         pages_max: SearchArgs.pages_max = None,
         format: SearchArgs.format = None,
         isbn: SearchArgs.isbn = None,
-        work_id: SearchArgs.work_id = None,
-        book_id: SearchArgs.book_id = None,
+        # Update arguments
+        set_title: UpdateArgs.set_title = None,
+        set_author: UpdateArgs.set_author = None,
+        set_year: UpdateArgs.set_year = None,
+        set_genre: UpdateArgs.set_genre = None,
+        set_is_read: UpdateArgs.set_is_read = None,
+        set_pages: UpdateArgs.set_pages = None,
+        set_format: UpdateArgs.set_format = None,
+        set_isbn: UpdateArgs.set_isbn = None,
     ):
         results = BookCommands.search(**locals())
 
