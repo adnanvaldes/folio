@@ -25,7 +25,6 @@ class BookCommands:
 
     @staticmethod
     @app.command()
-    @lowercase_args
     def add(
         title: CreateArgs.title,
         author: CreateArgs.author,
@@ -47,9 +46,7 @@ class BookCommands:
             existing_work = BookCommands._find_work(session, title, author)
 
             if existing_work:
-                console.print(
-                    f"{title.capitalize()} by {author.title()} already exists in the database."
-                )
+                console.print(f"{title} by {author} already exists in the database.")
 
                 if add_book and any([pages, format, isbn]):
                     if typer.confirm("Add book to existing work?"):
@@ -79,7 +76,6 @@ class BookCommands:
 
     @staticmethod
     @app.command()
-    @lowercase_args
     def add_book(
         title: CreateArgs.title,
         author: CreateArgs.author,
@@ -98,9 +94,7 @@ class BookCommands:
                 BookCommands._add_book_to_work(
                     session=session, work=work, pages=pages, format=format, isbn=isbn
                 )
-                console.print(
-                    f"Added {title.capitalize()} by {author.title()} book to database"
-                )
+                console.print(f"Added {title} by {author} book to database")
             else:
                 if typer.confirm("Work not found. Do you want to add it now?"):
                     BookCommands._create_work_and_book(
@@ -116,7 +110,6 @@ class BookCommands:
 
     @staticmethod
     @app.command()
-    @lowercase_args
     def add_work(
         title: CreateArgs.title,
         author: CreateArgs.author,
@@ -129,9 +122,7 @@ class BookCommands:
             # Check if work already exists
             work_exists = BookCommands.search(session, title=title, author=author)
             if work_exists:
-                console.print(
-                    f"{title.capitalize()} by {author.title()} already exists in the database."
-                )
+                console.print(f"{title} by {author} already exists in the database.")
                 console.print("No changes made.")
                 raise typer.Exit(code=1)
 
@@ -145,7 +136,7 @@ class BookCommands:
             )
             session.add(work)
             session.commit()
-            console.print(f"Added {title.capitalize()} by {author.title()} to database")
+            console.print(f"Added {title} by {author} to database")
 
             return work
 
@@ -203,8 +194,6 @@ class BookCommands:
     @staticmethod
     @app.command()
     def update(
-        work_id: SearchArgs.work_id = None,
-        book_id: SearchArgs.book_id = None,
         title: SearchArgs.title = None,
         author: SearchArgs.author = None,
         year: SearchArgs.year = None,
@@ -217,6 +206,8 @@ class BookCommands:
         pages_max: SearchArgs.pages_max = None,
         format: SearchArgs.format = None,
         isbn: SearchArgs.isbn = None,
+        work_id: SearchArgs.work_id = None,
+        book_id: SearchArgs.book_id = None,
         # Update arguments
         set_title: UpdateArgs.set_title = None,
         set_author: UpdateArgs.set_author = None,
@@ -227,9 +218,38 @@ class BookCommands:
         set_format: UpdateArgs.set_format = None,
         set_isbn: UpdateArgs.set_isbn = None,
     ):
-        results = BookCommands.search(**locals())
+        search_args = {
+            "title": title,
+            "author": author,
+            "year": year,
+            "year_min": year_min,
+            "year_max": year_max,
+            "genre": genre,
+            "is_read": is_read,
+            "pages": pages,
+            "pages_min": pages_min,
+            "pages_max": pages_max,
+            "format": format,
+            "isbn": isbn,
+            "work_id": work_id,
+            "book_id": book_id,
+        }
 
-        pass
+        if all(arg is None for arg in search_args.values()):
+            print("No filters applied. Search aborted")
+            return []
+
+        results = BookCommands.search(**search_args)
+        match len(results):
+            case 0:
+                print(f"No results found with \n{search_args}")
+                return []
+            case 1:
+                typer.confirm(
+                    f"Found {results[0].title} by {results[0].author}. Continue?"
+                )
+            case _:
+                print("Multiple")
 
     @staticmethod
     @app.command()
@@ -277,9 +297,7 @@ class BookCommands:
 
         session.commit()
 
-        console.print(
-            f"Added {title.capitalize()} by {author.title()} to collection (read: {is_read})"
-        )
+        console.print(f"Added {title} by {author} to collection (read: {is_read})")
         # Only print additional information if add_book was requested but not completed
         if add_book and not book:
             reason = (
