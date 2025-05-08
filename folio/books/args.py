@@ -120,8 +120,10 @@ class SearchArgs(WorkArgs, BookArgs):
         ),
     ]
 
+    _return_session = Annotated[bool, Option(hidden=True)]
 
-class UpdateArgs(SearchArgs):
+
+class UpdateArgs:
     """Class to store argument definitions for add-related commands"""
 
     set_title = Annotated[
