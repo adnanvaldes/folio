@@ -273,7 +273,7 @@ def test_add_work_command_new(mock_session):
     """Test the add_work command for a new work."""
     with (
         patch("books.books.console.print"),
-        patch.object(BookCommands, "_find_work", return_value=None),
+        patch.object(BookCommands, "search", return_value=None),
     ):
 
         result = runner.invoke(

@@ -127,7 +127,7 @@ class BookCommands:
         """Add a new work to the collection"""
         with _get_session() as session:
             # Check if work already exists
-            work_exists = BookCommands._find_work(session, title, author)
+            work_exists = BookCommands.search(session, title=title, author=author)
             if work_exists:
                 console.print(
                     f"{title.capitalize()} by {author.title()} already exists in the database."
@@ -240,7 +240,10 @@ class BookCommands:
     @staticmethod
     @lowercase_args
     def _find_work(session, title: SearchArgs.title, author: SearchArgs.author):
-        """Find a work by title and author"""
+        """
+        NOTE: DEPRECATED, use BookCommands.search instead.
+        Find a work by title and author
+        """
         return session.exec(
             select(Work).where(
                 Work.title == title.lower(), Work.author == author.lower()
