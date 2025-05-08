@@ -239,19 +239,49 @@ class BookCommands:
             "book_id": book_id,
         }
 
-        if all(arg is None for arg in search_args.values()):
-            print("No filters applied. Search aborted")
+        update_args = {
+            "set_title": "title",
+            "set_author": "author",
+            "set_year": "year",
+            "set_genre": "genre",
+            "set_is_read": "is_read",
+            "set_pages": "pages",
+            "set_format": "format",
+            "set_isbn": "isbn",
+        }
+
+        # Collect update values that aren't None
+        update_values = {
+            update_args[arg]: value
+            for arg, value in locals().items()
+            if arg in update_args and value is not None
+        }
+
+        # Check if any filters were provided prior to making a db query
+        if all(filter_value is None for filter_value in search_args.values()):
+            print("No filters provided. Search aborted")
             return []
 
-        results = BookCommands.search(**search_args)
+        # Likewise check that explicit update values were provided
+        if not update_values:
+            print("No update values provided. Update aborted.")
+            return []
+
+        session, results = BookCommands.search(**search_args, _return_session=True)
         match len(results):
             case 0:
                 print(f"No results found with \n{search_args}")
                 return []
             case 1:
-                typer.confirm(
-                    f"Found {results[0].title} by {results[0].author}. Continue?"
-                )
+                results = results[0]
+                if typer.confirm(
+                    f"Found {results.title} by {results.author}:\n{results}\nUpdate with {update_values}?"
+                ):
+                    with session:
+
+                        pass
+                    pass
+
             case _:
                 print("Multiple")
 
