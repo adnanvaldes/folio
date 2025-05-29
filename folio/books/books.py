@@ -276,15 +276,18 @@ class BookCommands:
                 print(f"No results found with \n{search_args}")
                 return []
             case 1:
-                results = results[0]
+                result = results[0]
                 if typer.confirm(
-                    f"Found {results.title} by {results.author}:\n{results}\nUpdate with {update_values}?"
+                    f"Found {result.title} by {result.author}:\n{result}\nUpdate with {update_values}?"
                 ):
                     with session:
-
-                        pass
-                    pass
-
+                        for field, value in update_values.items():
+                            setattr(result, field, value)
+                        session.add(result)
+                        session.commit()
+                        session.refresh(result)
+                        print(result)
+                        return result
             case _:
                 print("Multiple")
 
