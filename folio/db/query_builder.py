@@ -44,10 +44,10 @@ class QueryBuilder(Generic[T]):
         field,
         min_value: int | None = None,
         max_value: int | None = None,
-        exact_value: list[int] | None = None,
+        exact_value: int | None = None,
     ):
         if exact_value is not None:
-            self.query = self.query.where(col(field).in_(exact_value))
+            self.query = self.query.where(col(field) == exact_value)
             self.filters_applied += 1
         else:
             conditions = []
@@ -65,7 +65,7 @@ class QueryBuilder(Generic[T]):
         self,
         target_model: Type[SQLModel],
         on_condition=None,
-        outer_join: bool = False,
+        outer_join: bool = True,
         full_join: bool = False,
     ):
 
