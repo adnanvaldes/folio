@@ -190,10 +190,13 @@ class BookCommands:
                 .exact_match(Book.id, book_id)
             )
 
+            result = query.run(limit=limit)
+            print(result)
+
             if _return_session:
-                return session, query.run(limit=limit)
+                return session, result
             else:
-                return query.run(limit=limit)
+                return result
 
     @staticmethod
     @app.command()
