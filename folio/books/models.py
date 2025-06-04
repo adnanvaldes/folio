@@ -3,6 +3,7 @@ from sqlalchemy import UniqueConstraint
 from datetime import date
 from typing import List
 
+
 class Work(SQLModel, table=True):
     """
     Represents the abstract creative content of a book, independent of its physical form.
@@ -15,9 +16,8 @@ class Work(SQLModel, table=True):
         genre: The literary genre or category of the work
         is_read: Whether the work has been read (automatically set when reviewed)
     """
-    __table_args__ = (
-        UniqueConstraint("title", "author", name="unique_title_author"),
-    )
+
+    __table_args__ = (UniqueConstraint("title", "author", name="unique_title_author"),)
 
     id: int | None = Field(default=None, primary_key=True)
     title: str = Field(index=True)
@@ -49,6 +49,12 @@ class Book(SQLModel, table=True):
 
     work_id: int | None = Field(default=None, foreign_key="work.id", ondelete="CASCADE")
     work: Work | None = Relationship(back_populates="books")
+
+    def __str__(self):
+        return f"Book instance - isbn: {self.isbn}, pages: {self.pages}, format: {self.format}"
+
+    # def __repr__(self):
+    #     return f"REPR ID: {self.id}, pages: {self.pages}, format: {self.format}, isbn: {self.isbn}"
 
     # TODO
     # This does not currently work, validation needs to be done on the user input side
