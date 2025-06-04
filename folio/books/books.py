@@ -9,8 +9,8 @@ from rich.table import Table
 from sqlmodel import select
 
 # Folio imports
-from db.db import _get_session
-from db.query_builder import QueryBuilder as query
+from db.db import SessionManager
+from db.query_builder import QueryBuilder as Query
 from books.args import BookFormat, SearchArgs, CreateArgs, UpdateArgs
 from books.models import Book, Work, Review
 from utils import validate_isbn, lowercase_args
@@ -37,7 +37,7 @@ class BookCommands:
         add_book: CreateArgs.add_book = True,
     ):
         """Add a new work (and book) to the collection"""
-        with _get_session() as session:
+        with SessionManager() as session:
             # Validate ISBN if provided
             if add_book and isbn:
                 isbn = BookCommands._validate_isbn(isbn)
@@ -84,7 +84,7 @@ class BookCommands:
         isbn: CreateArgs.isbn = None,
     ):
         """Add a book instance to an existing work, or create a new work if needed"""
-        with _get_session() as session:
+        with SessionManager() as session:
             # Get existing work to associate book with
             if isbn:
                 isbn = BookCommands._validate_isbn(isbn)
@@ -118,9 +118,11 @@ class BookCommands:
         is_read: CreateArgs.is_read = True,
     ):
         """Add a new work to the collection"""
-        with _get_session() as session:
+        with SessionManager() as session:
             # Check if work already exists
-            work_exists = BookCommands.search(session, title=title, author=author)
+            work_exists = BookCommands.search(
+                session=session, title=title, author=author
+            )
             if work_exists:
                 console.print(f"{title} by {author} already exists in the database.")
                 console.print("No changes made.")
@@ -159,12 +161,13 @@ class BookCommands:
         work_id: SearchArgs.work_id = None,
         book_id: SearchArgs.book_id = None,
         limit: SearchArgs.limit = None,
-        _return_session: SearchArgs._return_session = False,
+        session=None,
     ):
+        """Search for works and books with optional session parameter"""
+        # Store whether this is a direct command call before entering context manager
+        is_direct_call = session is None
 
-        from db.query_builder import QueryBuilder as Query
-
-        with _get_session() as session:
+        with SessionManager(session) as session:
             query = (
                 Query(session=session, model=Work)
                 .join(Book)
@@ -190,13 +193,14 @@ class BookCommands:
                 .exact_match(Book.id, book_id)
             )
 
-            result = query.run(limit=limit)
-            print(result)
+            results = query.run(limit=limit)
 
-            if _return_session:
-                return session, result
-            else:
-                return result
+            # Only print results if this is a direct command call (no session passed)
+            if is_direct_call:
+                for result in results:
+                    print(result, *result.books, sep="\n")
+
+            return results
 
     @staticmethod
     @app.command()
@@ -270,26 +274,38 @@ class BookCommands:
             print("No update values provided. Update aborted.")
             return []
 
-        session, results = BookCommands.search(**search_args, _return_session=True)
-        match len(results):
-            case 0:
-                print(f"No results found with \n{search_args}")
-                return []
-            case 1:
-                result = results[0]
-                if typer.confirm(
-                    f"Found {result.title} by {result.author}:\n{result}\nUpdate with {update_values}?"
-                ):
-                    with session:
+        with SessionManager() as session:
+            results = BookCommands.search(session=session, **search_args)
+
+            match len(results):
+                case 0:
+                    print(f"No results found with \n{search_args}")
+                    return []
+                case 1:
+                    result = results[0]
+                    for book in result.books:
+                        print(book)
+                    # TODO: This returns a Work. Need to be able to update a Book, if update vals are part of the Book table
+                    print(results)
+                    # TODO: Add logic to short-circuit update if update values == existing values
+                    if typer.confirm(
+                        f"Found {result.title} by {result.author}:\n{result}\nUpdate with {update_values} (\n\n\n{result}) associated with the work)?"
+                    ):
                         for field, value in update_values.items():
                             setattr(result, field, value)
                         session.add(result)
                         session.commit()
                         session.refresh(result)
-                        print(result)
+                        # TODO: Add color to fields that have changed
+                        print(f"Update successful. New entry:\n{result}")
                         return result
-            case _:
-                print("Multiple")
+                case _:
+                    for result in results:
+                        print(result)
+                    if typer.confirm(
+                        f"Found multiple results. Continue with bulk update?"
+                    ):
+                        print("Multiple")
 
     @staticmethod
     @app.command()
