@@ -1,86 +1,85 @@
-from enum import Enum
-from typing import Annotated, List, Optional
+# books/args.py
 
-from typer import Argument, Option
+from typing import Annotated, Optional
+from typer import Option
 
-
-class BookFormat(str, Enum):
-    print = "print"
-    ebook = "ebook"
-    audio = "audiobook"
+from books.schemas import BookFormat
 
 
-class WorkArgs:
-    """Class to store argument definitions for work-related commands"""
+# Shared argument definitions
 
-    title = Annotated[
-        str,
-        Option("--title", "-t", help="Title of the work", show_default=False),
-    ]
-    author = Annotated[
-        str,
-        Option("--author", "-a", help="Author of the work", show_default=False),
-    ]
-    year = Annotated[
-        int,
-        Option(
-            "--year",
-            "-y",
-            help="Year written (use negative int for BCE)",
-            show_default=False,
-        ),
-    ]
-    genre = Annotated[
-        str, Option("--genre", "-g", help="Genre of the work", show_default=False)
-    ]
-    is_read = Annotated[
-        bool,
-        Option(
-            "--is-read/--no-read",
-            "-r/-R",
-            help="Filter by read status",
-            show_default=False,
-        ),
-    ]
+title = Annotated[
+    str, Option("--title", "-t", help="Title of the work", show_default=False)
+]
+author = Annotated[
+    str, Option("--author", "-a", help="Author of the work", show_default=False)
+]
+year = Annotated[
+    int,
+    Option(
+        "--year", "-y", help="Year written (use negative for BCE)", show_default=False
+    ),
+]
+genre = Annotated[
+    str, Option("--genre", "-g", help="Genre of the work", show_default=False)
+]
+is_read = Annotated[
+    bool,
+    Option(
+        "--is-read/--no-read", "-r/-R", help="Filter by read status", show_default=False
+    ),
+]
 
-
-class BookArgs:
-    """Class to store argument definitions for book-related commands"""
-
-    pages = Annotated[
-        int, Option("--pages", "-p", help="Number of pages", show_default=False)
-    ]
-    format = Annotated[
-        BookFormat,
-        Option(
-            "--format",
-            "-f",
-            case_sensitive=False,
-            help="Format/medium of the book",
-            show_default=False,
-        ),
-    ]
-    isbn = Annotated[
-        str,
-        Option("--isbn", "-i", help="ISBN-13 of the book", show_default=False),
-    ]
-    add_book = Annotated[bool, Option(help="Associate work with book a in database")]
+pages = Annotated[
+    int, Option("--pages", "-p", help="Number of pages", show_default=False)
+]
+format = Annotated[
+    BookFormat,
+    Option(
+        "--format",
+        "-f",
+        case_sensitive=False,
+        help="Format/medium of the book",
+        show_default=False,
+    ),
+]
+isbn = Annotated[
+    str, Option("--isbn", "-i", help="ISBN-13 of the book", show_default=False)
+]
 
 
-class CreateArgs(WorkArgs, BookArgs):
-    """Class to store argument definitions for add-related commands"""
+class CreateArgs:
+    title = title
+    author = author
+    year = year
+    genre = genre
+    is_read = is_read
+
+    pages = pages
+    format = format
+    isbn = isbn
+
+    add_book = Annotated[bool, Option(help="Associate work with book in database")]
 
 
-class SearchArgs(WorkArgs, BookArgs):
-    """Class to store argument definitions for search-related commands. Inherits all arguments from WorkArgs and BookArgs."""
+class SearchArgs:
+    title = title
+    author = author
+    year = year
+    genre = genre
+    is_read = is_read
 
-    year_from = Annotated[
+    pages = pages
+    format = format
+    isbn = isbn
+
+    year_min = Annotated[
         Optional[int],
         Option(
             "--year-from", "-yf", help="Start year for range search", show_default=False
         ),
     ]
-    year_to = Annotated[
+    year_max = Annotated[
         Optional[int],
         Option(
             "--year-to", "-yt", help="End year for range search", show_default=False
@@ -124,34 +123,17 @@ class SearchArgs(WorkArgs, BookArgs):
 
 
 class UpdateArgs:
-    """Class to store argument definitions for update-related commands"""
-
     set_title = Annotated[
-        str,
-        Option(
-            "--set-title", "-st", help="Set new title of the work", show_default=False
-        ),
+        str, Option("--set-title", "-st", help="Set new title", show_default=False)
     ]
     set_author = Annotated[
-        str,
-        Option(
-            "--set-author", "-sa", help="Set new author of the work", show_default=False
-        ),
+        str, Option("--set-author", "-sa", help="Set new author", show_default=False)
     ]
     set_year = Annotated[
-        int,
-        Option(
-            "--set-year",
-            "-sy",
-            help="Set mew year written (use negative int for BCE)",
-            show_default=False,
-        ),
+        int, Option("--set-year", "-sy", help="Set new year", show_default=False)
     ]
     set_genre = Annotated[
-        str,
-        Option(
-            "--set-genre", "-sg", help="Set new genre of the work", show_default=False
-        ),
+        str, Option("--set-genre", "-sg", help="Set new genre", show_default=False)
     ]
     set_is_read = Annotated[
         bool,
@@ -163,10 +145,7 @@ class UpdateArgs:
         ),
     ]
     set_pages = Annotated[
-        int,
-        Option(
-            "--set-pages", "-sp", help="Set new number of pages", show_default=False
-        ),
+        int, Option("--set-pages", "-sp", help="Set new page count", show_default=False)
     ]
     set_format = Annotated[
         BookFormat,
@@ -174,13 +153,10 @@ class UpdateArgs:
             "--set-format",
             "-sf",
             case_sensitive=False,
-            help="Set new format/medium of the book",
+            help="Set new format",
             show_default=False,
         ),
     ]
     set_isbn = Annotated[
-        str,
-        Option(
-            "--set-isbn", "-si", help="Set new ISBN-13 of the book", show_default=False
-        ),
+        str, Option("--set-isbn", "-si", help="Set new ISBN-13", show_default=False)
     ]
