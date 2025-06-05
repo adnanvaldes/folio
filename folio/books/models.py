@@ -31,6 +31,13 @@ class Work(SQLModel, table=True):
     books: List["Book"] = Relationship(back_populates="work", cascade_delete=True)
     reviews: List["Review"] = Relationship(back_populates="work", cascade_delete=True)
 
+    def __str__(self):
+        if self.is_read:
+            read = "Read"
+        else:
+            read = "Not read"
+        return f"{self.title} by {self.author} (year: {self.year}, {read})"
+
 
 class Book(SQLModel, table=True):
     """
@@ -46,14 +53,15 @@ class Book(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     pages: int | None = None
-    format: str | None = Field(default=None, index=True)
+    format: BookFormat | None = Field(default=None, index=True)
     isbn: str | None = Field(None, unique=True)  # ISBN-13 (or ISBN-10 converted to -13)
 
     work_id: int | None = Field(default=None, foreign_key="work.id", ondelete="CASCADE")
     work: Work | None = Relationship(back_populates="books")
 
     def __str__(self):
-        return f"Book instance - isbn: {self.isbn}, pages: {self.pages}, format: {self.format}"
+        # Format specifier, :<{number} means left aligned with {number} min field width
+        return f"ISBN: {str(self.isbn or 'None'):<13} pages: {str(self.pages or 'None'):<5} format: {str(self.format or 'None'):<10}"
 
     # def __repr__(self):
     #     return f"REPR ID: {self.id}, pages: {self.pages}, format: {self.format}, isbn: {self.isbn}"
