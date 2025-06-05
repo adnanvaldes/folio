@@ -19,7 +19,8 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from books.models import Book, Work, Review
-from books.books import BookCommands, BookFormat, app
+from books.books import BookCommands, app
+from books.schemas import BookFormat
 from db.db import _get_session
 
 # Test runner for CLI commands

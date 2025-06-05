@@ -3,6 +3,8 @@ from sqlalchemy import UniqueConstraint
 from datetime import date
 from typing import List
 
+from books.args import BookFormat
+
 
 class Work(SQLModel, table=True):
     """

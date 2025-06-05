@@ -11,8 +11,9 @@ from sqlmodel import select
 # Folio imports
 from db.db import SessionManager
 from db.query_builder import QueryBuilder as Query
-from books.args import BookFormat, SearchArgs, CreateArgs, UpdateArgs
+from books.args import SearchArgs, CreateArgs, UpdateArgs
 from books.models import Book, Work, Review
+from books.schemas import SearchCriteria, UpdateData
 from utils import validate_isbn, lowercase_args
 
 
@@ -167,30 +168,51 @@ class BookCommands:
         # Store whether this is a direct command call before entering context manager
         is_direct_call = session is None
 
+        search_filters = SearchCriteria(
+            title=title,
+            author=author,
+            year=year,
+            year_min=year_min,
+            year_max=year_max,
+            genre=genre,
+            is_read=is_read,
+            pages=pages,
+            pages_min=pages_min,
+            pages_max=pages_max,
+            format=format,
+            isbn=isbn,
+            work_id=work_id,
+            book_id=book_id,
+        )
+
+        if search_filters.is_empty():
+            print("No filters provided.")
+            raise typer.Abort()
+
         with SessionManager(session) as session:
             query = (
                 Query(session=session, model=Work)
                 .join(Book)
-                .text_filter(Work.title, title)
-                .text_filter(Work.author, author)
+                .text_filter(Work.title, search_filters.title)
+                .text_filter(Work.author, search_filters.author)
                 .range_filter(
                     Work.year,
-                    min_value=year_min,
-                    max_value=year_max,
-                    exact_value=year,
+                    min_value=search_filters.year_min,
+                    max_value=search_filters.year_max,
+                    exact_value=search_filters.year,
                 )
-                .text_filter(Work.genre, genre)
-                .boolean_filter(Work.is_read, is_read)
+                .text_filter(Work.genre, search_filters.genre)
+                .boolean_filter(Work.is_read, search_filters.is_read)
                 .range_filter(
                     Book.pages,
-                    min_value=pages_min,
-                    max_value=pages_max,
-                    exact_value=pages,
+                    min_value=search_filters.pages_min,
+                    max_value=search_filters.pages_max,
+                    exact_value=search_filters.pages,
                 )
-                .text_filter(Book.format, format)
-                .exact_match(Book.isbn, value=isbn)
-                .exact_match(Work.id, work_id)
-                .exact_match(Book.id, book_id)
+                .text_filter(Book.format, search_filters.format)
+                .exact_match(Book.isbn, value=search_filters.isbn)
+                .exact_match(Work.id, search_filters.work_id)
+                .exact_match(Book.id, search_filters.book_id)
             )
 
             results = query.run(limit=limit)
@@ -229,40 +251,33 @@ class BookCommands:
         set_format: UpdateArgs.set_format = None,
         set_isbn: UpdateArgs.set_isbn = None,
     ):
-        search_args = {
-            "title": title,
-            "author": author,
-            "year": year,
-            "year_min": year_min,
-            "year_max": year_max,
-            "genre": genre,
-            "is_read": is_read,
-            "pages": pages,
-            "pages_min": pages_min,
-            "pages_max": pages_max,
-            "format": format,
-            "isbn": isbn,
-            "work_id": work_id,
-            "book_id": book_id,
-        }
+        search_filters = SearchCriteria(
+            title=title,
+            author=author,
+            year=year,
+            year_min=year_min,
+            year_max=year_max,
+            genre=genre,
+            is_read=is_read,
+            pages=pages,
+            pages_min=pages_min,
+            pages_max=pages_max,
+            format=format,
+            isbn=isbn,
+            work_id=work_id,
+            book_id=book_id,
+        )
 
-        update_args = {
-            "set_title": "title",
-            "set_author": "author",
-            "set_year": "year",
-            "set_genre": "genre",
-            "set_is_read": "is_read",
-            "set_pages": "pages",
-            "set_format": "format",
-            "set_isbn": "isbn",
-        }
-
-        # Collect update values that aren't None
-        update_values = {
-            update_args[arg]: value
-            for arg, value in locals().items()
-            if arg in update_args and value is not None
-        }
+        update_values = UpdateData(
+            title=set_title,
+            author=set_author,
+            year=set_year,
+            genre=set_genre,
+            is_read=set_is_read,
+            pages=set_pages,
+            format=set_format,
+            isbn=set_isbn,
+        ).exclude_none_fields()
 
         # Check if any filters were provided prior to making a db query
         if all(filter_value is None for filter_value in search_args.values()):
