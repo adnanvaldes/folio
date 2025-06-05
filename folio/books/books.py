@@ -300,23 +300,63 @@ class BookCommands:
                     return []
                 case 1:
                     result = results[0]
-                    for book in result.books:
-                        print(book)
-                    # TODO: This returns a Work. Need to be able to update a Book, if update vals are part of the Book table
-                    print(results)
                     # TODO: Add logic to short-circuit update if update values == existing values
-                    if typer.confirm(
-                        f"Found {result.title} by {result.author}:\n{result}\nUpdate with {update_values} (\n\n\n{result}) associated with the work)?"
-                    ):
-                        for field, value in update_values.items():
-                            setattr(result, field, value)
-                        session.add(result)
+                    books_str = "\n".join(
+                        f"{i+1}. {book}" for i, book in enumerate(result.books)
+                    )
+                    books_count = len(result.books)
+                    if books_count == 0:
+                        book_summary = "No associated books."
+                    elif books_count == 1:
+                        book_summary = books_str
+                    else:
+                        book_summary = f"{books_str}\nYou will be able to select which books to update."
+
+                    if typer.confirm(f"Found {result}\n{book_summary}\nContinue?"):
+                        if work_updates:
+                            for field, value in work_updates:
+                                setattr(result, field, value)
+                                session.add(result)
+
+                        if book_updates and len(result.books) > 1:
+                            book_indices = typer.prompt(
+                                f"Which books to update? (1-{len(result.books)}, comma-separated, 'all', or 'skip')"
+                            )
+
+                            if book_indices.lower() == "all":
+                                selected_books = result.books
+                            elif book_indices.lower() == "skip":
+                                selected_books = None
+                            else:
+                                indices = [
+                                    int(x.strip()) - 1 for x in book_indices.split(",")
+                                ]
+                                selected_books = [
+                                    result.books[i]
+                                    for i in indices
+                                    if 0 <= i < len(result.books)
+                                ]
+
+                            if selected_books:
+                                for book in selected_books:
+                                    for field, value in book_updates:
+                                        setattr(book, field, value)
+                                        session.add(book)
+                        elif book_updates:
+                            # Only one book, update directly
+                            for field, value in book_updates:
+                                setattr(result.books[0], field, value)
+                                session.add(result.books[0])
                         session.commit()
                         session.refresh(result)
                         # TODO: Add color to fields that have changed
-                        print(f"Update successful. New entry:\n{result}")
+                        books_str = "\n".join(
+                            f"{i+1}. {book}" for i, book in enumerate(result.books)
+                        )
+                        print(f"Update successful. New entry:\n{result}\n{books_str}")
                         return result
                 case _:
+                    # TODO
                     for result in results:
                         print(result)
                     if typer.confirm(
