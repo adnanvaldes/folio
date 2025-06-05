@@ -150,8 +150,8 @@ class BookCommands:
         title: SearchArgs.title = None,
         author: SearchArgs.author = None,
         year: SearchArgs.year = None,
-        year_min: SearchArgs.year_from = None,
-        year_max: SearchArgs.year_to = None,
+        year_min: SearchArgs.year_min = None,
+        year_max: SearchArgs.year_max = None,
         genre: SearchArgs.genre = None,
         is_read: SearchArgs.is_read = None,
         pages: SearchArgs.pages = None,
@@ -227,11 +227,12 @@ class BookCommands:
     @staticmethod
     @app.command()
     def update(
+        # Search arguments
         title: SearchArgs.title = None,
         author: SearchArgs.author = None,
         year: SearchArgs.year = None,
-        year_min: SearchArgs.year_from = None,
-        year_max: SearchArgs.year_to = None,
+        year_min: SearchArgs.year_min = None,
+        year_max: SearchArgs.year_max = None,
         genre: SearchArgs.genre = None,
         is_read: SearchArgs.is_read = None,
         pages: SearchArgs.pages = None,
