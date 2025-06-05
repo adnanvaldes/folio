@@ -281,21 +281,22 @@ class BookCommands:
         ).exclude_none_fields()
 
         # Check if any filters were provided prior to making a db query
-        if all(filter_value is None for filter_value in search_args.values()):
+        if search_filters.is_empty():
             print("No filters provided. Search aborted")
-            return []
+            raise typer.Abort()
 
-        # Likewise check that explicit update values were provided
-        if not update_values:
+        if update_values.is_empty():
             print("No update values provided. Update aborted.")
-            return []
+            raise typer.Abort()
+
+        work_updates, book_updates = update_values.split_work_and_book_args()
 
         with SessionManager() as session:
-            results = BookCommands.search(session=session, **search_args)
+            results = BookCommands.search(session=session, **search_filters.to_dict())
 
             match len(results):
                 case 0:
-                    print(f"No results found with \n{search_args}")
+                    print(f"No results found with \n{search_filters}")
                     return []
                 case 1:
                     result = results[0]
