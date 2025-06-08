@@ -91,15 +91,6 @@ uv run ./folio/main.py books update --title "1984" --set_is_read true
   pytest
   ```
 
-
-## Development and Testing
-
-- Tests are in `folio/tests/` and use `pytest`.
-- To run all tests:
-  ```bash
-  pytest folio/tests/
-  ```
-
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
