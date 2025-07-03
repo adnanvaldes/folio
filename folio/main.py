@@ -1,17 +1,11 @@
-import typer
-
-from db.db import engine, SQLModel, create_db_and_tables
-from books import books
-
-app = typer.Typer(no_args_is_help=True)
-app.add_typer(books.app, name="books")
+from models.models import Work
+from repositories.repository import InMemoryRepository
 
 
-@app.command()
-def init_db():
-    """Initialize database file and create all required tables"""
-    create_db_and_tables()
+def main():
+    print("Hello")
+    mem = InMemoryRepository()
 
 
 if __name__ == "__main__":
-    app()
+    main()

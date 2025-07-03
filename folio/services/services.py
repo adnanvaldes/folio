@@ -1,0 +1,2 @@
+class WorkService:
+    pass
