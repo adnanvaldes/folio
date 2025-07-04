@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, Any, List, TypeVar, Type
 
-from models.common import ValidationResult
+from folio.models.common import ValidationResult
 
 
 class Record[Self: "Record"](ABC):

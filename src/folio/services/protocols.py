@@ -1,7 +1,7 @@
 from typing import Protocol, Dict, Any
 
-from models.record import Record
-from models.common import ValidationResult
+from folio.models.record import Record
+from folio.models.common import ValidationResult
 
 
 class Serializer[Record](Protocol):
