@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Optional, List, Dict, Any
 
-from models.record import Record
-from models.common import ValidationResult
-from services.protocols import Validator, Serializer, Formatter
+from folio.models.record import Record
+from folio.models.common import ValidationResult
+from folio.services.protocols import Validator, Serializer, Formatter
 
 
 @dataclass

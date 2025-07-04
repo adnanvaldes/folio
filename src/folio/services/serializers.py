@@ -1,7 +1,7 @@
 from typing import Dict, Any
 
-from models.models import Work
-from services.protocols import Serializer
+from folio.models.models import Work
+from folio.services.protocols import Serializer
 
 
 class WorkSerializer(Serializer[Work]):

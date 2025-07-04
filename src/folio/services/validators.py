@@ -2,9 +2,9 @@ from typing import Protocol, List
 from dataclasses import dataclass
 from datetime import date
 
-from models.common import ValidationResult
-from models.models import Work
-from services.protocols import Validator
+from folio.models.common import ValidationResult
+from folio.models.models import Work
+from folio.services.protocols import Validator
 
 
 class WorkValidator:
