@@ -1,28 +1,18 @@
-from typing import Protocol, Dict, Any
+from typing import Dict, Any, Type
+from abc import ABC, abstractmethod
 
-from folio.models.record import Record
 from folio.models.common import ValidationResult
 
 
-class Serializer[Record](Protocol):
-    """
-    Interface for serializer logic
-    """
-
-    def to_dict(self, record: Record) -> Dict[str, Any]: ...
-
-    def from_dict(self, data: Dict[str, Any]) -> Record: ...
-
-
-class Validator[Record](Protocol):
+class Validator[T](ABC):
     """
     Interface for validation logic
     """
 
-    def validate(self, record: Record) -> ValidationResult: ...
+    def validate(self, record: T) -> ValidationResult: ...
 
 
-class Formatter[Record](Protocol):
+class Formatter[T](ABC):
     """
     Interface for formatter logic
     """
