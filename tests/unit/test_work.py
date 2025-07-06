@@ -35,7 +35,7 @@ class TestWorkSerialization:
         result = work_instance.serialize(DictSerializer())
 
         assert isinstance(result, dict)
-        assert result["title"] == "The Great Gatsby"
+        assert result["title"] == "Hyperion"
         assert result["is_read"] is True
 
     def test_serialize_to_json(self, work_instance):
@@ -45,7 +45,7 @@ class TestWorkSerialization:
         result = work_instance.serialize(JSONSerializer())
 
         assert isinstance(result, str)
-        assert '"title": "The Great Gatsby"' in result
+        assert '"title": "Hyperion"' in result
         assert '"is_read": true' in result
 
     def test_deserialize_from_dict(self, sample_work_dict):
