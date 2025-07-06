@@ -11,7 +11,6 @@ class Work(Record["Work"]):
     Represents a literary work (the concept of a book, rather than a specific instance)
     """
 
-    id: int | None
     title: str
     author: str
     year: int | None
@@ -21,3 +20,14 @@ class Work(Record["Work"]):
     def __str__(self):
         read = "Read" if self.is_read else "Not read"
         return f"{self.title} by {self.author} (year: {self.year}, {read})"
+
+
+@dataclass
+class Book(Record["Book"]):
+    """
+    Represents a specific book instance
+    """
+
+    pages: int | None
+    #   format: BookFormat | None
+    isbn: str | None
