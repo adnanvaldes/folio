@@ -26,9 +26,9 @@ def work_instance():
     """
     return Work(
         id=1,
-        title="Test Book",
-        author="Test Author",
-        year=2025,
-        genre="Test Genre",
+        title="Hyperion",
+        author="Dan Simmons",
+        year=2016,
+        genre="Sci-Fi",
         is_read=True,
     )
