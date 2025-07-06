@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import date
+from enum import Enum
 from typing import Optional, List, Dict, Any
 
 from folio.models.record import Record
@@ -43,9 +44,14 @@ class Book(Record["Book"]):
     Represents a specific book instance
     """
 
+    class BookFormat(Enum):
+        PRINT = "print"
+        AUDIO = "audio"
+        EBOOK = "ebook"
+
     work: Work
     pages: int | None
-    format: BookFormat | None
+    format: BookFormat
     isbn: str | None
 
     def __eq__(self, other):
