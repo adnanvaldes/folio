@@ -2,6 +2,7 @@ import re
 import inspect
 from functools import wraps
 
+
 def is_valid_isbn_10(isbn: str | int) -> bool:
     """
     Validates if a number is a valid ISBN-10.
@@ -127,6 +128,7 @@ def validate_isbn(isbn) -> str | None:
     if isbn_13 is not None:
         return isbn_13
     raise ValueError(f"Invalid ISBN: {isbn} - must be valid ISBN-10 or ISBN-13")
+
 
 def lowercase_args(func):
     @wraps(func)
