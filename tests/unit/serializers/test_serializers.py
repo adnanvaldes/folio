@@ -3,6 +3,7 @@ import pytest
 from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 
+from serializer_data import expected_data
 from folio.services.serializers import DictSerializer, JSONSerializer
 
 
@@ -39,106 +40,82 @@ class EmptySampleRecord:
     pass
 
 
-class TestDictSerializer:
-    """Test cases for DictSerializer"""
+class SerializerBaseTest:
 
     def setup_method(self):
-        self.serializer = DictSerializer()
+        self.serializer = self.serializer_class()
         self.sample_record = SampleRecord(
             int_field=1, string_field="a string", bool_field=False, float_field=2.0
         )
-        self.sample_dict = {
-            "int_field": 1,
-            "string_field": "a string",
-            "bool_field": False,
-            "float_field": 2.0,
-        }
         self.sample_record_complex = ComplexSampleRecord(
             list_field=["a", "b", "c"],
             dict_field={"a": 1, "b": "some string", "c": ["a list"]},
         )
-        self.sample_complex_dict = {
-            "list_field": ["a", "b", "c"],
-            "dict_field": {"a": 1, "b": "some string", "c": ["a list"]},
-            "none_default_field": None,
-        }
+
+    def get_expected(self, key):
+        return expected_data[self.format_name][key]
 
     # Serialization tests
 
     def test_serialize_simple_record(self):
         result = self.serializer.serialize(self.sample_record)
 
-        assert isinstance(result, dict)
-        assert result == self.sample_dict
+        assert isinstance(result, self.output_type)
+        assert result == self.get_expected("simple")
 
     def test_serialize_with_none_values(self):
         record = SampleRecord(
             int_field=2, string_field="test2", bool_field=True, float_field=None
         )
         result = self.serializer.serialize(record)
-        expected = {
-            "int_field": 2,
-            "string_field": "test2",
-            "bool_field": True,
-            "float_field": None,
-        }
-        assert result == expected
+        assert result == self.get_expected("with_none")
 
     def test_serialize_complex_record(self):
         result = self.serializer.serialize(self.sample_record_complex)
-        assert result == self.sample_complex_dict
+        assert result == self.get_expected("complex")
 
     def test_serialize_empty_record(self):
         record = EmptySampleRecord()
         result = self.serializer.serialize(record)
-        assert result == {}
+        assert result == self.get_expected("empty")
 
     # Deserialization tests
 
     def test_deserialize_simple_record(self):
-        result = self.serializer.deserialize(self.sample_dict, SampleRecord)
+        result = self.serializer.deserialize(self.get_expected("simple"), SampleRecord)
 
         assert isinstance(result, SampleRecord)
         assert result == self.sample_record
 
     def test_deserialize_with_none_values(self):
-        data = {
-            "int_field": 2,
-            "string_field": "test2",
-            "bool_field": True,
-            "float_field": None,
-        }
-        record = SampleRecord(
+        expected = SampleRecord(
             int_field=2, string_field="test2", bool_field=True, float_field=None
         )
-        result = self.serializer.deserialize(data, SampleRecord)
+        result = self.serializer.deserialize(
+            self.get_expected("with_none"), SampleRecord
+        )
 
         assert isinstance(result, SampleRecord)
-        assert result == record
+        assert result == expected
 
     def test_deserialize_complex_record(self):
         result = self.serializer.deserialize(
-            self.sample_complex_dict, ComplexSampleRecord
+            self.get_expected("complex"), ComplexSampleRecord
         )
         assert isinstance(result, ComplexSampleRecord)
         assert result == self.sample_record_complex
 
     def test_deserialize_ignore_extra_fields(self):
-        data = {
-            "int_field": 2,
-            "string_field": "test2",
-            "bool_field": True,
-            "float_field": None,
-            "extra_field": "extra data",
-        }
-
         # TODO when serializer implementation is complete
         with pytest.raises(TypeError):
-            result = self.serializer.deserialize(data, SampleRecord)
-            assert result == self.sample_record
+            result = self.serializer.deserialize(
+                self.get_expected("extra"), SampleRecord
+            )
 
     def test_deserialize_empty_record(self):
-        result = self.serializer.deserialize({}, EmptySampleRecord)
+        result = self.serializer.deserialize(
+            self.get_expected("empty"), EmptySampleRecord
+        )
         assert result == EmptySampleRecord()
 
     def test_round_trip_serialization(self):
@@ -147,3 +124,40 @@ class TestDictSerializer:
         deserialized = self.serializer.deserialize(serialized, SampleRecord)
 
         assert deserialized == self.sample_record
+
+
+class TestDictSerializer(SerializerBaseTest):
+
+    serializer_class = DictSerializer
+    format_name = "dict"
+    output_type = dict
+    # def setup_method(self):
+    #     super().setup_method()
+    #     self.sample_data = {
+    #         "int_field": 1,
+    #         "string_field": "a string",
+    #         "bool_field": False,
+    #         "float_field": 2.0,
+    #     }
+    #     self.sample_complex_data = {
+    #         "list_field": ["a", "b", "c"],
+    #         "dict_field": {"a": 1, "b": "some string", "c": ["a list"]},
+    #         "none_default_field": None,
+    #     }
+    #     self.serializer = DictSerializer()
+    #     self.output_type = dict
+
+
+class TestJSONSerializer(SerializerBaseTest):
+    serializer_class = JSONSerializer
+    format_name = "json"
+    output_type = str
+
+    # def setup_method(self):
+    #     super().setup_method()
+    #     self.sample_data = '{"int_field": 1, "string_field": "a string", "bool_field": false, "float_field": 2.0}'
+
+    #     self.sample_complex_data = '{"list_field": ["a", "b", "c"], "dict_field": {"a": 1, "b": "some string", "c": ["a list"]}, "none_default_field": null}'
+
+    #     self.serializer = JSONSerializer()
+    #     self.output_type = str
