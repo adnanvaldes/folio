@@ -51,7 +51,11 @@ class Book(Record["Book"]):
     def __eq__(self, other):
         if not isinstance(other, Book):
             return False
-        return self.work == other.work and self.isbn == other.isbn
+        return (
+            self.work == other.work
+            and self.isbn == other.isbn
+            and self.format == other.format
+        )
 
     def __hash__(self):
-        return hash((self.work, self.isbn))
+        return hash((self.work, self.isbn, self.format))
