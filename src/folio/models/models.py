@@ -25,7 +25,7 @@ class Work(Record["Work"]):
             return False
         return (
             self.title.lower() == other.title.lower()
-            and self.author.lower() == other.title.lower()
+            and self.author.lower() == other.author.lower()
             and self.year == other.year
         )
 
