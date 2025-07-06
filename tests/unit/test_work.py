@@ -12,7 +12,6 @@ def sample_work_dict():
     Sample Work data for testing
     """
     return {
-        "id": 2,
         "title": "The Great Gatsby",
         "author": "F. Scott Fitzgerald",
         "year": 1925,
@@ -27,7 +26,6 @@ def work_instance():
     A Work instance with mocked dependencies injected
     """
     return Work(
-        id=1,
         title="Hyperion",
         author="Dan Simmons",
         year=2016,
@@ -43,7 +41,6 @@ class TestWorkInstantiation:
 
     def test_work_creation_optional_fields(self):
         work = Work(
-            id=None,
             title="Test Book",
             author="Test Author",
             year=None,
@@ -51,7 +48,6 @@ class TestWorkInstantiation:
             is_read=False,
         )
 
-        assert work.id is None
         assert work.year is None
         assert work.genre is None
         assert work.is_read is False
