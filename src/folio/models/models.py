@@ -29,6 +29,9 @@ class Work(Record["Work"]):
             and self.year == other.year
         )
 
+    def __hash__(self):
+        return hash((self.title.lower(), self.author.lower(), self.year))
+
     def __str__(self):
         read = "Read" if self.is_read else "Not read"
         return f"{self.title} by {self.author} (year: {self.year}, {read})"
@@ -49,3 +52,6 @@ class Book(Record["Book"]):
         if not isinstance(other, Book):
             return False
         return self.work == other.work and self.isbn == other.isbn
+
+    def __hash__(self):
+        return hash((self.work, self.isbn))
