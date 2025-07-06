@@ -44,14 +44,14 @@ class Book(Record["Book"]):
     Represents a specific book instance
     """
 
-    class BookFormat(Enum):
+    class Format(Enum):
         PRINT = "print"
         AUDIO = "audio"
         EBOOK = "ebook"
 
     work: Work
     pages: int | None
-    format: BookFormat
+    format: Format
     isbn: str | None
 
     def __eq__(self, other):
@@ -65,3 +65,6 @@ class Book(Record["Book"]):
 
     def __hash__(self):
         return hash((self.work, self.isbn, self.format))
+
+    def __str__(self):
+        return f"{self.pages}, {self.isbn}, ({self.format})"
