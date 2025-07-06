@@ -131,33 +131,9 @@ class TestDictSerializer(SerializerBaseTest):
     serializer_class = DictSerializer
     format_name = "dict"
     output_type = dict
-    # def setup_method(self):
-    #     super().setup_method()
-    #     self.sample_data = {
-    #         "int_field": 1,
-    #         "string_field": "a string",
-    #         "bool_field": False,
-    #         "float_field": 2.0,
-    #     }
-    #     self.sample_complex_data = {
-    #         "list_field": ["a", "b", "c"],
-    #         "dict_field": {"a": 1, "b": "some string", "c": ["a list"]},
-    #         "none_default_field": None,
-    #     }
-    #     self.serializer = DictSerializer()
-    #     self.output_type = dict
 
 
 class TestJSONSerializer(SerializerBaseTest):
     serializer_class = JSONSerializer
     format_name = "json"
     output_type = str
-
-    # def setup_method(self):
-    #     super().setup_method()
-    #     self.sample_data = '{"int_field": 1, "string_field": "a string", "bool_field": false, "float_field": 2.0}'
-
-    #     self.sample_complex_data = '{"list_field": ["a", "b", "c"], "dict_field": {"a": 1, "b": "some string", "c": ["a list"]}, "none_default_field": null}'
-
-    #     self.serializer = JSONSerializer()
-    #     self.output_type = str
