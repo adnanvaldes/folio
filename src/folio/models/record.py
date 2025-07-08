@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from functools import total_ordering
 from typing import Dict, Any, List, TypeVar, Type
 
 from folio.models.common import ValidationResult
@@ -11,6 +12,7 @@ O = TypeVar("O")
 
 
 @total_ordering
+@dataclass
 class Record[R: "Record"](ABC):
     """
     Abstract base class for all records
@@ -24,6 +26,20 @@ class Record[R: "Record"](ABC):
 
     @abstractmethod
     def _ordering_fields(self) -> tuple: ...
+
+    def __eq__(self) -> bool:
+        return (
+            isinstance(other, self.__class__)
+            and self._identity_fields() == other._identity_fields()
+        )
+
+    def __lt__(self, other) -> bool:
+        if isinstance(other, self.__class__):
+            return NotImplemented
+        return self._ordering_fields() < other._ordering_fields()
+
+    def __hash__(self) -> hash:
+        return hash(self._identity_fields())
 
     @classmethod
     def deserialize(cls: R, data: O, serializer: SerializeStrategy[R]) -> R:
@@ -43,17 +59,3 @@ class Record[R: "Record"](ABC):
         Validate this Record using the provided Validator
         """
         return validator.validate(self)
-
-    def __eq__(self) -> bool:
-        return (
-            isinstance(other, self.__class__)
-            and self._identity_fields() == other._identity_fields()
-        )
-
-    def __lt__(self, other) -> bool:
-        if isinstance(other, self.__class__):
-            return NotImplemented
-        return self._ordering_fields() < other._ordering_fields()
-
-    def __hash__(self) -> hash:
-        return hash(self._identity_fields())

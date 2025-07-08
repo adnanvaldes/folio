@@ -1,6 +1,5 @@
 from datetime import date
 from enum import Enum
-from functools import total_ordering
 from typing import Any, Dict, List, Optional
 
 from folio.models.record import Record
