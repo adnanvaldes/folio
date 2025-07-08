@@ -1,7 +1,7 @@
 from datetime import date
 from enum import Enum
-from typing import Optional, List, Dict, Any
 from functools import total_ordering
+from typing import Any, Dict, List, Optional
 
 from folio.models.record import Record
 
@@ -23,17 +23,17 @@ class Work(Record["Work"]):
 
     def _identity_fields(self):
         """
-        Defines equality and hashing: same title, author, an dyear
+        Equality and hasing use title, author, and year.
         """
         return (
-            self.title.lower().strip(),
             self.author.lower().strip(),
+            self.title.lower().strip(),
             (self.year is None, self.year),  # None years sort last
         )
 
     def _ordering_fields(self):
         """
-        Defines sorting: same as the identity of a Work
+        Sort by author, then title, then year.
         """
         return self._identity_fields()
 
@@ -58,7 +58,7 @@ class Book(Record["Book"]):
 
     def _identity_fields(self):
         """
-        Defines equality and hashing: same Work, format, and ISBN
+        Equality and hashing use Work, format, and ISBN
         """
         return (
             self.work,  # uses Work's identity fields
@@ -68,7 +68,7 @@ class Book(Record["Book"]):
 
     def _ordering_fields(self):
         """
-        Defines sorting: by identity first, then by page count
+        Sort by Work, format, ISBN, then pages.
         """
         return (
             *self._identity_fields(),
@@ -91,18 +91,14 @@ class Travel(Record["Travel"]):
 
     def _identity_fields(self):
         """
-        Defines equality and hashing: same origin, destination, and date.
-        Notes are excluded, since they are not part of the idendity of
-        travel itself
+        Equality and hashing use origin, destination, and date.
+        Notes are excluded.
         """
         return (self.origin, self.destination, self.date)
 
     def _ordering_fields(self):
         """
-        Defines sorting order: by date.
-
-        Travel is conceptually lesser than other Travel
-        if it happened earlier.
+        Sort by date (earlier first).
         """
         return (self.date,)
 
