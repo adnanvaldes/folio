@@ -55,6 +55,10 @@ class Book(Record["Book"]):
     isbn: str | None
 
     def __eq__(self, other):
+        """
+        Two Book instances are the same if they refer to the same work,
+        have the same format, and have the same ISBN. Page numbers are ignored.
+        """
         if not isinstance(other, Book):
             return False
         return (
