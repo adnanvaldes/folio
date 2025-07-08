@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from datetime import date
 from enum import Enum
 from typing import Optional, List, Dict, Any
@@ -7,7 +6,6 @@ from functools import total_ordering
 from folio.models.record import Record
 
 
-@dataclass
 class Work(Record["Work"]):
     """
     Represents a literary work (the concept of a book, rather than a specific instance)
@@ -19,29 +17,27 @@ class Work(Record["Work"]):
     genre: str | None
     is_read: bool
 
-    def __eq__(self, other):
-        """
-        Two works are equal if they have the same title, author, and year
-        """
-        if not isinstance(other, Work):
-            return False
-        return (
-            self.title.lower().strip() == other.title.lower().strip()
-            and self.author.lower().strip() == other.author.lower().strip()
-            and self.year == other.year
-        )
-
-    def __hash__(self):
-        return hash(
-            (self.title.lower().strip(), self.author.lower().strip(), self.year)
-        )
-
     def __str__(self):
         read = "Read" if self.is_read else "Not read"
         return f"{self.title} by {self.author} (year: {self.year}, {read})"
 
+    def _identity_fields(self):
+        """
+        Defines equality and hashing: same title, author, an dyear
+        """
+        return (
+            self.title.lower().strip(),
+            self.author.lower().strip(),
+            (self.year is None, self.year),  # None years sort last
+        )
 
-@dataclass
+    def _ordering_fields(self):
+        """
+        Defines sorting: same as the identity of a Work
+        """
+        return self._identity_fields()
+
+
 class Book(Record["Book"]):
     """
     Represents a specific book instance
@@ -57,28 +53,29 @@ class Book(Record["Book"]):
     format: Format
     isbn: str | None
 
-    def __eq__(self, other):
-        """
-        Two Book instances are the same if they refer to the same work,
-        have the same format, and have the same ISBN. Page numbers are ignored.
-        """
-        if not isinstance(other, Book):
-            return False
-        return (
-            self.work == other.work
-            and self.isbn == other.isbn
-            and self.format == other.format
-        )
-
-    def __hash__(self):
-        return hash((self.work, self.isbn, self.format))
-
     def __str__(self):
         return f"{self.work.title} - {self.work.author}: {self.pages}, {self.isbn}, ({self.format})"
 
+    def _identity_fields(self):
+        """
+        Defines equality and hashing: same Work, format, and ISBN
+        """
+        return (
+            self.work,  # uses Work's identity fields
+            self.format.value,
+            self.isbn or "",
+        )
 
-@total_ordering
-@dataclass
+    def _ordering_fields(self):
+        """
+        Defines sorting: by identity first, then by page count
+        """
+        return (
+            *self._identity_fields(),
+            (self.pages is None, self.pages),  # None pages sort last
+        )
+
+
 class Travel(Record["Travel"]):
     """
     Represents a unit of international travel
@@ -89,11 +86,43 @@ class Travel(Record["Travel"]):
     date: date
     notes: str
 
+    def __str__(self):
+        return f"{self.date}: {self.origin} -> {self.destination} ({self.notes})"
+
+    def _identity_fields(self):
+        """
+        Defines equality and hashing: same origin, destination, and date.
+        Notes are excluded, since they are not part of the idendity of
+        travel itself
+        """
+        return (self.origin, self.destination, self.date)
+
+    def _ordering_fields(self):
+        """
+        Defines sorting order: by date.
+
+        Travel is conceptually lesser than other Travel
+        if it happened earlier.
+        """
+        return (self.date,)
+
+
+class Address(Record["Address"]):
+    """
+    Represents a primary living address
+    """
+
+    start: date
+    end: date | None
+    street_address: str
+    province: str | None
+    country: str
+    postal_code: str
+
     def __eq__(self, other):
         """
-        Custom equality that does not include notes to compare
-        the equality of two trips, since notes are not part
-        of the identity of travel itself.
+        Two addresses are considered equal if they have the same address, province, country, and postal code. Time periods are not part of an
+        address' identity.
         """
         if not isinstance(other, Travel):
             return False
