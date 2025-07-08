@@ -72,3 +72,30 @@ class Book(Record["Book"]):
 
     def __str__(self):
         return f"{self.work.title} - {self.work.author}: {self.pages}, {self.isbn}, ({self.format})"
+
+
+@dataclass
+class Travel(Record["Travel"]):
+    """
+    Represents a unit of international travel
+    """
+
+    ...
+
+
+@dataclass
+class Address(Record["Address"]):
+    """
+    Represents a primary living address
+    """
+
+    ...
+
+
+@dataclass
+class Employment(Record["Employment"]):
+    """
+    Represents a period of employment
+    """
+
+    ...
