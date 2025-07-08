@@ -27,22 +27,22 @@ class Record[R: "Record"](ABC):
     @abstractmethod
     def _ordering_fields(self) -> tuple: ...
 
-    def __eq__(self) -> bool:
+    def __eq__(self, other) -> bool:
         return (
             isinstance(other, self.__class__)
             and self._identity_fields() == other._identity_fields()
         )
 
     def __lt__(self, other) -> bool:
-        if isinstance(other, self.__class__):
+        if not isinstance(other, self.__class__):
             return NotImplemented
         return self._ordering_fields() < other._ordering_fields()
 
-    def __hash__(self) -> hash:
+    def __hash__(self) -> int:
         return hash(self._identity_fields())
 
     @classmethod
-    def deserialize(cls: R, data: O, serializer: SerializeStrategy[R]) -> R:
+    def deserialize(cls: Type[R], data: O, serializer: SerializeStrategy[R]) -> R:
         """
         Deserialize data into a Record using the provided serializer.
         """
