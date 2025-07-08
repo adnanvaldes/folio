@@ -79,6 +79,7 @@ There are a few - but often critical - situations where having a detailed histor
 | ---------- | ---------- | ----------------------- | ------------- | ------- | ----------- | ----- |
 | 1900-01-1  | 1902-01-25 | Apt 1 - 123 Street Name | Province Name | CAN     | V0V V0V     |       |
 | 1902-01-26 | 2025-01-01 | 456 Road Name           |               | MEX     | 10000       |       |
+
 Each row represents a primary address, such that:
 
 - `start` is the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date I started living there
@@ -99,6 +100,7 @@ Much like [addresses](#addresses), I keep track of places I've worked. In the da
 | ---------- | ---------- | ------ | ---------------- | ---------- | ---------------------------------------------- | ------------ |
 | 1900-01-01 | 1902-01-01 | 1      | ABC Company      | Jane Smith | Unit 1 - 123 Street Name, Country, Postal Code | 123456789    |
 | 1900-01-01 | 2025-01-01 | 124    | DEF Organization | John Doe   | 456 Address, Province, Country, Postal code    | 987654321    |
+
 Each row represents a period of employment where:
 - `start` is the [ISO 3166-1 alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) date when employment began
 - `end` is the [ISO 3166-1 alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) date when employment ended (or the current date if still employed there)
