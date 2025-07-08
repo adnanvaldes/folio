@@ -26,13 +26,15 @@ class Work(Record["Work"]):
         if not isinstance(other, Work):
             return False
         return (
-            self.title.lower() == other.title.lower()
-            and self.author.lower() == other.author.lower()
+            self.title.lower().strip() == other.title.lower().strip()
+            and self.author.lower().strip() == other.author.lower().strip()
             and self.year == other.year
         )
 
     def __hash__(self):
-        return hash((self.title.lower(), self.author.lower(), self.year))
+        return hash(
+            (self.title.lower().strip(), self.author.lower().strip(), self.year)
+        )
 
     def __str__(self):
         read = "Read" if self.is_read else "Not read"
