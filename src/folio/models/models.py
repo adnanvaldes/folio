@@ -71,4 +71,4 @@ class Book(Record["Book"]):
         return hash((self.work, self.isbn, self.format))
 
     def __str__(self):
-        return f"{self.pages}, {self.isbn}, ({self.format})"
+        return f"{self.work.title} - {self.work.author}: {self.pages}, {self.isbn}, ({self.format})"
