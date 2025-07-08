@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 from enum import Enum
 from typing import Optional, List, Dict, Any
+from functools import total_ordering
 
 from folio.models.record import Record
 
@@ -74,13 +75,42 @@ class Book(Record["Book"]):
         return f"{self.work.title} - {self.work.author}: {self.pages}, {self.isbn}, ({self.format})"
 
 
+@total_ordering
 @dataclass
 class Travel(Record["Travel"]):
     """
     Represents a unit of international travel
     """
 
-    ...
+    origin: str
+    destination: str
+    date: date
+    notes: str
+
+    def __eq__(self, other):
+        """
+        Custom equality that does not include notes to compare
+        the equality of two trips, since notes are not part
+        of the identity of travel itself.
+        """
+        if not isinstance(other, Travel):
+            return False
+        return (
+            self.origin == other.origin
+            and self.destination == other.destination
+            and self.date == other.date
+        )
+
+    def __lt__(self, other):
+        if not isinstance(other, Travel):
+            return NotImplemented
+        return self.date < other.date
+
+    def __hash__(self):
+        return hash((self.origin, self.destination, self.date))
+
+    def __str__(self):
+        return f"{self.date}: {self.origin} -> {self.destination} ({self.notes})"
 
 
 @dataclass
