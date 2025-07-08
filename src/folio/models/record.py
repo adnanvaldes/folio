@@ -35,5 +35,10 @@ class Record[R: "Record"](ABC):
         return validator.validate(self)
 
     @abstractmethod
-    def __str__(self) -> str:
-        pass
+    def __str__(self) -> str: ...
+
+    @abstractmethod
+    def __eq__(self) -> bool: ...
+
+    @abstractmethod
+    def __hash__(self) -> hash: ...
