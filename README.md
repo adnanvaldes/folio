@@ -33,6 +33,7 @@ The presence of a `Book` indicates ownership of that edition; this is to manage 
 | ------------- | ----------- | ---- | ------- | ------- |
 | Hyperion      | Dan Simmons | 1989 | Scifi   | True    |
 | The Histories | Herodotus   | -430 | History | True    |
+
 Each row represents a literary `Work`, which contains :
 
 - `title` of the work
@@ -47,6 +48,7 @@ Each row represents a literary `Work`, which contains :
 | ------------------------- | ----- | ------ | ------------- |
 | Hyperion - Dan Simmons    | 482   | Print  | 9780385249492 |
 | The Histories - Herodotus | 784   | Ebook  | 9780140449082 |
+
 Each row represents a `Book`, such that:
 
 - `work` is the [work](#work) the book contains
