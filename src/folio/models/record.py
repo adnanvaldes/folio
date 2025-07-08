@@ -10,10 +10,20 @@ R = TypeVar("R", bound="Record")
 O = TypeVar("O")
 
 
+@total_ordering
 class Record[R: "Record"](ABC):
     """
     Abstract base class for all records
     """
+
+    @abstractmethod
+    def __str__(self) -> str: ...
+
+    @abstractmethod
+    def _identity_fields(self) -> tuple: ...
+
+    @abstractmethod
+    def _ordering_fields(self) -> tuple: ...
 
     @classmethod
     def deserialize(cls: R, data: O, serializer: SerializeStrategy[R]) -> R:
@@ -34,11 +44,16 @@ class Record[R: "Record"](ABC):
         """
         return validator.validate(self)
 
-    @abstractmethod
-    def __str__(self) -> str: ...
+    def __eq__(self) -> bool:
+        return (
+            isinstance(other, self.__class__)
+            and self._identity_fields() == other._identity_fields()
+        )
 
-    @abstractmethod
-    def __eq__(self) -> bool: ...
+    def __lt__(self, other) -> bool:
+        if isinstance(other, self.__class__):
+            return NotImplemented
+        return self._ordering_fields() < other._ordering_fields()
 
-    @abstractmethod
-    def __hash__(self) -> hash: ...
+    def __hash__(self) -> hash:
+        return hash(self._identity_fields())
