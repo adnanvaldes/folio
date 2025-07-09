@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import date, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
@@ -5,6 +6,7 @@ from typing import Any, Dict, List, Optional
 from folio.models.record import Record
 
 
+@dataclass(eq=False)
 class Work(Record["Work"]):
     """
     Represents a literary work (the concept of a book, rather than a specific instance)
@@ -37,6 +39,7 @@ class Work(Record["Work"]):
         return self._identity_fields()
 
 
+@dataclass(eq=False)
 class Book(Record["Book"]):
     """
     Represents a specific book instance
@@ -75,6 +78,7 @@ class Book(Record["Book"]):
         )
 
 
+@dataclass(eq=False)
 class Travel(Record["Travel"]):
     """
     Represents a unit of international travel
@@ -102,6 +106,7 @@ class Travel(Record["Travel"]):
         return (self.date,)
 
 
+@dataclass(eq=False)
 class Address(Record["Address"]):
     """
     Represents a primary living address
@@ -155,6 +160,7 @@ class Address(Record["Address"]):
         )
 
 
+@dataclass(eq=False)
 class Employment(Record["Employment"]):
     """
     Represents a period of employment
