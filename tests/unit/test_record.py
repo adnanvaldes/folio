@@ -5,9 +5,70 @@ from datetime import date, timedelta
 from folio.models.models import Work, Book, Travel, Address, Employment
 
 
+def work_instance(
+    title="Default Title",
+    author="Default Author",
+    year=2020,
+    genre="Fiction",
+    is_read=False,
+) -> Work:
+    return Work(title, author, year, genre, is_read)
+
+
+def book_instance(
+    work: Work | None = None,
+    pages: int | None = 100,
+    format=Book.Format.PRINT,
+    isbn: str | None = "9783161484100",
+) -> Book:
+    return Book(work or work_instance(), pages, format, isbn)
+
+
+def travel_instance(
+    origin="NYC", destination="LON", date=date(2020, 1, 1), notes="Vacation"
+) -> Travel:
+    return Travel(origin=origin, destination=destination, date=date, notes=notes)
+
+
+def employment_instance(
+    start=date(2020, 1, 1),
+    end=None,
+    company="Acme",
+    supervisor="Wild E. Coyote",
+    address="123 Some St",
+    phone="555-1234",
+) -> Employment:
+    return Employment(
+        start=start,
+        end=end,
+        company=company,
+        supervisor=supervisor,
+        address=address,
+        phone=phone,
+    )
+
+
+def address_instance(
+    start=date(2020, 1, 1),
+    end=None,
+    street_address="123 Main",
+    province="ON",
+    country="Canada",
+    postal_code="A1B2C3",
+) -> Address:
+    return Address(
+        start=start,
+        end=end,
+        street_address=street_address,
+        province=province,
+        country=country,
+        postal_code=postal_code,
+    )
+
+
 class TestWork:
     def test_work_creation(self):
-        work = Work(
+        work = work_instance(
             title="Test Book",
             author="Test Author",
             year=None,
@@ -21,7 +82,7 @@ class TestWork:
         assert work.genre is None
         assert work.is_read is False
 
-    def test_work_identity_and_ordering(self, work_instance):
+    def test_work_identity_and_ordering(self):
         w1 = work_instance(title="Alpha", author="Anderson", year=1990)
         w2 = work_instance(
             title="Alpha", author="Anderson", year=1990, genre="Sci-Fi"
@@ -44,7 +105,7 @@ class TestWork:
 
 
 class TestBook:
-    def test_book_creation(self, work_instance, book_instance):
+    def test_book_creation(self):
         work = work_instance()
         book = book_instance(work)
 
@@ -54,7 +115,7 @@ class TestBook:
         assert book.format == Book.Format.PRINT
         assert book.isbn == "9783161484100"
 
-    def test_book_identity_and_ordering(self, work_instance, book_instance):
+    def test_book_identity_and_ordering(self):
         work1 = work_instance(title="Alpha", author="Anderson", year=1990)
         work2 = work_instance(title="Beta", author="Brown", year=2000)
 
@@ -87,7 +148,7 @@ class TestBook:
 
 
 class TestTravel:
-    def test_travel_creation(self, travel_instance):
+    def test_travel_creation(self):
         travel = travel_instance(
             origin="NYC", destination="LON", date=date(2020, 1, 1), notes="Vacation"
         )
@@ -97,7 +158,7 @@ class TestTravel:
         assert travel.date == date(2020, 1, 1)
         assert travel.notes == "Vacation"
 
-    def test_travel_identity_and_ordering(self, travel_instance):
+    def test_travel_identity_and_ordering(self):
         t1 = travel_instance(origin="NYC", destination="LON", date=date(2020, 1, 1))
         t2 = travel_instance(
             origin="NYC", destination="LON", date=date(2020, 1, 1), notes="Business"
@@ -120,7 +181,7 @@ class TestTravel:
 
 
 class TestAddress:
-    def test_address_creation(self, address_instance):
+    def test_address_creation(self):
         addr = address_instance(
             start=date(2020, 1, 1),
             end=None,
@@ -138,7 +199,7 @@ class TestAddress:
         assert addr.postal_code == "A1B2C3"
         assert isinstance(addr.duration, timedelta)
 
-    def test_address_identity_and_ordering(self, address_instance):
+    def test_address_identity_and_ordering(self):
         a1 = address_instance(
             start=date(2020, 1, 1),
             end=date(2022, 1, 1),
@@ -177,7 +238,7 @@ class TestAddress:
 
 
 class TestEmployment:
-    def test_employment_creation(self, employment_instance):
+    def test_employment_creation(self):
         emp = employment_instance(
             start=date(2020, 1, 1),
             end=None,
@@ -194,7 +255,7 @@ class TestEmployment:
         assert emp.address == "123 Some St"
         assert emp.phone == "555-1234"
 
-    def test_employment_identity_and_ordering(self, employment_instance):
+    def test_employment_identity_and_ordering(self):
         e1 = employment_instance(start=date(2025, 1, 1), company="Acme")
         e2 = employment_instance(start=date(1900, 2, 2), company="Acme")
         e3 = employment_instance(
