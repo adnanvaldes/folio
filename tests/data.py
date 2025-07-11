@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from folio.models.models import Book, Work
 
@@ -7,49 +7,60 @@ from folio.models.models import Book, Work
 class Defaults:
     """Immutable default test data for all models."""
 
-    WORK: dict = {
-        "title": "Abril Jacarandil",
-        "author": "Josu Roldan",
-        "year": 2024,
-        "genre": "Poetry",
-        "is_read": False,
-    }
+    WORK: dict = field(
+        default_factory=lambda: {
+            "title": "Abril Jacarandil",
+            "author": "Josu Roldan",
+            "year": 2024,
+            "genre": "Poetry",
+            "is_read": False,
+        }
+    )
 
-    BOOK: dict = {
-        "pages": 127,
-        "format": Book.Format.PRINT,
-        "isbn": "9786079818180",
-    }
+    BOOK: dict = field(
+        default_factory=lambda: {
+            "pages": 127,
+            "format": Book.Format.PRINT,
+            "isbn": "9786079818180",
+        }
+    )
 
-    TRAVEL: dict = {
-        "origin": "NYC",
-        "destination": "LON",
-        "date": date(2020, 1, 1),
-        "notes": "Vacation",
-    }
+    TRAVEL: dict = field(
+        default_factory=lambda: {
+            "origin": "NYC",
+            "destination": "LON",
+            "date": date(2020, 1, 1),
+            "notes": "Vacation",
+        }
+    )
 
-    ADDRESS: dict = {
-        "start": date(2020, 1, 1),
-        "end": None,
-        "street_address": "123 Main",
-        "province": "ON",
-        "country": "Canada",
-        "postal_code": "A1B2C3",
-    }
+    ADDRESS: dict = field(
+        default_factory=lambda: {
+            "start": date(2020, 1, 1),
+            "end": None,
+            "street_address": "123 Main",
+            "province": "ON",
+            "country": "Canada",
+            "postal_code": "A1B2C3",
+        }
+    )
 
-    EMPLOYMENT: dict = {
-        "start": date(2020, 1, 1),
-        "end": None,
-        "company": "Acme",
-        "supervisor": "Wild E. Coyote",
-        "address": "123 Some St",
-        "phone": "555-1234",
-    }
+    EMPLOYMENT: dict = field(
+        default_factory=lambda: {
+            "start": date(2020, 1, 1),
+            "end": None,
+            "company": "Acme",
+            "supervisor": "Wild E. Coyote",
+            "address": "123 Some St",
+            "phone": "555-1234",
+        }
+    )
 
 
+DEFAULTS = Defaults()
 # Parametrized test data for each model
 WORKS = [
-    Defaults.WORK,
+    DEFAULTS.WORK,
     {
         "title": "Hyperion",
         "author": "Dan Simmons",
@@ -67,7 +78,7 @@ WORKS = [
 ]
 
 BOOKS = [
-    Defaults.BOOK,
+    DEFAULTS.BOOK,
     {
         "pages": 481,
         "format": Book.Format.AUDIO,
@@ -81,7 +92,7 @@ BOOKS = [
 ]
 
 TRAVELS = [
-    Defaults.TRAVEL,
+    DEFAULTS.TRAVEL,
     {
         "origin": "PAR",
         "destination": "ROM",
@@ -97,7 +108,7 @@ TRAVELS = [
 ]
 
 ADDRESSES = [
-    Defaults.ADDRESS,
+    DEFAULTS.ADDRESS,
     {
         "start": date(2018, 6, 1),
         "end": date(2020, 5, 31),
@@ -117,7 +128,7 @@ ADDRESSES = [
 ]
 
 EMPLOYMENTS = [
-    Defaults.EMPLOYMENT,
+    DEFAULTS.EMPLOYMENT,
     {
         "start": date(2015, 4, 1),
         "end": date(2019, 10, 31),
