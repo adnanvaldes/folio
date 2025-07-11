@@ -2,7 +2,7 @@ import pytest
 import json
 from datetime import date, timedelta
 
-from folio.models.models import Work, Book, Travel, Address, Employment
+from folio.models import Work, Book, Travel, Address, Employment
 
 
 class TestWork:
