@@ -1,6 +1,5 @@
-from folio.models.models import Work
-from folio.repositories.repository import InMemoryRepository
-from folio.models.models import Work
+from folio.repositories import InMemoryRepository
+from folio.models import Work
 from folio.services.serializers import JSONSerializer
 
 
