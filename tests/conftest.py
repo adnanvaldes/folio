@@ -1,33 +1,33 @@
 import pytest
 from datetime import date, timedelta
 
-from folio.tests.data import Defaults, WORKS, BOOKS, TRAVELS, ADDRESSES, EMPLOYMENTS
+from tests.data import DEFAULTS, WORKS, BOOKS, TRAVELS, ADDRESSES, EMPLOYMENTS
 from folio.models.models import Work, Book, Travel, Address, Employment
 
 
 @pytest.fixture
 def work_instance() -> Work:
-    return Work(**Defaults.WORK)
+    return Work(**DEFAULTS.WORK)
 
 
 @pytest.fixture
 def book_instance(work_instance) -> Book:
-    return Book(work=work_instance, **Defaults.BOOK)
+    return Book(work=work_instance, **DEFAULTS.BOOK)
 
 
 @pytest.fixture
 def travel_instance() -> Travel:
-    return Travel(**Defaults.TRAVEL)
+    return Travel(**DEFAULTS.TRAVEL)
 
 
 @pytest.fixture
 def employment_instance() -> Employment:
-    return Employment(**Defaults.EMPLOYMENT)
+    return Employment(**DEFAULTS.EMPLOYMENT)
 
 
 @pytest.fixture
 def address_instance() -> Address:
-    return Address(**Defaults.ADDRESS)
+    return Address(**DEFAULTS.ADDRESS)
 
 
 @pytest.fixture
