@@ -3,9 +3,7 @@ from dataclasses import dataclass
 from functools import total_ordering
 from typing import Dict, Any, List, TypeVar, Type
 
-from folio.common import ValidationResult
-from folio.services.protocols import Validator, Formatter
-from folio.services.serializers import SerializeStrategy
+from folio.common import ValidationResult, Validator, Formatter, SerializeStrategy
 
 R = TypeVar("R", bound="Record")
 O = TypeVar("O")
