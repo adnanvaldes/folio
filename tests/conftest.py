@@ -3,7 +3,6 @@ from datetime import date, timedelta
 
 from tests.data import DEFAULTS, WORKS, BOOKS, TRAVELS, ADDRESSES, EMPLOYMENTS
 from folio.models import Work, Book, Travel, Address, Employment
-from folio.repositories import InMemoryRepository
 
 
 @pytest.fixture
@@ -162,11 +161,6 @@ def multiple_addresses(request) -> Address:
 @pytest.fixture(params=EMPLOYMENTS)
 def multiple_employments(request) -> Employment:
     return Employment(**request.params)
-
-
-@pytest.fixture
-def repository():
-    return InMemoryRepository()
 
 
 # Utility fixtures
