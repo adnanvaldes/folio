@@ -18,3 +18,7 @@ class Formatter[T](ABC):
     """
 
     pass
+
+
+class Serializer:
+    pass

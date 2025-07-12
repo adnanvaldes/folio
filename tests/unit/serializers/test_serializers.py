@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 
 from serializer_data import expected_data
-from folio.services.serializers import DictSerializer, JSONSerializer
+from folio.common import DictSerializer, JSONSerializer
 
 
 @dataclass
