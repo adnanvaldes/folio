@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import total_ordering
 from typing import Dict, Any, List, TypeVar, Type
 
-from folio.models.common import ValidationResult
+from folio.common import ValidationResult
 from folio.services.protocols import Validator, Formatter
 from folio.services.serializers import SerializeStrategy
 

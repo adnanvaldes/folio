@@ -1,7 +1,7 @@
 from typing import Dict, Any, Type
 from abc import ABC, abstractmethod
 
-from folio.models.common import ValidationResult
+from folio.common import ValidationResult
 
 
 class Validator[T](ABC):

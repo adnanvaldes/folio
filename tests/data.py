@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import date
-from folio.models.models import Book, Work
+from folio.models import Book, Work
 
 
 @dataclass(frozen=True)
