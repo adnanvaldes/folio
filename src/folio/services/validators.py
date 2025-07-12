@@ -2,8 +2,8 @@ from typing import Protocol, List
 from dataclasses import dataclass
 from datetime import date
 
-from folio.models.common import ValidationResult
-from folio.models.models import Work
+from folio.common import ValidationResult
+from folio.models import Work
 from folio.services.protocols import Validator
 
 
