@@ -12,7 +12,8 @@ class Address(Record["Address"]):
 
     start: date
     end: date | None
-    street_address: str
+    street: str
+    city: str
     province: str | None
     country: str
     postal_code: str
@@ -20,7 +21,7 @@ class Address(Record["Address"]):
     def __str__(self):
         end = self.end or "Present"
         province = f", {self.province}" if self.province else ""
-        return f"{self.street_address}{province}, {self.country} {self.postal_code} ({self.start} → {end} [{self.duration}])"
+        return f"{self.street}, {self.city}, {province}, {self.country} {self.postal_code} ({self.start} → {end} [{self.duration}])"
 
     @property
     def duration(self) -> timedelta:
@@ -39,7 +40,8 @@ class Address(Record["Address"]):
         Time periods are not part of an address' identity.
         """
         return (
-            self.street_address.lower().strip(),
+            self.street.lower().strip(),
+            self.city.lower().strip(),
             (self.province or "").lower().strip(),
             self.country.lower().strip(),
             self.postal_code.lower().strip(),
