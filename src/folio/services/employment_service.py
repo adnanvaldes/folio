@@ -1,4 +1,4 @@
-from folio.repositories import BookRepository
+from folio.repositories import EmploymentRepository
 from folio.models import Employment
 
 
