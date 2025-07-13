@@ -82,6 +82,26 @@ class Book(Record["Book"]):
     isbn: str | None
 
     @property
+    def title(self) -> str:
+        return self.work.title
+
+    @property
+    def author(self) -> str:
+        return self.work.author
+
+    @property
+    def year(self) -> int | None:
+        return self.work.year
+
+    @property
+    def genre(self) -> str:
+        return self.work.genre
+
+    @property
+    def read(self) -> bool:
+        return self.work.is_read
+
+    @property
     def format(self) -> str:
         return self.format_data.format
 
