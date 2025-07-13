@@ -1,4 +1,4 @@
-from folio.repositories import BookRepository
+from folio.repositories import AddressRepository
 from folio.models import Address
 
 
