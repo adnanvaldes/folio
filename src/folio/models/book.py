@@ -24,7 +24,8 @@ class BookFormat(ABC):
         ...
 
     @property
-    def format(self) -> str: ...
+    def format(self):
+        return self.format_type.value
 
 
 @dataclass
@@ -44,10 +45,6 @@ class TextFormat(BookFormat):
     def length(self) -> int | None:
         return self.pages
 
-    @property
-    def format(self):
-        return self.format_type.value
-
     def __str__(self):
         return f"{self.length} ({self.format})"
 
@@ -62,10 +59,6 @@ class AudioFormat(BookFormat):
     @property
     def length(self) -> int:
         return int(self.duration.total_seconds() // 60)
-
-    @property
-    def format(self):
-        return self.format_type.value
 
     def __str__(self):
         return f"{self.length} ({self.format}) (Narrator: {self.narrator})"
