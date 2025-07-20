@@ -7,8 +7,11 @@ class SQLiteRepository(Repository[R]):
     def __init__(self, session):
         self.session = session
 
-    def add(self, record: R) -> int:
-        pass
+    @abstractmethod
+    def add(self, record: R) -> int: ...
 
-    def get(self, id: int) -> Optional[R]:
-        pass
+    @abstractmethod
+    def get(self, id: int) -> Optional[R]: ...
+
+    @abstractmethod
+    def ensure_table(self) -> None: ...
