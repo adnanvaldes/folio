@@ -13,15 +13,15 @@ class Repository[R: Record](ABC):
         ...
 
     @abstractmethod
-    def delete(self, id: int) -> None:
+    def get(self, id: int) -> Optional[R]:
         """
-        Delete a record by ID
+        Retrieve a record by its repository-assigned ID
         """
         ...
 
     @abstractmethod
-    def get(self, id: int) -> Optional[R]:
+    def list(self) -> List[R]:
         """
-        Retrieve a record by its repository-assigned ID
+        Retrun all records in the repository
         """
         ...
