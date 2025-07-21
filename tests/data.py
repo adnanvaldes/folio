@@ -57,7 +57,8 @@ class Defaults:
         default_factory=lambda: {
             "start": dt.date(2020, 1, 1),
             "end": None,
-            "street_address": "123 Main",
+            "street": "123 Main",
+            "city": "Vancouver",
             "province": "ON",
             "country": "Canada",
             "postal_code": "A1B2C3",
@@ -142,7 +143,8 @@ ADDRESSES = [
     {
         "start": dt.date(2018, 6, 1),
         "end": dt.date(2020, 5, 31),
-        "street_address": "456 Elm St",
+        "street": "456 Elm St",
+        "city": "Vancouver",
         "province": "BC",
         "country": "Canada",
         "postal_code": "X9Y8Z7",
@@ -150,7 +152,8 @@ ADDRESSES = [
     {
         "start": dt.date(2021, 1, 1),
         "end": None,
-        "street_address": "789 Oak Ave",
+        "street": "789 Oak Ave",
+        "city": "San Francisco",
         "province": "CA",
         "country": "USA",
         "postal_code": "90210",
