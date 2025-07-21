@@ -1,10 +1,10 @@
-from ..unit_of_work import UnitOfWork
+from ..unit_of_work import SQLiteUnitOfWork
 
-from folio.repositories import SqliteTravelRepository
+from folio.repositories import SQLiteTravelRepository
 
 
-class TravelSQLiteUoW(UnitOfWork):
-    def __enter__(self):
-        super().__enter__()
-        self.travel = SqliteTravelRepository(self.conn)
+class TravelSQLiteUoW(SQLiteUnitOfWork):
+    def _start(self):
+        super()._start()
+        self.travel = SQLiteTravelRepository(self.conn)
         return self
