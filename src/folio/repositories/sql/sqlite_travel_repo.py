@@ -4,6 +4,7 @@ from typing import Optional, List
 
 from .sqlite import SQLiteRepository
 from folio.models import Travel
+from folio.common import normalize_date
 
 
 class SQLiteTravelRepo(SQLiteRepository[Travel]):
@@ -29,34 +30,56 @@ class SQLiteTravelRepo(SQLiteRepository[Travel]):
             (travel_id),
         ).fetchone()
 
-        if not row:
-            return None
-
-        data = dict(row)
-        data["date"] = date.fromisoformat(data["date"])
-        return Travel(**data)
+        return self._map_row(row) if row else None
 
     def list(self) -> List[Travel]:
         rows = self.conn.execute(
             "SELECT origin, destination, date, notes FROM travel"
         ).fetchall()
 
-        travels = []
-        for row in rows:
-            data = dict(row)
-            data["date"] = dt.date.fromisoformat(data["date"])
-            travels.append(Travel(**data))
+        return [self._map_row(row) for row in rows]
 
-        return travels
+    def find(
+        self, origin: str = None, destination: str = None, date: dt.date = None
+    ) -> List[Travel]:
+        query = "SELECT * FROM travel"
+        conditions = []
+        params = []
 
-    def ensure_table(self) -> None:
+        if origin:
+            conditions.append("origin = ?")
+            params.append(origin)
+
+        if destination:
+            conditions.append("destination = ?")
+            params.append(destination)
+
+        if date:
+            date_input = normalize_date(date)
+            conditions.append("date = ?")
+            params.append(date_input)
+
+        if conditions:
+            query += "WHERE" + "AND ".join(conditions)
+
+        rows = self.conn.execute(query, params).fetchall()
+        return [self._map_row(row) for row in rows]
+
+    def _map_row(self, row) -> Travel:
+        data = dict(row)
+        data["date"] = dt.date.fromisoformat(data["date"])
+        return Travel(**data)
+
+    def _ensure_table(self) -> None:
         self.conn.execute(
             """
         CREATE TABLE IF NOT EXISTS travel (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             origin TEXT NOT NULL,
             destination TEXT NOT NULL,
-            notes TEXT
+            date TEXT NOT NULL,
+            notes TEXT,
+            UNIQUE(origin, destination, date)
             )
         """
         )
