@@ -42,7 +42,7 @@ class SQLiteTravelRepo(SQLiteRepository[Travel]):
     def find(
         self, origin: str = None, destination: str = None, date: dt.date = None
     ) -> List[Travel]:
-        query = "SELECT * FROM travel"
+        query = "SELECT origin, destination, date, notes FROM travel"
         conditions = []
         params = []
 
@@ -60,7 +60,7 @@ class SQLiteTravelRepo(SQLiteRepository[Travel]):
             params.append(date_input)
 
         if conditions:
-            query += "WHERE" + "AND ".join(conditions)
+            query += " WHERE " + " AND ".join(conditions)
 
         rows = self.conn.execute(query, params).fetchall()
         return [self._map_row(row) for row in rows]
