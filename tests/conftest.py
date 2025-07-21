@@ -2,7 +2,16 @@ import pytest
 import datetime as dt
 
 from tests.data import DEFAULTS, WORKS, BOOKS, TRAVELS, ADDRESSES, EMPLOYMENTS
-from folio.models import Work, Book, Travel, Address, Employment
+from folio.models import (
+    Work,
+    Book,
+    Travel,
+    Address,
+    Employment,
+    TextFormat,
+    AudioFormat,
+    FormatType,
+)
 
 
 @pytest.fixture
@@ -12,7 +21,15 @@ def work_instance() -> Work:
 
 @pytest.fixture
 def book_instance(work_instance) -> Book:
-    return Book(work=work_instance, **DEFAULTS.BOOK)
+    text_format = TextFormat(
+        pages=DEFAULTS.TEXT_FORMAT["pages"],
+        format_type=DEFAULTS.TEXT_FORMAT["format_type"],
+    )
+    return Book(
+        work=work_instance,
+        format_data=text_format,
+        isbn=DEFAULTS.BOOK["isbn"],
+    )
 
 
 @pytest.fixture
@@ -65,11 +82,28 @@ def book_factory(work_factory):
     """Factory for creating Book instances with custom parameters"""
 
     def _create_book(
-        work=None, pages=100, format=Book.Format.PRINT, isbn="9783161484100"
+        work=None,
+        pages: int | None = 300,
+        duration: dt.timedelta | None = None,
+        format_type: FormatType = FormatType.PRINT,
+        narrator: str | None = None,
+        isbn="9783161484100",
     ):
         if work is None:
             work = work_factory()
-        return Book(work, pages, format, isbn)
+
+        if format_type == FormatType.AUDIO:
+            format_data = AudioFormat(
+                duration=duration or dt.timedelta(hours=10),
+                narrator=narrator,
+            )
+        else:
+            format_data = TextFormat(
+                pages=pages,
+                format_type=format_type,
+            )
+
+        return Book(work=work, format_data=format_data, isbn=isbn)
 
     return _create_book
 
@@ -81,7 +115,7 @@ def travel_factory():
     def _create_travel(
         origin="NYC", destination="LON", date=dt.date(2020, 1, 1), notes="Travel"
     ):
-        return Travel(origin=origin, destination=destination, date=dt.date, notes=notes)
+        return Travel(origin=origin, destination=destination, date=date, notes=notes)
 
     return _create_travel
 
@@ -140,12 +174,15 @@ def multiple_works(request) -> Work:
     return Work(**request.param)
 
 
-@pytest.fixture(params=list(zip(WORKS, BOOKS)))
+@pytest.fixture(params=BOOKS)
 def multiple_books(request) -> Book:
     """Parametrized fixture that creates multiple Book instances with associated Works"""
-    work_data, book_data = request.param
-    work = Work(**work_data)
-    return Book(work=work, **book_data)
+    book_data = request.param
+    return Book(
+        work=book_data["work"],
+        format_data=book_data["format_data"],
+        isbn=book_data["isbn"],
+    )
 
 
 @pytest.fixture(params=TRAVELS)
@@ -160,7 +197,7 @@ def multiple_addresses(request) -> Address:
 
 @pytest.fixture(params=EMPLOYMENTS)
 def multiple_employments(request) -> Employment:
-    return Employment(**request.params)
+    return Employment(**request.param)
 
 
 # Utility fixtures

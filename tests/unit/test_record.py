@@ -2,7 +2,16 @@ import datetime as dt
 import pytest
 import json
 
-from folio.models import Work, Book, Travel, Address, Employment
+from folio.models import (
+    Work,
+    Book,
+    Travel,
+    Address,
+    Employment,
+    FormatType,
+    TextFormat,
+    AudioFormat,
+)
 
 
 class TestWork:
@@ -43,35 +52,56 @@ class TestBook:
 
         assert book.work.title == "Abril Jacarandil"
         assert book.work.author == "Josu Roldan"
-        assert book.pages == 127
-        assert book.format == Book.Format.PRINT
+        assert book.length == 127  # TextFormat pages
+        assert book.format == FormatType.PRINT.value
         assert book.isbn == "9786079818180"
 
     def test_book_identity_and_ordering(self, book_factory, work_factory):
         work1 = work_factory(title="Alpha", author="Anderson", year=1990)
         work2 = work_factory(title="Beta", author="Brown", year=2000)
 
-        b1 = book_factory(work=work1, format=Book.Format.AUDIO, isbn="111", pages=300)
+        # Same Work, same format, same ISBN -> same identity
+        b1 = book_factory(
+            work=work1,
+            format_type=FormatType.AUDIO,
+            duration=dt.timedelta(hours=10),
+            narrator="John Smith",
+            isbn="111",
+        )
         b2 = book_factory(
-            work=work1, format=Book.Format.AUDIO, isbn="111", pages=400
-        )  # Same identity
+            work=work1,
+            format_type=FormatType.AUDIO,
+            duration=dt.timedelta(hours=12),
+            narrator="Jane Doe",
+            isbn="111",
+        )
+        # Same Work and ISBN, different format
         b3 = book_factory(
-            work=work1, format=Book.Format.EBOOK, isbn="111", pages=300
-        )  # Diff format
+            work=work1,
+            format_type=FormatType.EBOOK,
+            pages=300,
+            isbn="111",
+        )
+        # Same Work, different ISBN
         b4 = book_factory(
-            work=work1, format=Book.Format.PRINT, isbn="222", pages=300
-        )  # Diff ISBN
+            work=work1,
+            format_type=FormatType.PRINT,
+            pages=300,
+            isbn="222",
+        )
+        # Different Work
         b5 = book_factory(
-            work=work2, format=Book.Format.PRINT, isbn="111", pages=300
-        )  # Diff Work
+            work=work2,
+            format_type=FormatType.PRINT,
+            pages=300,
+            isbn="111",
+        )
 
         expected_order = [b1, b3, b4, b5]
 
-        # Ordering
         books = [b5, b3, b4, b1]
         assert sorted(books) == expected_order
 
-        # Identity
         assert b1 == b2
         assert hash(b1) == hash(b2)
         for other in [b3, b4, b5]:
