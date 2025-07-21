@@ -9,11 +9,14 @@ class TravelService:
         self.uow = uow
 
     def add(self, origin: str, destination: str, date: dt.date, notes: str = ""):
+        if self.find(origin, destination, date):
+            raise ValueError(f"Travel already exists for {origin, destination, date}")
+
         date = dt.date.fromisoformat(date)
         travel = Travel(origin=origin, destination=destination, date=date, notes=notes)
 
         with self.uow:
-            uow.travel.add(travel)
+            self.uow.travel.add(travel)
 
     def get(self, travel_id) -> Optional[Travel]:
         with self.uow:
