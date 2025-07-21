@@ -1,15 +1,10 @@
 from abc import ABC, abstractmethod
-import sqlite3
 
 
-class UnitOfWork:
-
-    def __init__(self, db_path="folio.db"):
-        self.db_path = db_path
+class UnitOfWork(ABC):
 
     def __enter__(self):
-        self.conn = sqlite3.connect(self.db_path)
-        self.conn.execute("BEGIN")
+        self._start()
         return self
 
     def __exit__(self, exc_type, *_):
@@ -17,10 +12,16 @@ class UnitOfWork:
             self.rollback()
         else:
             self.commit()
-        self.conn.close()
+        self._cleanup()
 
+    @abstractmethod
+    def _start(self):
+        pass
+
+    @abstractmethod
     def commit(self):
-        self.conn.execute("COMMIT")
+        pass
 
+    @abstractmethod
     def rollback(self):
-        self.conn.execute("ROLLBACK")
+        pass
