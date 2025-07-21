@@ -1,5 +1,6 @@
 import sqlite3
-from datetime import date
+import datetime as dt
+from typing import Optional, List
 
 from .sqlite import SQLiteRepository
 from folio.models import Travel
@@ -43,7 +44,7 @@ class SQLiteTravelRepo(SQLiteRepository[Travel]):
         travels = []
         for row in rows:
             data = dict(row)
-            date["date"] = date.fromisoformat(data["date"])
+            data["date"] = dt.date.fromisoformat(data["date"])
             travels.append(Travel(**data))
 
         return travels

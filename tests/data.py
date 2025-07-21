@@ -1,5 +1,5 @@
+import dt.datetime as dt
 from dataclasses import dataclass, field
-from datetime import date
 from folio.models import Book, Work
 
 
@@ -29,14 +29,14 @@ class Defaults:
         default_factory=lambda: {
             "origin": "NYC",
             "destination": "LON",
-            "date": date(2020, 1, 1),
+            "date": dt.date(2020, 1, 1),
             "notes": "Vacation",
         }
     )
 
     ADDRESS: dict = field(
         default_factory=lambda: {
-            "start": date(2020, 1, 1),
+            "start": dt.date(2020, 1, 1),
             "end": None,
             "street_address": "123 Main",
             "province": "ON",
@@ -47,7 +47,7 @@ class Defaults:
 
     EMPLOYMENT: dict = field(
         default_factory=lambda: {
-            "start": date(2020, 1, 1),
+            "start": dt.date(2020, 1, 1),
             "end": None,
             "company": "Acme",
             "supervisor": "Wild E. Coyote",
@@ -96,13 +96,13 @@ TRAVELS = [
     {
         "origin": "PAR",
         "destination": "ROM",
-        "date": date(2021, 5, 15),
+        "date": dt.date(2021, 5, 15),
         "notes": "Business trip",
     },
     {
         "origin": "TOK",
         "destination": "SYD",
-        "date": date(2019, 9, 23),
+        "date": dt.date(2019, 9, 23),
         "notes": "Conference",
     },
 ]
@@ -110,15 +110,15 @@ TRAVELS = [
 ADDRESSES = [
     DEFAULTS.ADDRESS,
     {
-        "start": date(2018, 6, 1),
-        "end": date(2020, 5, 31),
+        "start": dt.date(2018, 6, 1),
+        "end": dt.date(2020, 5, 31),
         "street_address": "456 Elm St",
         "province": "BC",
         "country": "Canada",
         "postal_code": "X9Y8Z7",
     },
     {
-        "start": date(2021, 1, 1),
+        "start": dt.date(2021, 1, 1),
         "end": None,
         "street_address": "789 Oak Ave",
         "province": "CA",
@@ -130,15 +130,15 @@ ADDRESSES = [
 EMPLOYMENTS = [
     DEFAULTS.EMPLOYMENT,
     {
-        "start": date(2015, 4, 1),
-        "end": date(2019, 10, 31),
+        "start": dt.date(2015, 4, 1),
+        "end": dt.date(2019, 10, 31),
         "company": "Globex",
         "supervisor": "Hank Scorpio",
         "address": "100 Corporate Plaza",
         "phone": "555-5678",
     },
     {
-        "start": date(2020, 6, 15),
+        "start": dt.date(2020, 6, 15),
         "end": None,
         "company": "Soylent Corp",
         "supervisor": "Linda Lovelace",

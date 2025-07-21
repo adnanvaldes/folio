@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from abc import ABC, abstractmethod
@@ -52,7 +52,7 @@ class TextFormat(BookFormat):
 @dataclass
 class AudioFormat(BookFormat):
 
-    duration: timedelta
+    duration: dt.timedelta
     narrator: str | None
     format_type: FormatType = FormatType.AUDIO
 

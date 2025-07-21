@@ -1,5 +1,5 @@
 import pytest
-from datetime import date, timedelta
+import datetime as dt
 
 from tests.data import DEFAULTS, WORKS, BOOKS, TRAVELS, ADDRESSES, EMPLOYMENTS
 from folio.models import Work, Book, Travel, Address, Employment
@@ -79,9 +79,9 @@ def travel_factory():
     """Factory for creating Travel instances with custom parameters"""
 
     def _create_travel(
-        origin="NYC", destination="LON", date=date(2020, 1, 1), notes="Travel"
+        origin="NYC", destination="LON", date=dt.date(2020, 1, 1), notes="Travel"
     ):
-        return Travel(origin=origin, destination=destination, date=date, notes=notes)
+        return Travel(origin=origin, destination=destination, date=dt.date, notes=notes)
 
     return _create_travel
 
@@ -91,8 +91,8 @@ def address_factory():
     """Factory for creating Address instances with custom parameters"""
 
     def _create_address(
-        start=date(2020, 1, 1),
-        end=date(2022, 1, 1),
+        start=dt.date(2020, 1, 1),
+        end=dt.date(2022, 1, 1),
         street_address="123 Main St",
         province="ON",
         country="Canada",
@@ -115,7 +115,7 @@ def employment_factory():
     """Factory for creating Employment instances with custom parameters"""
 
     def _create_employment(
-        start=date(2020, 1, 1),
+        start=dt.date(2020, 1, 1),
         end=None,
         company="Acme",
         supervisor="Wild E. Coyote",
@@ -167,13 +167,13 @@ def multiple_employments(request) -> Employment:
 @pytest.fixture
 def past_date():
     """A date in the past"""
-    return date(2020, 1, 1)
+    return dt.date(2020, 1, 1)
 
 
 @pytest.fixture
 def future_date():
     """A date in the future"""
-    return date.today() + timedelta(days=365)
+    return dt.date.today() + dt.timedelta(days=365)
 
 
 @pytest.fixture

@@ -1,5 +1,6 @@
+import datetime as dt
 from dataclasses import dataclass
-from datetime import date, timedelta
+
 
 from folio.models.record import Record
 
@@ -10,8 +11,8 @@ class Employment(Record["Employment"]):
     Represents a period of employment
     """
 
-    start: date
-    end: date | None
+    start: dt.date
+    end: dt.date | None
     company: str
     supervisor: str
     address: str
@@ -22,11 +23,11 @@ class Employment(Record["Employment"]):
         return f"{self.company} ({self.start} -> {end} [{self.duration}])"
 
     @property
-    def duration(self) -> timedelta:
+    def duration(self) -> dt.timedelta:
         """
         Returns the duration of employment as a timedelta.
         """
-        end_date = self.end or date.today()
+        end_date = self.end or dt.date.today()
         if end_date < self.start:
             raise ValueError("End date cannot be before start date.")
         return end_date - self.start
@@ -41,7 +42,7 @@ class Employment(Record["Employment"]):
         """
         Sort employments by duration (longest first), then start date, then end date.
         """
-        end_date = self.end or date.today()
+        end_date = self.end or dt.date.today()
         return (
             -self.duration.days,  # Negative used so that longer durations come first
             self.start,

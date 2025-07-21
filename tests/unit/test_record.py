@@ -1,6 +1,6 @@
+import datetime as dt
 import pytest
 import json
-from datetime import date, timedelta
 
 from folio.models import Work, Book, Travel, Address, Employment
 
@@ -85,17 +85,17 @@ class TestTravel:
 
         assert travel.origin == "NYC"
         assert travel.destination == "LON"
-        assert travel.date == date(2020, 1, 1)
+        assert travel.date == dt.date(2020, 1, 1)
         assert travel.notes == "Vacation"
 
     def test_travel_identity_and_ordering(self, travel_factory):
-        t1 = travel_factory(origin="NYC", destination="LON", date=date(2020, 1, 1))
+        t1 = travel_factory(origin="NYC", destination="LON", date=dt.date(2020, 1, 1))
         # Same identity
         t2 = travel_factory(
-            origin="NYC", destination="LON", date=date(2020, 1, 1), notes="Business"
+            origin="NYC", destination="LON", date=dt.date(2020, 1, 1), notes="Business"
         )
         # Diff identity
-        t3 = travel_factory(origin="PAR", destination="ROM", date=date(2021, 1, 1))
+        t3 = travel_factory(origin="PAR", destination="ROM", date=dt.date(2021, 1, 1))
 
         expected_order = [t1, t3]
         travels = [t3, t1]
@@ -112,7 +112,7 @@ class TestAddress:
     def test_address_creation(self, address_instance):
         addr = address_instance
 
-        assert addr.start == date(2020, 1, 1)
+        assert addr.start == dt.date(2020, 1, 1)
         assert addr.end is None
         assert addr.street_address == "123 Main"
         assert addr.province == "ON"
@@ -122,23 +122,23 @@ class TestAddress:
 
     def test_address_identity_and_ordering(self, address_factory):
         a1 = address_factory(
-            start=date(2020, 1, 1),
-            end=date(2022, 1, 1),
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2022, 1, 1),
             street_address="123 Main St",
             province="ON",
             country="Canada",
             postal_code="A1B2C3",
         )
         a2 = address_factory(
-            start=date(2018, 1, 1),
-            end=date(2019, 1, 1),
+            start=dt.date(2018, 1, 1),
+            end=dt.date(2019, 1, 1),
             street_address="123 Main St",
             province="ON",
             country="Canada",
             postal_code="A1B2C3",
         )
         a3 = address_factory(
-            start=date(2021, 6, 1),
+            start=dt.date(2021, 6, 1),
             end=None,
             street_address="456 Elm St",
             province="BC",
@@ -162,7 +162,7 @@ class TestEmployment:
     def test_employment_creation(self, employment_instance):
         emp = employment_instance
 
-        assert emp.start == date(2020, 1, 1)
+        assert emp.start == dt.date(2020, 1, 1)
         assert emp.end is None
         assert emp.company == "Acme"
         assert emp.supervisor == "Wild E. Coyote"
@@ -170,11 +170,11 @@ class TestEmployment:
         assert emp.phone == "555-1234"
 
     def test_employment_identity_and_ordering(self, employment_factory):
-        e1 = employment_factory(start=date(2025, 1, 1), company="Acme")
-        e2 = employment_factory(start=date(1900, 2, 2), company="Acme")
+        e1 = employment_factory(start=dt.date(2025, 1, 1), company="Acme")
+        e2 = employment_factory(start=dt.date(1900, 2, 2), company="Acme")
         e3 = employment_factory(
-            start=date(2020, 1, 1),
-            end=date(2025, 1, 1),
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2025, 1, 1),
             company="Megacorp",
             supervisor="Super Boss",
             address="789 Some Blvd",

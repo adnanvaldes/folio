@@ -1,5 +1,5 @@
+import datetime as dt
 from dataclasses import dataclass
-from datetime import date
 
 from folio.models.record import Record
 
@@ -12,7 +12,7 @@ class Travel(Record["Travel"]):
 
     origin: str
     destination: str
-    date: date
+    date: dt.date
     notes: str
 
     def __str__(self):
