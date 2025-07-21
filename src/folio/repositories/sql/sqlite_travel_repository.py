@@ -27,7 +27,7 @@ class SQLiteTravelRepository(SQLiteRepository[Travel]):
     def get(self, travel_id: int) -> Optional[Travel]:
         row = self.conn.execute(
             "SELECT origin, destination, date, notes FROM travel WHERE id = ?",
-            (travel_id),
+            (travel_id,),
         ).fetchone()
 
         return self._map_row(row) if row else None
