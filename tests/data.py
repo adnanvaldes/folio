@@ -1,6 +1,13 @@
-import dt.datetime as dt
+import datetime as dt
 from dataclasses import dataclass, field
-from folio.models import Book, Work
+
+from folio.models import (
+    Book,
+    Work,
+    TextFormat,
+    AudioFormat,
+    FormatType,
+)
 
 
 @dataclass(frozen=True)
@@ -17,10 +24,22 @@ class Defaults:
         }
     )
 
-    BOOK: dict = field(
+    TEXT_FORMAT: dict = field(
         default_factory=lambda: {
             "pages": 127,
-            "format": Book.Format.PRINT,
+            "format_type": FormatType.PRINT,
+        }
+    )
+
+    AUDIO_FORMAT: dict = field(
+        default_factory=lambda: {
+            "duration": dt.timedelta(hours=8, minutes=45),
+            "narrator": "Jane Doe",
+        }
+    )
+
+    BOOK: dict = field(
+        default_factory=lambda: {
             "isbn": "9786079818180",
         }
     )
@@ -58,6 +77,7 @@ class Defaults:
 
 
 DEFAULTS = Defaults()
+
 # Parametrized test data for each model
 WORKS = [
     DEFAULTS.WORK,
@@ -78,15 +98,25 @@ WORKS = [
 ]
 
 BOOKS = [
-    DEFAULTS.BOOK,
     {
-        "pages": 481,
-        "format": Book.Format.AUDIO,
+        "work": Work(**DEFAULTS.WORK),
+        "format_data": TextFormat(**DEFAULTS.TEXT_FORMAT),
+        "isbn": DEFAULTS.BOOK["isbn"],
+    },
+    {
+        "work": Work(**WORKS[1]),  # Hyperion
+        "format_data": AudioFormat(
+            duration=dt.timedelta(hours=20, minutes=15),
+            narrator="Marc Thompson",
+        ),
         "isbn": "9780553283686",
     },
     {
-        "pages": 747,
-        "format": Book.Format.EBOOK,
+        "work": Work(**WORKS[2]),  # The Histories
+        "format_data": TextFormat(
+            pages=747,
+            format_type=FormatType.EBOOK,
+        ),
         "isbn": "9780698151369",
     },
 ]
