@@ -15,6 +15,10 @@ class Travel(Record["Travel"]):
     date: dt.date
     notes: str
 
+    def __post_init__(self):
+        if not isinstance(self.date, dt.date):
+            raise TypeError(f"date must be a datetime.date, got {type(self.date)}")
+
     def __str__(self):
         return f"{self.date}: {self.origin} -> {self.destination} ({self.notes})"
 
