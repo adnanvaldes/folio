@@ -1,5 +1,5 @@
 import datetime as dt
-
+from typing import List, Optional
 from folio.models import Travel
 from folio.uow import UnitOfWork
 
@@ -15,10 +15,14 @@ class TravelService:
         with self.uow:
             uow.travel.add(travel)
 
-    def get(self, travel_id):
+    def get(self, travel_id) -> Optional[Travel]:
         with self.uow:
-            return uow.travel.get(travel_id)
+            return self.uow.travel.get(travel_id)
 
-    def list(self) -> list[Travel]:
+    def list(self) -> List[Travel]:
         with self.uow:
-            return uow.travel.list()
+            return self.uow.travel.list()
+
+    def find(self, origin=None, destination=None, date=None) -> List[Travel]:
+        with self.uow:
+            return self.uow.travel.find(origin, destination, date)
