@@ -1,5 +1,5 @@
+import datetime as dt
 from dataclasses import dataclass
-from datetime import date, timedelta
 
 from folio.models.record import Record
 
@@ -10,8 +10,8 @@ class Address(Record["Address"]):
     Represents a primary living address
     """
 
-    start: date
-    end: date | None
+    start: dt.date
+    end: dt.date | None
     street: str
     city: str
     province: str | None
@@ -24,12 +24,12 @@ class Address(Record["Address"]):
         return f"{self.street}, {self.city}, {province}, {self.country} {self.postal_code} ({self.start} → {end} [{self.duration}])"
 
     @property
-    def duration(self) -> timedelta:
+    def duration(self) -> dt.timedelta:
         """
-        Returns the duratoin of a stay as a timedelta.
+        Returns the duratoin of a stay as a dt.timedelta.
         If end is None, uses today's date.
         """
-        end_date = self.end or date.today()
+        end_date = self.end or dt.date.today()
         if end_date < self.start:
             raise ValueError("End date cannot be before start date.")
         return end_date - self.start
@@ -51,7 +51,7 @@ class Address(Record["Address"]):
         """
         Sort by duration (longest first), then start, then end.
         """
-        end_date = self.end or date.today()
+        end_date = self.end or dt.date.today()
         duration = end_date - self.start
         return (
             -duration.days,  # Negative used so that longer durations come first

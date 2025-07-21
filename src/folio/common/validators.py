@@ -1,6 +1,6 @@
+import datetime as dt
 from typing import Protocol, List
 from dataclasses import dataclass
-from datetime import date
 
 from folio.common import ValidationResult
 from folio.models import Work
@@ -23,7 +23,7 @@ class WorkValidator:
         if work.year is not None:
             # Epic of Gilgamesh written circa 2100. Also allow a short
             # future buffer in case a book hasn't been completed
-            current_year = date.today().year
+            current_year = dt.date.today().year
             unpublished_buffer = 2
             if not -2100 < work.year <= (current_year + unpublished_buffer):
                 errors.append(

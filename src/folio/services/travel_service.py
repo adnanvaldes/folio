@@ -1,4 +1,4 @@
-from datetime import date
+import datetime as dt
 
 from folio.models import Travel
 from folio.uow import UnitOfWork
@@ -8,7 +8,8 @@ class TravelService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def add(self, origin: str, destination: str, date: date, notes: str = ""):
+    def add(self, origin: str, destination: str, date: dt.date, notes: str = ""):
+        date = dt.date.fromisoformat(date)
         travel = Travel(origin=origin, destination=destination, date=date, notes=notes)
 
         with self.uow:
