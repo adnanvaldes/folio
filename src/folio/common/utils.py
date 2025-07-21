@@ -1,6 +1,22 @@
 import re
 import inspect
+import datetime as dt
 from functools import wraps
+
+
+def normalize_date(date_input):
+    if isinstance(date_input, dt.date):
+        return date_input.isoformat()
+
+    if isinstance(date_input, str):
+        try:
+            iso_date = dt.datetime.strptime(date_input, "%Y-%m-%d").date()
+        except ValueError:
+            raise ValueError(f"Invalid date format: {date_input}")
+
+        return iso_date
+
+    raise TypeError(f"date must be a date or string, {type(date_input)} was passed")
 
 
 def is_valid_isbn_10(isbn: str | int) -> bool:

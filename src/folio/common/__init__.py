@@ -1,6 +1,7 @@
 from .common import ValidationResult
 from .protocols import Validator, Serializer, Formatter
 from .serializers import SerializeStrategy, JSONSerializer, DictSerializer
+from .utils import normalize_date
 
 __all__ = [
     "ValidationResult",
@@ -10,4 +11,5 @@ __all__ = [
     "SerializeStrategy",
     "JSONSerializer",
     "DictSerializer",
+    "normalize_date",
 ]
