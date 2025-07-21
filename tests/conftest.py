@@ -1,7 +1,11 @@
 import pytest
+import sqlite3
+import tempfile
+import os
 import datetime as dt
+from typing import Optional, List, Dict
 
-from tests.data import DEFAULTS, WORKS, BOOKS, TRAVELS, ADDRESSES, EMPLOYMENTS
+
 from folio.models import (
     Work,
     Book,
@@ -11,7 +15,54 @@ from folio.models import (
     TextFormat,
     AudioFormat,
     FormatType,
+    R,
 )
+from folio.uow import UnitOfWork
+
+from tests.data import DEFAULTS, WORKS, BOOKS, TRAVELS, ADDRESSES, EMPLOYMENTS
+from tests.fake_repositories import FakeTravelRepository
+
+
+class FakeUnitOfWork(UnitOfWork):
+    def __init__(self):
+        self.travel = FakeTravelRepository()
+        self.committed = False
+
+    def _start(self):
+        pass
+
+    def commit(self):
+        self.committed = True
+
+    def rollback(self):
+        self.committed = False
+
+    def _cleanup(self):
+        pass
+
+
+@pytest.fixture
+def fake_db():
+    """Creates a temp SQLite DB file for testing."""
+    fd, path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    yield path
+    os.remove(path)
+
+
+@pytest.fixture
+def fake_uow():
+    uow = FakeUnitOfWork()
+    uow._start()
+    return uow
+
+
+@pytest.fixture
+def fake_travel_repo():
+    return FakeTravelRepository()
+
+
+# Model instances
 
 
 @pytest.fixture
