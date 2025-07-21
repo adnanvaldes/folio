@@ -9,7 +9,7 @@ from folio.models import Travel
 class SQLiteTravelRepo(SQLiteRepository[Travel]):
 
     def __init__(self, connection: sqlite3.Connection):
-        self.conn = connection
+        super().__init__(connection)
         self._ensure_table()
 
     def add(self, travel: Travel) -> int:
