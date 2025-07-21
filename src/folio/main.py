@@ -1,31 +1,21 @@
-from folio.repositories import InMemoryRepository
-from folio.models import Work
-from folio.services.serializers import JSONSerializer
+from folio.uow import TravelSQLiteUoW
+from folio.services import TravelService
 
 
 def main():
-    print("Hello")
-    mem = InMemoryRepository()
-    serializer = JSONSerializer()
+    uow = TravelSQLiteUoW()
+    service = TravelService(uow)
 
-    work = Work(
-        id=1,
-        title="Dune",
-        author="Frank Herbert",
-        year=1965,
-        genre="Sci-Fi",
-        is_read=True,
-    )
+    try:
+        service.add("MEX", "NYX", "2024-07-20")
+    except ValueError as e:
+        print(e)
+    print([f"{travel}\n" for travel in service.list()])
 
-    # Serialize Work to JSON string
-    json_str = work.serialize(serializer)
-    print(json_str)
-    # print(type(json_str["id"]))
+    print(service.find(origin="MEX"))
+    print(service.find(date="2024-07-20"))
 
-    # Deserialize back to Work instance
-    work2 = Work.deserialize(json_str, serializer)
-    print(work2)
-    print(str(work2))
+    service.add("mex", "canada", "1900-01-01")
 
 
 if __name__ == "__main__":

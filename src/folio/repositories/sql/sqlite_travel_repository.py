@@ -7,7 +7,7 @@ from folio.models import Travel
 from folio.common import normalize_date
 
 
-class SQLiteTravelRepo(SQLiteRepository[Travel]):
+class SQLiteTravelRepository(SQLiteRepository[Travel]):
 
     def __init__(self, connection: sqlite3.Connection):
         super().__init__(connection)
@@ -79,6 +79,8 @@ class SQLiteTravelRepo(SQLiteRepository[Travel]):
             destination TEXT NOT NULL,
             date TEXT NOT NULL,
             notes TEXT,
+            CHECK(length(origin) = 3 AND origin = UPPER(origin)),
+            CHECK(length(destination) = 3 AND destination = UPPER(destination)),
             UNIQUE(origin, destination, date)
             )
         """
