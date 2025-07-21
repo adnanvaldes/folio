@@ -127,7 +127,8 @@ def address_factory():
     def _create_address(
         start=dt.date(2020, 1, 1),
         end=dt.date(2022, 1, 1),
-        street_address="123 Main St",
+        street="123 Main St",
+        city="Vancouver",
         province="ON",
         country="Canada",
         postal_code="A1B2C3",
@@ -135,7 +136,8 @@ def address_factory():
         return Address(
             start=start,
             end=end,
-            street_address=street_address,
+            street=street,
+            city=city,
             province=province,
             country=country,
             postal_code=postal_code,

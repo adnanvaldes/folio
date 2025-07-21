@@ -16,13 +16,11 @@ from folio.models import (
 
 class TestWork:
     def test_work_creation(self, work_instance):
-        work = work_instance
-
-        assert work.title == "Abril Jacarandil"
-        assert work.author == "Josu Roldan"
-        assert work.year == 2024
-        assert work.genre == "Poetry"
-        assert work.is_read is False
+        assert work_instance.title == "Abril Jacarandil"
+        assert work_instance.author == "Josu Roldan"
+        assert work_instance.year == 2024
+        assert work_instance.genre == "Poetry"
+        assert work_instance.is_read is False
 
     def test_work_identity_and_ordering(self, work_factory):
         w1 = work_factory(title="Alpha", author="Anderson", year=1990)
@@ -48,13 +46,11 @@ class TestWork:
 
 class TestBook:
     def test_book_creation(self, book_instance):
-        book = book_instance
-
-        assert book.work.title == "Abril Jacarandil"
-        assert book.work.author == "Josu Roldan"
-        assert book.length == 127  # TextFormat pages
-        assert book.format == FormatType.PRINT.value
-        assert book.isbn == "9786079818180"
+        assert book_instance.work.title == "Abril Jacarandil"
+        assert book_instance.work.author == "Josu Roldan"
+        assert book_instance.length == 127  # TextFormat pages
+        assert book_instance.format == FormatType.PRINT.value
+        assert book_instance.isbn == "9786079818180"
 
     def test_book_identity_and_ordering(self, book_factory, work_factory):
         work1 = work_factory(title="Alpha", author="Anderson", year=1990)
@@ -111,12 +107,10 @@ class TestBook:
 
 class TestTravel:
     def test_travel_creation(self, travel_instance):
-        travel = travel_instance
-
-        assert travel.origin == "NYC"
-        assert travel.destination == "LON"
-        assert travel.date == dt.date(2020, 1, 1)
-        assert travel.notes == "Vacation"
+        assert travel_instance.origin == "NYC"
+        assert travel_instance.destination == "LON"
+        assert travel_instance.date == dt.date(2020, 1, 1)
+        assert travel_instance.notes == "Vacation"
 
     def test_travel_identity_and_ordering(self, travel_factory):
         t1 = travel_factory(origin="NYC", destination="LON", date=dt.date(2020, 1, 1))
@@ -140,21 +134,19 @@ class TestTravel:
 
 class TestAddress:
     def test_address_creation(self, address_instance):
-        addr = address_instance
-
-        assert addr.start == dt.date(2020, 1, 1)
-        assert addr.end is None
-        assert addr.street_address == "123 Main"
-        assert addr.province == "ON"
-        assert addr.country == "Canada"
-        assert addr.postal_code == "A1B2C3"
-        assert isinstance(addr.duration, timedelta)
+        assert address_instance.start == dt.date(2020, 1, 1)
+        assert address_instance.end is None
+        assert address_instance.street == "123 Main"
+        assert address_instance.province == "ON"
+        assert address_instance.country == "Canada"
+        assert address_instance.postal_code == "A1B2C3"
+        assert isinstance(address_instance.duration, dt.timedelta)
 
     def test_address_identity_and_ordering(self, address_factory):
         a1 = address_factory(
             start=dt.date(2020, 1, 1),
             end=dt.date(2022, 1, 1),
-            street_address="123 Main St",
+            street="123 Main St",
             province="ON",
             country="Canada",
             postal_code="A1B2C3",
@@ -162,7 +154,7 @@ class TestAddress:
         a2 = address_factory(
             start=dt.date(2018, 1, 1),
             end=dt.date(2019, 1, 1),
-            street_address="123 Main St",
+            street="123 Main St",
             province="ON",
             country="Canada",
             postal_code="A1B2C3",
@@ -170,7 +162,7 @@ class TestAddress:
         a3 = address_factory(
             start=dt.date(2021, 6, 1),
             end=None,
-            street_address="456 Elm St",
+            street="456 Elm St",
             province="BC",
             country="Canada",
             postal_code="X9Y8Z7",
@@ -190,14 +182,12 @@ class TestAddress:
 
 class TestEmployment:
     def test_employment_creation(self, employment_instance):
-        emp = employment_instance
-
-        assert emp.start == dt.date(2020, 1, 1)
-        assert emp.end is None
-        assert emp.company == "Acme"
-        assert emp.supervisor == "Wild E. Coyote"
-        assert emp.address == "123 Some St"
-        assert emp.phone == "555-1234"
+        assert employment_instance.start == dt.date(2020, 1, 1)
+        assert employment_instance.end is None
+        assert employment_instance.company == "Acme"
+        assert employment_instance.supervisor == "Wild E. Coyote"
+        assert employment_instance.address == "123 Some St"
+        assert employment_instance.phone == "555-1234"
 
     def test_employment_identity_and_ordering(self, employment_factory):
         e1 = employment_factory(start=dt.date(2025, 1, 1), company="Acme")
