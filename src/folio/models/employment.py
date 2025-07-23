@@ -22,6 +22,15 @@ class Employment(Record["Employment"]):
         end = self.end or "Present"
         return f"{self.company} ({self.start} -> {end} [{self.duration}])"
 
+    def __post_init__(self):
+        if not isinstance(self.start, dt.date):
+            raise TypeError(f"start must be a datetime.date, got {type(self.start)}")
+
+        if not isinstance(self.end, dt.date) and self.end is not None:
+            raise TypeError(
+                f"end must be a datetime.date or None, got {type(self.end)}"
+            )
+
     @property
     def duration(self) -> dt.timedelta:
         """
