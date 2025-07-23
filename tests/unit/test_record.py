@@ -194,6 +194,13 @@ class TestEmployment:
         assert employment_instance.address == "123 Some St"
         assert employment_instance.phone == "555-1234"
 
+    def test_employment_rejects_non_dates(self, employment_factory):
+        with pytest.raises(TypeError):
+            employment_factory(start="a string")
+            employment_factory(start="2024-07-01")
+            employment_factory(end="a string")
+            employment_factory(end="2024-07-01")
+
     def test_employment_identity_and_ordering(self, employment_factory):
         e1 = employment_factory(start=dt.date(2025, 1, 1), company="Acme")
         e2 = employment_factory(start=dt.date(1900, 2, 2), company="Acme")
