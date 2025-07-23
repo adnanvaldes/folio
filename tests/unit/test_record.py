@@ -112,6 +112,11 @@ class TestTravel:
         assert travel_instance.date == dt.date(2020, 1, 1)
         assert travel_instance.notes == "Vacation"
 
+    def test_travel_rejects_non_dates(self, travel_factory):
+        with pytest.raises(TypeError):
+            travel_factory(date="2024-07-22")
+            travel_factory(date="string")
+
     def test_travel_identity_and_ordering(self, travel_factory):
         t1 = travel_factory(origin="NYC", destination="LON", date=dt.date(2020, 1, 1))
         # Same identity
