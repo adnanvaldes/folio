@@ -19,6 +19,10 @@ class Travel(Record["Travel"]):
         if not isinstance(self.date, dt.date):
             raise TypeError(f"date must be a datetime.date, got {type(self.date)}")
 
+        for country in [self.origin, self.destination]:
+            if len(country) != 3 and country.isupper():
+                raise TypeError(f"country data must be 3-letters, got {country}")
+
     def __str__(self):
         return f"{self.date}: {self.origin} -> {self.destination} ({self.notes})"
 
