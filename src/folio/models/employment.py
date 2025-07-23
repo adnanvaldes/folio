@@ -31,6 +31,11 @@ class Employment(Record["Employment"]):
                 f"end must be a datetime.date or None, got {type(self.end)}"
             )
 
+        if self.end is not None and self.end < self.start:
+            raise ValueError(
+                f"end date cannot be before start date, got: [start={self.start}, end={self.end}]"
+            )
+
     @property
     def duration(self) -> dt.timedelta:
         """

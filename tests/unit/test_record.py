@@ -186,7 +186,9 @@ class TestAddress:
 
 
 class TestEmployment:
-    def test_employment_creation(self, employment_instance):
+    def test_employment_creation(self, employment_instance, employment_factory):
+        e1 = employment_factory(start=dt.date(1000, 1, 1), end=dt.date(1000, 1, 1))
+
         assert employment_instance.start == dt.date(2020, 1, 1)
         assert employment_instance.end is None
         assert employment_instance.company == "Acme"
@@ -200,6 +202,16 @@ class TestEmployment:
             employment_factory(start="2024-07-01")
             employment_factory(end="a string")
             employment_factory(end="2024-07-01")
+
+    def test_employment_rejects_end_before_start(self, employment_factory):
+        with pytest.raises(ValueError):
+            employment_factory(start=dt.date(2000, 1, 1), end=dt.date(1000, 1, 1))
+
+    def test_employment_duration(self, employment_factory):
+        employment = employment_factory(
+            start=dt.date(1000, 1, 1), end=dt.date(1000, 1, 31)
+        )
+        assert employment.duration == dt.timedelta(days=30)
 
     def test_employment_identity_and_ordering(self, employment_factory):
         e1 = employment_factory(start=dt.date(2025, 1, 1), company="Acme")
