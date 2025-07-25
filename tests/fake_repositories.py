@@ -1,4 +1,5 @@
-from typing import Optional, List
+import datetime as dt
+from typing import Optional, List, Dict
 from abc import ABC, abstractmethod
 
 from folio.models import Travel, Employment, R
@@ -6,20 +7,26 @@ from folio.repositories import Repository
 
 
 class FakeRepository(Repository[R]):
-    def __init__(self):
-        self._data: dict[int, R] = {}
+        self._data: Dict[int, R] = {}
         self._next_id = 1
 
-    def add(self, R: R) -> int:
-        self._data[self._next_id] = R
+    def add(self, record: R) -> int:
+        self._data[self._next_id] = record
         self._next_id += 1
         return self._next_id - 1
 
-    def get(self, R_id: int) -> Optional[R]:
-        return self._data.get(R_id)
+    def get(self, record_id: int) -> Optional[R]:
+        return self._data.get(record_id)
 
     def list(self) -> List[R]:
         return list(self._data.values())
+
+    def _apply_filters(self, filters: dict) -> List[R]:
+        items = self.list()
+        for attr, value in filters.items():
+            if value is not None:
+                items = [item for item in items if getattr(item, attr) == value]
+        return items
 
     @abstractmethod
     def find(self): ...
