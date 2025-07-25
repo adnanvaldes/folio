@@ -1,23 +1,31 @@
 from typing import Optional, List
-from folio.models import Travel
+from abc import ABC, abstractmethod
+
+from folio.models import Travel, Employment, R
 from folio.repositories import Repository
 
 
-class FakeTravelRepository(Repository[Travel]):
+class FakeRepository(Repository[R]):
     def __init__(self):
-        self._data: dict[int, Travel] = {}
+        self._data: dict[int, R] = {}
         self._next_id = 1
 
-    def add(self, travel: Travel) -> int:
-        self._data[self._next_id] = travel
+    def add(self, R: R) -> int:
+        self._data[self._next_id] = R
         self._next_id += 1
         return self._next_id - 1
 
-    def get(self, travel_id: int) -> Optional[Travel]:
-        return self._data.get(travel_id)
+    def get(self, R_id: int) -> Optional[R]:
+        return self._data.get(R_id)
 
-    def list(self) -> List[Travel]:
+    def list(self) -> List[R]:
         return list(self._data.values())
+
+    @abstractmethod
+    def find(self): ...
+
+
+class FakeTravelRepository(FakeRepository[Travel]):
 
     def find(
         self, origin: str = None, destination: str = None, date: str = None
