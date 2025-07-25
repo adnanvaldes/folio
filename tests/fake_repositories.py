@@ -7,6 +7,7 @@ from folio.repositories import Repository
 
 
 class FakeRepository(Repository[R]):
+    def __init__(self):
         self._data: Dict[int, R] = {}
         self._next_id = 1
 
@@ -37,15 +38,33 @@ class FakeTravelRepository(FakeRepository[Travel]):
     def find(
         self, origin: str = None, destination: str = None, date: str = None
     ) -> List[Travel]:
-        result = self.list()
-        if origin:
-            result = [t for t in result if t.origin == origin]
-        if destination:
-            result = [t for t in result if t.destination == destination]
-        if date:
-            if isinstance(date, str):
-                from datetime import date as Date
+        filters = {
+            "origin": origin.upper() if origin else None,
+            "destination": destination.upper() if destination else None,
+            "date": dt.date.fromisoformat(date) if date else None,
+        }
 
-                date = Date.fromisoformat(date)
-            result = [t for t in result if t.date == date]
-        return result
+        return self._apply_filters(filters)
+
+
+class FakeEmploymentRepository(FakeRepository[Employment]):
+
+    def find(
+        self,
+        start: str = None,
+        end: str = None,
+        company: str = None,
+        supervisor: str = None,
+        address: str = None,
+        phone: str = None,
+    ) -> List[Employment]:
+        filters = {
+            "start": dt.date.fromisoformat(start) if start else None,
+            "end": dt.date.fromisoformat(end) if end else None,
+            "company": company.capitalize() if company else None,
+            "supervisor": supervisor.capitalize() if supervisor else None,
+            "address": address.capitalize() if address else None,
+            "phone": phone,
+        }
+
+        return self._apply_filters(filters)
