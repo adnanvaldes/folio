@@ -22,7 +22,8 @@ class TravelService:
         travel = Travel(origin=origin, destination=destination, date=date, notes=notes)
 
         with self.uow:
-            self.uow.travel.add(travel)
+            new_id = self.uow.travel.add(travel)
+            return new_id
 
     def get(self, travel_id) -> Optional[Travel]:
         with self.uow:

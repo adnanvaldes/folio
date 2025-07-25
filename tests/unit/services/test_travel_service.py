@@ -7,9 +7,8 @@ from folio.models import Travel
 def test_add_and_list_travel(fake_uow):
     service = TravelService(fake_uow)
 
-    service.add("USA", "FRA", "2025-07-21", notes="Vacation")
+    new_id = service.add("USA", "FRA", "2025-07-21", notes="Vacation")
     travels = service.list()
-    print(travels)
 
     assert len(travels) == 1
     travel = travels[0]
@@ -18,6 +17,8 @@ def test_add_and_list_travel(fake_uow):
     assert travel.destination == "FRA"
     assert travel.date == dt.date(2025, 7, 21)
     assert travel.notes == "Vacation"
+    assert new_id == 1
+    assert fake_uow.committed is True
 
 
 def test_prevents_duplicate_travel(fake_uow):
