@@ -14,7 +14,7 @@ class SQLiteTravelRepository(SQLiteRepository[Travel]):
         self._ensure_table()
 
     def add(self, travel: Travel) -> int:
-        self.conn.execute(
+        cursor = self.conn.execute(
             """INSERT INTO travel (
             origin,
             destination,
@@ -23,6 +23,7 @@ class SQLiteTravelRepository(SQLiteRepository[Travel]):
             ) VALUES (?, ?, ?, ?)""",
             (travel.origin, travel.destination, travel.date.isoformat(), travel.notes),
         )
+        return cursor.lastrowid
 
     def get(self, travel_id: int) -> Optional[Travel]:
         row = self.conn.execute(
