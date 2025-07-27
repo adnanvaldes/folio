@@ -30,11 +30,8 @@ class TestWork:
         w3 = work_factory(title="Beta", author="Anderson", year=1985)
         w4 = work_factory(title="Alpha", author="Brown", year=2000)
 
-        expected_order = [w1, w3, w4]
-
         # Ordering
-        works = [w4, w3, w1]
-        assert sorted(works) == expected_order
+        assert sorted([w4, w3, w1]) == [w1, w3, w4]
 
         # Identity
         assert w1 == w2
@@ -93,10 +90,7 @@ class TestBook:
             isbn="111",
         )
 
-        expected_order = [b1, b3, b4, b5]
-
-        books = [b5, b3, b4, b1]
-        assert sorted(books) == expected_order
+        assert sorted([b5, b3, b4, b1]) == [b1, b3, b4, b5]
 
         assert b1 == b2
         assert hash(b1) == hash(b2)
@@ -125,9 +119,7 @@ class TestTravel:
         # Diff identity
         t3 = travel_factory(origin="PAR", destination="ROM", date=dt.date(2021, 1, 1))
 
-        expected_order = [t1, t3]
-        travels = [t3, t1]
-        assert sorted(travels) == expected_order
+        assert sorted([t3, t1]) == [t1, t3]
 
         # Identity
         assert t1 == t2
@@ -186,17 +178,27 @@ class TestAddress:
             country="Canada",
             postal_code="X9Y8Z7",
         )
+        a4 = address_factory(
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2022, 1, 1),
+            street="123 Main St",
+            province="ON",
+            country="Canada",
+            postal_code="A1B2C3",
+        )
 
         # Identity
-        assert a1 == a2  # location matches, dates don't matter for identity
-        assert hash(a1) == hash(a2)
+        assert a1 == a4
+        assert hash(a1) == hash(a4)
+
+        assert a1 != a2
+        assert hash(a1) != hash(a2)
+
         assert a1 != a3
         assert hash(a1) != hash(a3)
 
         # Ordering
-        addresses = [a1, a3, a2]
-        sorted_addresses = sorted(addresses)
-        assert sorted_addresses == [a3, a2, a1]
+        assert sorted([a1, a3, a2]) == [a3, a1, a2]
 
 
 class TestEmployment:
@@ -243,8 +245,7 @@ class TestEmployment:
         )
 
         # Ordering
-        employments = [e1, e3]
-        assert sorted(employments) == [e3, e1]
+        assert sorted([e1, e3]) == [e3, e1]
 
         # Identity
         assert e1 == e2

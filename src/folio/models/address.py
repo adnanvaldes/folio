@@ -59,6 +59,8 @@ class Address(Record["Address"]):
             (self.province or "").lower().strip(),
             self.country.lower().strip(),
             self.postal_code.lower().strip(),
+            self.start,
+            self.end,
         )
 
     def _ordering_fields(self):
