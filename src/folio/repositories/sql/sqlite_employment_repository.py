@@ -21,7 +21,7 @@ class SQLiteEmploymentRepository(SQLiteRepository[Employment]):
             company,
             supervisor,
             address,
-            phone)
+            phone
         ) VALUES (?, ? ,?, ?, ?, ?)""",
             (
                 employment.start,
@@ -59,7 +59,7 @@ class SQLiteEmploymentRepository(SQLiteRepository[Employment]):
         address: str = None,
         phone: str = None,
     ) -> List[Employment]:
-        query = "SELECT start, end, company, supervisor, address, phone, notes FROM employment"
+        query = "SELECT start, end, company, supervisor, address, phone FROM employment"
         conditions = []
         params = []
 
@@ -98,7 +98,7 @@ class SQLiteEmploymentRepository(SQLiteRepository[Employment]):
     def _map_row(self, row) -> Employment:
         data = dict(row)
         data["start"] = dt.date.fromisoformat(data["start"])
-        data["end"] = dt.date.fromisoformat(data["end"])
+        data["end"] = dt.date.fromisoformat(data["end"]) if data["end"] else None
         return Employment(**data)
 
     def _ensure_table(self) -> None:
