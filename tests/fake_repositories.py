@@ -36,12 +36,12 @@ class FakeRepository(Repository[R]):
 class FakeTravelRepository(FakeRepository[Travel]):
 
     def find(
-        self, origin: str = None, destination: str = None, date: str = None
+        self, origin: str = None, destination: str = None, date: dt.date = None
     ) -> List[Travel]:
         filters = {
             "origin": origin.upper() if origin else None,
             "destination": destination.upper() if destination else None,
-            "date": dt.date.fromisoformat(date) if date else None,
+            "date": date if date else None,
         }
 
         return self._apply_filters(filters)
