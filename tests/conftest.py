@@ -20,12 +20,13 @@ from folio.models import (
 from folio.uow import UnitOfWork
 
 from tests.data import DEFAULTS, WORKS, BOOKS, TRAVELS, ADDRESSES, EMPLOYMENTS
-from tests.fake_repositories import FakeTravelRepository
+import tests.fake_repositories as fake
 
 
 class FakeUnitOfWork(UnitOfWork):
     def __init__(self):
-        self.travel = FakeTravelRepository()
+        self.travel = fake.FakeTravelRepository()
+        self.employment = fake.FakeEmploymentRepository()
         self.committed = False
 
     def _start(self):
@@ -59,7 +60,12 @@ def fake_uow():
 
 @pytest.fixture
 def fake_travel_repo():
-    return FakeTravelRepository()
+    return fake.FakeTravelRepository()
+
+
+@pytest.fixture
+def fake_employment_repo():
+    return fake.FakeEmploymentRepository()
 
 
 # Model instances
@@ -240,7 +246,7 @@ def multiple_books(request) -> Book:
 
 @pytest.fixture(params=TRAVELS)
 def multiple_travels(request) -> Travel:
-    return Travel(**request.param)
+    return request.param
 
 
 @pytest.fixture(params=ADDRESSES)
