@@ -11,7 +11,7 @@ class TravelService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def add(self, origin: str, destination: str, date: dt.date, notes: str = ""):
+    def add(self, origin: str, destination: str, date: dt.date, notes: str = "") -> int:
         date = dt.date.fromisoformat(date) if isinstance(date, str) else date
 
         origin, destination = origin.upper(), destination.upper()
