@@ -51,8 +51,8 @@ class FakeEmploymentRepository(FakeRepository[Employment]):
 
     def find(
         self,
-        start: str = None,
-        end: str = None,
+        start: dt.date = None,
+        end: dt.date = None,
         company: str = None,
         supervisor: str = None,
         address: str = None,
