@@ -215,7 +215,10 @@ class TestEmployment:
 
     def test_employment_identity_and_ordering(self, employment_factory):
         e1 = employment_factory(start=dt.date(2025, 1, 1), company="Acme")
-        e2 = employment_factory(start=dt.date(1900, 2, 2), company="Acme")
+        e2 = employment_factory(
+            start=dt.date(2025, 1, 1), company="Acme", end=dt.date(2026, 1, 1)
+        )
+
         e3 = employment_factory(
             start=dt.date(2020, 1, 1),
             end=dt.date(2025, 1, 1),
