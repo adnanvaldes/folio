@@ -12,13 +12,14 @@ class TravelService:
         self.uow = uow
 
     def add(self, origin: str, destination: str, date: dt.date, notes: str = ""):
+        date = dt.date.fromisoformat(date) if isinstance(date, str) else date
+
         origin, destination = origin.upper(), destination.upper()
         self._validate_country_codes(origin, destination)
 
         if self.find(origin, destination, date):
             raise ValueError(f"Travel already exists for {origin, destination, date}")
 
-        date = dt.date.fromisoformat(date)
         travel = Travel(origin=origin, destination=destination, date=date, notes=notes)
 
         with self.uow:
@@ -34,6 +35,7 @@ class TravelService:
             return self.uow.travel.list()
 
     def find(self, origin=None, destination=None, date=None) -> List[Travel]:
+        date = dt.date.fromisoformat(date) if isinstance(date, str) else date
         with self.uow:
             return self.uow.travel.find(origin, destination, date)
 
