@@ -1,8 +1,63 @@
-# from folio.repositories import EmploymentRepository
-# from folio.models import Employment
+import datetime as dt
+from typing import List, Optional
+from folio.models import Employment
+from folio.uow import UnitOfWork
 
 
-# class EmploymentService:
-#     def __init__(self, repository: EmploymentRepository): ...
-#     def add(self, employment: Employment) -> int: ...
-#     def list(self) -> list[Employment]: ...
+class EmploymentService:
+    def __init__(self, uow: UnitOfWork):
+        self.uow = uow
+
+    def add(
+        self,
+        company: str,
+        supervisor: str,
+        address: str,
+        phone: str,
+        start: dt.date,
+        end: dt.date | None = None,
+    ) -> int:
+
+        start = dt.date.fromisoformat(start) if isinstance(start, str) else start
+        end = dt.date.fromisoformat(end) if isinstance(end, str) else end
+
+        if self.find(company=company, start=start):
+            raise ValueError(f"Employment already exists for {company, start}")
+
+        employment = Employment(
+            start=start,
+            end=end,
+            company=company,
+            supervisor=supervisor,
+            address=address,
+            phone=phone,
+        )
+
+        with self.uow:
+            new_id = self.uow.employment.add(employment)
+            return new_id
+
+    def get(self, employment_id: int) -> Optional[Employment]:
+        with self.uow:
+            return self.uow.employment.get(employment_id)
+
+    def list(self) -> List[Employment]:
+        with self.uow:
+            return self.uow.employment.list()
+
+    def find(
+        self,
+        start=None,
+        end=None,
+        company=None,
+        supervisor=None,
+        address=None,
+        phone=None,
+    ) -> List[Employment]:
+        start = dt.date.fromisoformat(start) if isinstance(start, str) else start
+        end = dt.date.fromisoformat(end) if isinstance(end, str) else end
+
+        with self.uow:
+            return self.uow.employment.find(
+                start, end, company, supervisor, address, phone
+            )

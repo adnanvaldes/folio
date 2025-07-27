@@ -59,8 +59,8 @@ class FakeEmploymentRepository(FakeRepository[Employment]):
         phone: str = None,
     ) -> List[Employment]:
         filters = {
-            "start": dt.date.fromisoformat(start) if start else None,
-            "end": dt.date.fromisoformat(end) if end else None,
+            "start": start if start else None,
+            "end": end if end else None,
             "company": company.capitalize() if company else None,
             "supervisor": supervisor.capitalize() if supervisor else None,
             "address": address.capitalize() if address else None,
