@@ -4,19 +4,25 @@ from folio.services import TravelService
 from folio.models import Travel
 
 
-def test_add_and_list_travel(fake_uow):
+def test_add_and_list_travel(fake_uow, multiple_travels):
     service = TravelService(fake_uow)
 
-    new_id = service.add("USA", "FRA", "2025-07-21", notes="Vacation")
+    data = multiple_travels
+    new_id = service.add(
+        origin=data["origin"],
+        destination=data["destination"],
+        date=data["date"],
+        notes=data.get("notes", ""),
+    )
     travels = service.list()
 
     assert len(travels) == 1
     travel = travels[0]
     assert isinstance(travel, Travel)
-    assert travel.origin == "USA"
-    assert travel.destination == "FRA"
-    assert travel.date == dt.date(2025, 7, 21)
-    assert travel.notes == "Vacation"
+    assert travel.origin == data["origin"]
+    assert travel.destination == data["destination"]
+    assert travel.date == data["date"]
+    assert travel.notes == data.get("notes", "")
     assert new_id == 1
     assert fake_uow.committed is True
 
