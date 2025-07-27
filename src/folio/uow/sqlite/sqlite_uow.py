@@ -2,7 +2,7 @@ import sqlite3
 
 from ..unit_of_work import UnitOfWork
 
-from folio.repositories import SQLiteTravelRepository
+import folio.repositories as repo
 
 
 class SQLiteUnitOfWork(UnitOfWork):
@@ -28,5 +28,12 @@ class SQLiteUnitOfWork(UnitOfWork):
 class TravelSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
-        self.travel = SQLiteTravelRepository(self.conn)
+        self.travel = repo.SQLiteTravelRepository(self.conn)
+        return self
+
+
+class EmploymentSQLiteUoW(SQLiteUnitOfWork):
+    def _start(self):
+        super()._start()
+        self.employment = repo.SQLiteEmploymentRepository(self.conn)
         return self
