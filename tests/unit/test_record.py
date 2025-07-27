@@ -114,7 +114,6 @@ class TestTravel:
 
     def test_travel_rejects_non_dates(self, travel_factory):
         with pytest.raises(TypeError):
-            travel_factory(date="2024-07-22")
             travel_factory(date="string")
 
     def test_travel_identity_and_ordering(self, travel_factory):
@@ -146,6 +145,21 @@ class TestAddress:
         assert address_instance.country == "Canada"
         assert address_instance.postal_code == "A1B2C3"
         assert isinstance(address_instance.duration, dt.timedelta)
+
+    def test_address_rejects_non_dates(self, address_factory):
+        with pytest.raises(TypeError):
+            address_factory(start="not a date")
+
+        with pytest.raises(TypeError):
+            address_factory(end="not a date")
+
+    def test_address_rejects_end_before_start(self, address_factory):
+        with pytest.raises(ValueError):
+            address_factory(start=dt.date(2000, 1, 1), end=dt.date(1000, 1, 1))
+
+    def test_address_duration(self, address_factory):
+        address = address_factory(start=dt.date(1000, 1, 1), end=dt.date(1000, 1, 31))
+        assert address.duration == dt.timedelta(days=30)
 
     def test_address_identity_and_ordering(self, address_factory):
         a1 = address_factory(
@@ -199,9 +213,9 @@ class TestEmployment:
     def test_employment_rejects_non_dates(self, employment_factory):
         with pytest.raises(TypeError):
             employment_factory(start="a string")
-            employment_factory(start="2024-07-01")
+
+        with pytest.raises(TypeError):
             employment_factory(end="a string")
-            employment_factory(end="2024-07-01")
 
     def test_employment_rejects_end_before_start(self, employment_factory):
         with pytest.raises(ValueError):

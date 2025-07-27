@@ -18,6 +18,20 @@ class Address(Record["Address"]):
     country: str
     postal_code: str
 
+    def __post_init__(self):
+        if not isinstance(self.start, dt.date):
+            raise TypeError(f"start must be a datetime.date, got {type(self.start)}")
+
+        if not isinstance(self.end, dt.date) and self.end is not None:
+            raise TypeError(
+                f"end must be a datetime.date or None, got {type(self.end)}"
+            )
+
+        if self.end is not None and self.end < self.start:
+            raise ValueError(
+                f"end date cannot be before start date, got: [start={self.start}, end={self.end}]"
+            )
+
     def __str__(self):
         end = self.end or "Present"
         province = f", {self.province}" if self.province else ""
