@@ -256,7 +256,7 @@ def multiple_addresses(request) -> Address:
 
 @pytest.fixture(params=EMPLOYMENTS)
 def multiple_employments(request) -> Employment:
-    return Employment(**request.param)
+    return request.param
 
 
 # Utility fixtures

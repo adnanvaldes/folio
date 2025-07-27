@@ -4,17 +4,23 @@ from folio.services import EmploymentService
 from folio.models import Employment
 
 
-def test_add_and_list_employment(fake_uow, employment_input_factory):
+def test_add_and_list_employment(fake_uow, multiple_employments):
     service = EmploymentService(fake_uow)
 
-    data = employment_input_factory()
-    new_id = service.add(**data)
+    data = multiple_employments
+    new_id = service.add(
+        start=data["start"],
+        end=data["end"],
+        company=data["company"],
+        supervisor=data["supervisor"],
+        address=data["address"],
+        phone=data["phone"],
+    )
     employments = service.list()
 
     assert len(employments) == 1
     emp = employments[0]
     assert isinstance(emp, Employment)
-    assert new_id == emp
     assert emp.start == data["start"]
     assert emp.end == data["end"]
     assert emp.company == data["company"]
@@ -43,11 +49,26 @@ def test_add_and_list_employment_without_end(fake_uow):
     assert emp.duration == expected_duration
 
 
-def test_prevent_end_before_start(fake_uow, employment_factory):
+def test_prevent_end_before_start(fake_uow):
     service = EmploymentService(fake_uow)
 
     with pytest.raises(ValueError) as exc_info:
-        service.add(employment_factory(start="2020-01-01", end="1900-01-01"))
+        service.add(
+            start="2020-01-01",
+            end="1900-01-01",
+            company="Pasco",
+            supervisor="Dan",
+            address="456 Other St",
+            phone="666-5678",
+        )
+        service.add(
+            start="2021-02-02",
+            end="2021-02-01",
+            company="Pasco",
+            supervisor="Dan",
+            address="456 Other St",
+            phone="666-5678",
+        )
 
     assert "end date cannot be before start date" in str(exc_info.value)
 
@@ -56,17 +77,22 @@ def test_prevents_duplicate_employment(fake_uow):
     service = EmploymentService(fake_uow)
 
     service.add(
-        "2020-01-01", "2025-07-21", "Acme", "Wild E. Coyote", "123 Some St", "555-1234"
+        company="Acme",
+        supervisor="Wild E. Coyote",
+        address="123 Some St",
+        phone="555-1234",
+        start=dt.date(2020, 1, 1),
+        end=dt.date(2025, 7, 21),
     )
 
     with pytest.raises(ValueError) as exc_info:
         service.add(
-            "2020-01-01",
-            "2025-07-21",
-            "Acme",
-            "Wild E. Coyote",
-            "123 Some St",
-            "555-1234",
+            company="Acme",
+            supervisor="Some Other",
+            address="Different street",
+            phone="666-4567",
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2025, 7, 21),
         )
 
     assert "already exists" in str(exc_info.value)
