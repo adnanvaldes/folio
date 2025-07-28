@@ -2,27 +2,27 @@ import datetime as dt
 from typing import Optional, List, Dict
 from abc import ABC, abstractmethod
 
-from folio.models import Travel, Employment, R
+from folio import models
 from folio.repositories import Repository
 
 
-class FakeRepository(Repository[R]):
+class FakeRepository(Repository[models.R]):
     def __init__(self):
-        self._data: Dict[int, R] = {}
+        self._data: Dict[int, models.R] = {}
         self._next_id = 1
 
-    def add(self, record: R) -> int:
+    def add(self, record: models.R) -> int:
         self._data[self._next_id] = record
         self._next_id += 1
         return self._next_id - 1
 
-    def get(self, record_id: int) -> Optional[R]:
+    def get(self, record_id: int) -> Optional[models.R]:
         return self._data.get(record_id)
 
-    def list(self) -> List[R]:
+    def list(self) -> List[models.R]:
         return list(self._data.values())
 
-    def _apply_filters(self, filters: dict) -> List[R]:
+    def _apply_filters(self, filters: dict) -> List[models.R]:
         items = self.list()
         for attr, value in filters.items():
             if value is not None:
@@ -33,11 +33,11 @@ class FakeRepository(Repository[R]):
     def find(self): ...
 
 
-class FakeTravelRepository(FakeRepository[Travel]):
+class FakeTravelRepository(FakeRepository[models.Travel]):
 
     def find(
         self, origin: str = None, destination: str = None, date: dt.date = None
-    ) -> List[Travel]:
+    ) -> List[models.Travel]:
         filters = {
             "origin": origin.upper() if origin else None,
             "destination": destination.upper() if destination else None,
@@ -47,7 +47,7 @@ class FakeTravelRepository(FakeRepository[Travel]):
         return self._apply_filters(filters)
 
 
-class FakeEmploymentRepository(FakeRepository[Employment]):
+class FakeEmploymentRepository(FakeRepository[models.Employment]):
 
     def find(
         self,
@@ -57,7 +57,7 @@ class FakeEmploymentRepository(FakeRepository[Employment]):
         supervisor: str = None,
         address: str = None,
         phone: str = None,
-    ) -> List[Employment]:
+    ) -> List[models.Employment]:
         filters = {
             "start": start if start else None,
             "end": end if end else None,
