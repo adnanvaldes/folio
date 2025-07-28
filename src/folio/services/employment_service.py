@@ -47,13 +47,14 @@ class EmploymentService:
 
     def find(
         self,
-        start=None,
-        end=None,
-        company=None,
-        supervisor=None,
-        address=None,
-        phone=None,
+        start: dt.date = None,
+        end: dt.date = None,
+        company: str = None,
+        supervisor: str = None,
+        address: str = None,
+        phone: str = None,
     ) -> List[Employment]:
+
         start = dt.date.fromisoformat(start) if isinstance(start, str) else start
         end = dt.date.fromisoformat(end) if isinstance(end, str) else end
 

@@ -48,9 +48,9 @@ class Employment(Record["Employment"]):
 
     def _identity_fields(self):
         """
-        Equality and hasing use company name and start date.
+        Equality and hasing use company name only.
         """
-        return (self.company.lower().strip(), self.start)
+        return (self.company.lower().strip(),)
 
     def _ordering_fields(self):
         """

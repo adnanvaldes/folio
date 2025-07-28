@@ -36,7 +36,7 @@ class SQLiteEmploymentRepository(SQLiteRepository[Employment]):
         return cursor.lastrowid
 
     def get(self, employment_id: int) -> Optional[Employment]:
-        rows = self.conn.execute(
+        row = self.conn.execute(
             "SELECT start, end, company, supervisor, address, phone FROM employment WHERE id = ?",
             (employment_id,),
         ).fetchone()
