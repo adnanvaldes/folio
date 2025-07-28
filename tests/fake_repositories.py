@@ -68,3 +68,27 @@ class FakeEmploymentRepository(FakeRepository[models.Employment]):
         }
 
         return self._apply_filters(filters)
+
+
+class FakeAddressRepository(FakeRepository[models.Address]):
+
+    def find(
+        self,
+        street: str = None,
+        city: str = None,
+        country: str = None,
+        postal_code: str = None,
+        start: dt.date = None,
+        end: dt.date | None = None,
+        province: str | None = None,
+    ):
+        filters = {
+            "street": street.strip() if street else None,
+            "city": city.strip() if city else None,
+            "country": country.strip() if country else None,
+            "postal_code": postal_code.strip() if postal_code else None,
+            "start": dt.date.fromisoformat(start) if isinstance(start, str) else start,
+            "end": dt.date.fromisoformat(end) if isinstance(end, str) else end,
+            "province": province.strip() if province else None,
+        }
+        return self._apply_filters(filters)

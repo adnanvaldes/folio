@@ -27,6 +27,7 @@ class FakeUnitOfWork(UnitOfWork):
     def __init__(self):
         self.travel = fake.FakeTravelRepository()
         self.employment = fake.FakeEmploymentRepository()
+        self.address = fake.FakeAddressRepository()
         self.committed = False
 
     def _start(self):
@@ -230,7 +231,7 @@ def employment_factory():
 # Parametrized fixtures with multiple instances
 @pytest.fixture(params=WORKS)
 def multiple_works(request) -> Work:
-    return Work(**request.param)
+    return request.param
 
 
 @pytest.fixture(params=BOOKS)
@@ -251,7 +252,7 @@ def multiple_travels(request) -> Travel:
 
 @pytest.fixture(params=ADDRESSES)
 def multiple_addresses(request) -> Address:
-    return Address(**request.param)
+    return request.param
 
 
 @pytest.fixture(params=EMPLOYMENTS)
