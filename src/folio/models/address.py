@@ -51,7 +51,6 @@ class Address(Record["Address"]):
     def _identity_fields(self):
         """
         Equality and hashing use street address, province, country, and postal code.
-        Time periods are not part of an address' identity.
         """
         return (
             self.street.lower().strip(),
