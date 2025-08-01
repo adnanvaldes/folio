@@ -72,6 +72,39 @@ class AddressService:
         with self.uow:
             return self.uow.address.find(**data)
 
+    def delete(
+        self,
+        key: int = None,
+        street: str = None,
+        city: str = None,
+        country: str = None,
+        postal_code: str = None,
+        start: dt.date = None,
+        end: dt.date | None = None,
+        province: str | None = None,
+    ) -> int:
+        if key:
+            with self.uow:
+                return self.uow.address.delete(key=key)
+
+        filters = {
+            "street": street,
+            "city": city,
+            "country": country,
+            "postal_code": postal_code,
+            "start": start,
+            "end": end,
+            "province": province,
+        }
+
+        addresses = self.find(**filters)
+        if not addresses:
+            raise ValueError("No records found.")
+
+        with self.uow:
+            self.uow.address.delete(**filters)
+            return len(addresses)
+
     def _overlaps(self, start: dt.date, end: dt.date) -> None:
         addresses = self.list()
 

@@ -22,6 +22,26 @@ class FakeRepository(Repository[models.R]):
     def list(self) -> List[models.R]:
         return list(self._data.values())
 
+    def delete(self, key: int = None, **filters):
+        if key:
+            row = self._data.pop(key, 0)
+            return row
+
+        matching_keys = []
+        for db_key, record in self._data.items():
+            matched = True
+            for attr, value in filters.items():
+                if value is not None and getattr(record, attr, None) != value:
+                    matched = False
+                    break
+            if matched:
+                matching_keys.append(db_key)
+
+        for db_key in matching_keys:
+            self._data.pop(db_key)
+
+        return len(matching_keys)
+
     def _apply_filters(self, filters: dict) -> List[models.R]:
         items = self.list()
         for attr, value in filters.items():

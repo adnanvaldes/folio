@@ -249,3 +249,81 @@ def test_prevents_overlaps_addresses(fake_uow):
     )
 
     assert fake_uow.committed is True
+
+
+def test_delete_by_id(fake_uow):
+    service = AddressService(fake_uow)
+
+    service.add(
+        start="1901-01-01",
+        end="1950-01-01",
+        street="456 Other Street",
+        city="Mexico City",
+        country="Mexico",
+        postal_code="16040",
+    )
+    service.add(
+        start="1951-01-01",
+        end="2000-01-01",
+        street="123 Some Str",
+        city="Vancouver",
+        province="BC",
+        country="Canada",
+        postal_code="V6Y 0A0",
+    )
+    service.add(
+        start="2001-01-01",
+        end="2020-01-01",
+        street="789 Avenue",
+        city="Delhi",
+        country="India",
+        postal_code="Postal 123",
+    )
+
+    addresses = service.list()
+    assert len(addresses) == 3
+    assert addresses[0].city == "Mexico City"
+
+    service.delete(1)
+
+    addresses = service.list()
+    assert len(addresses) == 2
+    assert addresses[0].city == "Vancouver"
+
+
+def test_delete_by_fields(fake_uow):
+    service = AddressService(fake_uow)
+
+    service.add(
+        start="1901-01-01",
+        end="1950-01-01",
+        street="456 Other Street",
+        city="Mexico City",
+        country="Mexico",
+        postal_code="16040",
+    )
+    service.add(
+        start="1951-01-01",
+        end="2000-01-01",
+        street="123 Some Str",
+        city="Vancouver",
+        province="BC",
+        country="Canada",
+        postal_code="V6Y 0A0",
+    )
+    service.add(
+        start="2001-01-01",
+        end="2020-01-01",
+        street="789 Avenue",
+        city="Delhi",
+        country="India",
+        postal_code="Postal 123",
+    )
+
+    assert len(service.list()) == 3
+
+    service.delete(start=dt.date(1951, 1, 1))
+    assert len(service.list()) == 2
+
+    service.delete(city="Delhi")
+    assert len(service.list()) == 1
