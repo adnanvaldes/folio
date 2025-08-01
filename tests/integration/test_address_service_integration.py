@@ -109,3 +109,37 @@ def test_find_address_by_street(fake_db):
     results = service.find(street="456 Other Street")
     assert len(results) == 1
     assert results[0].street == "456 Other Street"
+
+
+def test_delete_by_fields(fake_db):
+    uow = AddressSQLiteUoW(fake_db)
+    service = AddressService(uow)
+
+    service.add(
+        start="1901-01-01",
+        end="1950-01-01",
+        street="123 Some Str",
+        city="Vancouver",
+        province="BC",
+        country="Canada",
+        postal_code="V6Y 0A0",
+    )
+    service.add(
+        start="1951-01-01",
+        end="2000-01-01",
+        street="456 Other Street",
+        city="Mexico City",
+        country="Mexico",
+        postal_code="16040",
+    )
+
+    assert len(service.list()) == 2
+
+    service.delete(country="Mexico")
+    assert len(service.list()) == 1
+
+    service.delete(postal_code="V6Y 0A0")
+    assert service.list() == []
+
+    with pytest.raises(ValueError):
+        service.delete(city="Vancouver")

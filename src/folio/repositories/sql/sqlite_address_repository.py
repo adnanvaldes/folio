@@ -52,6 +52,24 @@ class SQLiteAddressRepository(SQLiteRepository[Address]):
 
         return [self._map_row(row) for row in rows]
 
+    def delete(self, key: int = None, **filters) -> int:
+        if key:
+            self.conn.execute("DELETE FROM address WHERE id = ?", (key,))
+            return 1
+        elif filters:
+            where = []
+            values = []
+            for field, value in filters.items():
+                if value is not None:
+                    where.append(f"{field} = ?")
+                    values.append(value)
+
+            where_clause = " AND ".join(where)
+            cursor = self.conn.execute(
+                f"DELETE FROM address WHERE {where_clause}", values
+            )
+            return cursor.rowcount
+
     def find(
         self,
         start: str = None,
