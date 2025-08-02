@@ -327,3 +327,19 @@ def test_delete_by_fields(fake_uow):
 
     service.delete(city="Delhi")
     assert len(service.list()) == 1
+
+
+def test_delete_invalid_field(fake_uow):
+    service = AddressService(fake_uow)
+
+    service.add(
+        start="1901-01-01",
+        end="1950-01-01",
+        street="456 Other Street",
+        city="Mexico City",
+        country="Mexico",
+        postal_code="16040",
+    )
+
+    with pytest.raises(ValueError):
+        service.delete(street="1=1 --")
