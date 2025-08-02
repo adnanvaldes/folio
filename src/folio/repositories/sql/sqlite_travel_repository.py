@@ -8,37 +8,12 @@ from folio.common import normalize_date
 
 
 class SQLiteTravelRepository(SQLiteRepository[Travel]):
+    RECORD_TYPE = Travel
+    VALID_FIELDS = ("origin", "destination", "date", "notes")
 
     def __init__(self, connection: sqlite3.Connection):
         super().__init__(connection)
         self._ensure_table()
-
-    def add(self, travel: Travel) -> int:
-        cursor = self.conn.execute(
-            """INSERT INTO travel (
-            origin,
-            destination,
-            date,
-            notes
-            ) VALUES (?, ?, ?, ?)""",
-            (travel.origin, travel.destination, travel.date.isoformat(), travel.notes),
-        )
-        return cursor.lastrowid
-
-    def get(self, travel_id: int) -> Optional[Travel]:
-        row = self.conn.execute(
-            "SELECT origin, destination, date, notes FROM travel WHERE id = ?",
-            (travel_id,),
-        ).fetchone()
-
-        return self._map_row(row) if row else None
-
-    def list(self) -> List[Travel]:
-        rows = self.conn.execute(
-            "SELECT origin, destination, date, notes FROM travel"
-        ).fetchall()
-
-        return [self._map_row(row) for row in rows]
 
     def find(
         self, origin: str = None, destination: str = None, date: dt.date = None

@@ -8,49 +8,20 @@ from folio.common import normalize_date
 
 
 class SQLiteAddressRepository(SQLiteRepository[Address]):
+    RECORD_TYPE = Address
+    VALID_FIELDS = (
+        "start",
+        "end",
+        "street",
+        "city",
+        "province",
+        "country",
+        "postal_code",
+    )
 
     def __init__(self, connection: sqlite3.Connection):
         super().__init__(connection)
         self._ensure_table()
-
-    def add(self, address: Address) -> int:
-        cursor = self.conn.execute(
-            """INSERT INTO address (
-            start,
-            end,
-            street,
-            city,
-            province,
-            country,
-            postal_code
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (
-                address.start,
-                address.end,
-                address.street,
-                address.city,
-                address.province,
-                address.country,
-                address.postal_code,
-            ),
-        )
-
-        return cursor.lastrowid
-
-    def get(self, address_id: int) -> Optional[Address]:
-        row = self.conn.execute(
-            "SELECT start, end, street, city, province, country, postal_code FROM address WHERE id = ?",
-            (address_id,),
-        ).fetchone()
-
-        return self._map_row(row) if row else None
-
-    def list(self) -> List[Address]:
-        rows = self.conn.execute(
-            "SELECT start, end, street, city, province, country, postal_code FROM address"
-        ).fetchall()
-
-        return [self._map_row(row) for row in rows]
 
     def delete(self, key: int = None, **filters) -> int:
         if key:
@@ -61,6 +32,8 @@ class SQLiteAddressRepository(SQLiteRepository[Address]):
             values = []
             for field, value in filters.items():
                 if value is not None:
+                    if field not in self.VALID_FIELDS:
+                        raise ValueError(f"Invalid field: {field}")
                     where.append(f"{field} = ?")
                     values.append(value)
 
@@ -69,6 +42,9 @@ class SQLiteAddressRepository(SQLiteRepository[Address]):
                 f"DELETE FROM address WHERE {where_clause}", values
             )
             return cursor.rowcount
+
+    def update(self, **values) -> int:
+        self.conn.execute("UPDATE address")
 
     def find(
         self,
@@ -80,7 +56,7 @@ class SQLiteAddressRepository(SQLiteRepository[Address]):
         country: str = None,
         postal_code: str = None,
     ) -> List[Address]:
-        query = "SELECT start, end, street, city, province, country, postal_code FROM address"
+        query = f"SELECT {self.columns} FROM {self._table_name}"
         conditions = []
         params = []
 
