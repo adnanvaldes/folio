@@ -15,32 +15,6 @@ class SQLiteTravelRepository(SQLiteRepository[Travel]):
         super().__init__(connection)
         self._ensure_table()
 
-    def find(
-        self, origin: str = None, destination: str = None, date: dt.date = None
-    ) -> List[Travel]:
-        query = "SELECT origin, destination, date, notes FROM travel"
-        conditions = []
-        params = []
-
-        if origin:
-            conditions.append("origin = ?")
-            params.append(origin)
-
-        if destination:
-            conditions.append("destination = ?")
-            params.append(destination)
-
-        if date:
-            date_input = normalize_date(date)
-            conditions.append("date = ?")
-            params.append(date_input)
-
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-
-        rows = self.conn.execute(query, params).fetchall()
-        return [self._map_row(row) for row in rows]
-
     def _map_row(self, row) -> Travel:
         data = dict(row)
         data["date"] = dt.date.fromisoformat(data["date"])

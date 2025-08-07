@@ -35,9 +35,13 @@ class TravelService:
             return self.uow.travel.list()
 
     def find(self, origin=None, destination=None, date=None) -> List[Travel]:
-        date = dt.date.fromisoformat(date) if isinstance(date, str) else date
+        data = {
+            "origin": origin.strip() if origin else None,
+            "destination": destination.strip() if destination else None,
+            "date": dt.date.fromisoformat(date) if isinstance(date, str) else date,
+        }
         with self.uow:
-            return self.uow.travel.find(origin, destination, date)
+            return self.uow.travel.find(**data)
 
     def _validate_country_codes(self, origin: str, destination: str) -> None:
         if not COUNTRY_CODE_RE.match(origin):

@@ -1,9 +1,10 @@
 import sqlite3
 from abc import abstractmethod
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from ..base import Repository
 from folio.models import R
+from folio.common import normalize_date
 
 
 class SQLiteRepository(Repository[R]):
@@ -39,36 +40,43 @@ class SQLiteRepository(Repository[R]):
     def placeholders(self) -> str:
         return ", ".join(["?"] * (len(self.VALID_FIELDS)))
 
-    # @abstractmethod
-    # def add(self, record: R) -> None: ...
-
-    # @abstractmethod
-    # def get(self, id: int) -> Optional[R]: ...
-
     @abstractmethod
     def _ensure_table(self) -> None: ...
 
+    @abstractmethod
+    def _map_row(self) -> R: ...
+
     def add(self, record: R) -> int:
         values = [getattr(record, field) for field in self.VALID_FIELDS]
-        cursor = self.conn.execute(
-            f"INSERT INTO {self._table_name} ({self.columns}) VALUES ({self.placeholders})",
-            values,
-        )
+        sql = f"INSERT INTO {self._table_name} ({self.columns}) VALUES ({self.placeholders})"
+        cursor = self.conn.execute(sql, values)
         return cursor.lastrowid
 
     def get(self, id_: int) -> Optional[R]:
-        row = self.conn.execute(
-            f"SELECT {self.columns} FROM {self._table_name} WHERE id = ?",
-            (id_,),
-        ).fetchone()
-
+        sql = f"SELECT {self.columns} FROM {self._table_name} WHERE id = ?"
+        row = self.conn.execute(sql, (id_,)).fetchone()
         return self._map_row(row) if row else None
 
-    def list(self) -> List[R]:
-        rows = self.conn.execute(
-            f"SELECT {self.columns} FROM {self._table_name}"
-        ).fetchall()
+    def find(self, **fields) -> List[R]:
+        conditions = []
+        params = []
 
+        for field, value in self._filter_fields(fields).items():
+            normalized_value = self._normalize_value(field, value)
+            if normalized_value is not None:
+                conditions.append(f"{field} = ?")
+                params.append(normalized_value)
+
+        sql = f"SELECT {self.columns} FROM {self._table_name}"
+        if conditions:
+            sql += " WHERE " + " AND ".join(conditions)
+
+        rows = self.conn.execute(sql, params).fetchall()
+        return [self._map_row(row) for row in rows]
+
+    def list(self) -> List[R]:
+        sql = f"SELECT {self.columns} FROM {self._table_name}"
+        rows = self.conn.execute(sql).fetchall()
         return [self._map_row(row) for row in rows]
 
     def update(self, key: int, **fields) -> int:

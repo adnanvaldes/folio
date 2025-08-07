@@ -54,11 +54,14 @@ class EmploymentService:
         address: str = None,
         phone: str = None,
     ) -> List[Employment]:
-
-        start = dt.date.fromisoformat(start) if isinstance(start, str) else start
-        end = dt.date.fromisoformat(end) if isinstance(end, str) else end
+        data = {
+            "start": dt.date.fromisoformat(start) if isinstance(start, str) else start,
+            "end": dt.date.fromisoformat(end) if isinstance(end, str) else end,
+            "company": company.strip() if company else None,
+            "supervisor": supervisor.strip() if supervisor else None,
+            "address": address.strip() if address else None,
+            "phone": phone.strip() if phone else None,
+        }
 
         with self.uow:
-            return self.uow.employment.find(
-                start, end, company, supervisor, address, phone
-            )
+            return self.uow.employment.find(**data)
