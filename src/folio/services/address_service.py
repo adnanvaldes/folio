@@ -72,6 +72,34 @@ class AddressService:
         with self.uow:
             return self.uow.address.find(**data)
 
+    def update(
+        self,
+        key: int,
+        street: str = None,
+        city: str = None,
+        country: str = None,
+        postal_code: str = None,
+        start: dt.date = None,
+        end: dt.date | None = None,
+        province: str | None = None,
+    ) -> int:
+        data = {
+            "street": street.strip() if street else None,
+            "city": city.strip() if city else None,
+            "country": country.strip() if country else None,
+            "postal_code": postal_code.strip() if postal_code else None,
+            "start": dt.date.fromisoformat(start) if isinstance(start, str) else start,
+            "end": dt.date.fromisoformat(end) if isinstance(end, str) else end,
+            "province": province.strip() if province else None,
+        }
+
+        updates = {key: value for key, value in data.items() if value is not None}
+        if not updates:
+            raise ValueError("No fields to update")
+
+        with self.uow:
+            return self.uow.address.update(key, **updates)
+
     def delete(
         self,
         key: int = None,
