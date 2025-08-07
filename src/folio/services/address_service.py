@@ -51,11 +51,11 @@ class AddressService:
 
     def find(
         self,
-        street: str = None,
-        city: str = None,
-        country: str = None,
-        postal_code: str = None,
-        start: dt.date = None,
+        street: str | None = None,
+        city: str | None = None,
+        country: str | None = None,
+        postal_code: str | None = None,
+        start: dt.date | None = None,
         end: dt.date | None = None,
         province: str | None = None,
     ) -> List[Address]:
@@ -75,11 +75,11 @@ class AddressService:
     def update(
         self,
         key: int,
-        street: str = None,
-        city: str = None,
-        country: str = None,
-        postal_code: str = None,
-        start: dt.date = None,
+        street: str | None = None,
+        city: str | None = None,
+        country: str | None = None,
+        postal_code: str | None = None,
+        start: dt.date | None = None,
         end: dt.date | None = None,
         province: str | None = None,
     ) -> int:
@@ -102,12 +102,12 @@ class AddressService:
 
     def delete(
         self,
-        key: int = None,
-        street: str = None,
-        city: str = None,
-        country: str = None,
-        postal_code: str = None,
-        start: dt.date = None,
+        key: int | None = None,
+        street: str | None = None,
+        city: str | None = None,
+        country: str | None = None,
+        postal_code: str | None = None,
+        start: dt.date | None = None,
         end: dt.date | None = None,
         province: str | None = None,
     ) -> int:

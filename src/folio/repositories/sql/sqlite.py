@@ -97,7 +97,7 @@ class SQLiteRepository(Repository[R]):
         cursor = self.conn.execute(sql, update_values)
         return cursor.rowcount
 
-    def delete(self, key: int = None, **fields) -> int:
+    def delete(self, key: int | None = None, **fields) -> int:
         if key:
             sql = f"DELETE FROM {self._table_name} WHERE id = ?"
             cursor = self.conn.execute(sql, (key,))

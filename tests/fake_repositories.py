@@ -33,7 +33,7 @@ class FakeRepository(Repository[models.R]):
 
         return 1
 
-    def delete(self, key: int = None, **filters):
+    def delete(self, key: int | None = None, **filters):
         if key:
             row = self._data.pop(key, 0)
             return row
@@ -67,7 +67,10 @@ class FakeRepository(Repository[models.R]):
 class FakeTravelRepository(FakeRepository[models.Travel]):
 
     def find(
-        self, origin: str = None, destination: str = None, date: dt.date = None
+        self,
+        origin: str | None = None,
+        destination: str | None = None,
+        date: dt.date | None = None,
     ) -> List[models.Travel]:
         filters = {
             "origin": origin.upper() if origin else None,
@@ -82,12 +85,12 @@ class FakeEmploymentRepository(FakeRepository[models.Employment]):
 
     def find(
         self,
-        start: dt.date = None,
-        end: dt.date = None,
-        company: str = None,
-        supervisor: str = None,
-        address: str = None,
-        phone: str = None,
+        start: dt.date | None = None,
+        end: dt.date | None = None,
+        company: str | None = None,
+        supervisor: str | None = None,
+        address: str | None = None,
+        phone: str | None = None,
     ) -> List[models.Employment]:
         filters = {
             "start": start if start else None,
@@ -105,11 +108,11 @@ class FakeAddressRepository(FakeRepository[models.Address]):
 
     def find(
         self,
-        street: str = None,
-        city: str = None,
-        country: str = None,
-        postal_code: str = None,
-        start: dt.date = None,
+        street: str | None = None,
+        city: str | None = None,
+        country: str | None = None,
+        postal_code: str | None = None,
+        start: dt.date | None = None,
         end: dt.date | None = None,
         province: str | None = None,
     ):
