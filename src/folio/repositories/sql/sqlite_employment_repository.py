@@ -15,51 +15,6 @@ class SQLiteEmploymentRepository(SQLiteRepository[Employment]):
         super().__init__(connection)
         self._ensure_table()
 
-    def find(
-        self,
-        start: str = None,
-        end: str = None,
-        company: str = None,
-        supervisor: str = None,
-        address: str = None,
-        phone: str = None,
-    ) -> List[Employment]:
-        query = "SELECT start, end, company, supervisor, address, phone FROM employment"
-        conditions = []
-        params = []
-
-        if start:
-            start_input = normalize_date(start)
-            conditions.append("start = ?")
-            params.append(start_input)
-
-        if end:
-            end_input = normalize_date(end_input)
-            conditions.append("end = ?")
-            params.append(end)
-
-        if company:
-            conditions.append("company = ?")
-            params.append(company)
-
-        if supervisor:
-            conditions.append("supervisor = ?")
-            params.append(supervisor)
-
-        if address:
-            conditions.append("address = ?")
-            params.append(address)
-
-        if phone:
-            conditions.append("phone = ?")
-            params.append(phone)
-
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-
-        rows = self.conn.execute(query, params).fetchall()
-        return [self._map_row(row) for row in rows]
-
     def _map_row(self, row) -> Employment:
         data = dict(row)
         data["start"] = dt.date.fromisoformat(data["start"])
