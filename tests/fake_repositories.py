@@ -22,6 +22,17 @@ class FakeRepository(Repository[models.R]):
     def list(self) -> List[models.R]:
         return list(self._data.values())
 
+    def update(self, key: int, **data) -> int:
+        record = self._data.get(key)
+        if not record:
+            raise ValueError(f"Record with ID {key} not found")
+
+        for field, value in data.items():
+            if hasattr(record, field):
+                setattr(record, field, value)
+
+        return 1
+
     def delete(self, key: int = None, **filters):
         if key:
             row = self._data.pop(key, 0)

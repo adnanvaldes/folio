@@ -343,3 +343,48 @@ def test_delete_invalid_field(fake_uow):
 
     with pytest.raises(ValueError):
         service.delete(street="1=1 --")
+
+
+def test_update_address_fields(fake_uow):
+    service = AddressService(fake_uow)
+
+    addr_id = service.add(
+        start="2000-01-01",
+        end="2010-01-01",
+        street="123 Some Str",
+        city="Vancouver",
+        province="BC",
+        country="Canada",
+        postal_code="A1B2C3",
+    )
+    updated = service.update(addr_id, city="Surrey", postal_code="Z9Y8X7")
+    assert updated == 1
+
+    address = service.list()[0]
+    assert address.city == "Surrey"
+    assert address.postal_code == "Z9Y8X7"
+    assert fake_uow.committed is True
+
+
+def test_update_address_with_no_fields_raises(fake_uow):
+    service = AddressService(fake_uow)
+
+    addr_id = service.add(
+        start="2000-01-01",
+        end="2010-01-01",
+        street="123 Some Str",
+        city="Old City",
+        province="BC",
+        country="Canada",
+        postal_code="A1B2C3",
+    )
+
+    with pytest.raises(ValueError, match="No fields to update"):
+        service.update(addr_id)
+
+
+def test_update_nonexistent_address(fake_uow):
+    service = AddressService(fake_uow)
+
+    with pytest.raises(ValueError, match="not found"):
+        service.update(999, city="Ghost Town")

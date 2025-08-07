@@ -70,3 +70,56 @@ class SQLiteRepository(Repository[R]):
         ).fetchall()
 
         return [self._map_row(row) for row in rows]
+
+    def update(self, key: int, **fields) -> int:
+        if not self.get(key):
+            raise ValueError(f"Record with ID {key} not found")
+
+        if not fields:
+            raise ValueError("No fields provided")
+
+        valid_updates = self._filter_fields(fields)
+        if not valid_updates:
+            raise ValueError(f"No valid fields passed with {fields}")
+
+        set_clause = ", ".join(f"{field} = ?" for field in valid_updates)
+        values = list(valid_updates.values()) + [key]
+
+        sql = f"UPDATE {self._table_name} SET {update_fields} WHERE id = ?"
+        cursor = self.conn.execute(sql, update_values)
+        return cursor.rowcount
+
+    def delete(self, key: int = None, **fields) -> int:
+        if key:
+            sql = f"DELETE FROM {self._table_name} WHERE id = ?"
+            cursor = self.conn.execute(sql, (key,))
+            return cursor.rowcount
+
+        where_clause = []
+        values = []
+        for field, value in self._filter_fields(fields).items():
+            if value is not None:
+                if field not in self.VALID_FIELDS:
+                    raise ValueError(f"Invalid field:{field}")
+                where_clause.append(f"{field} = ?")
+                values.append(value)
+
+        sql = f"DELETE FROM {self._table_name} WHERE {' AND '.join(where_clause)}"
+        cursor = self.conn.execute(sql, values)
+        return cursor.rowcount
+
+    def _normalize_value(self, field: str, value: Any) -> Any:
+        if value is None:
+            return None
+        if field in ("start", "end"):
+            return normalize_date(value)
+        if isinstance(value, str):
+            return value.strip()
+        return value
+
+    def _filter_fields(self, fields: dict[str, Any]) -> dict[str, Any]:
+        return {
+            key: value
+            for key, value in fields.items()
+            if key in self.VALID_FIELDS and value is not None
+        }
