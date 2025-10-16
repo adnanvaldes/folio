@@ -126,3 +126,23 @@ class FakeAddressRepository(FakeRepository[models.Address]):
             "province": province.strip() if province else None,
         }
         return self._apply_filters(filters)
+
+
+class FakeWorkRepository(FakeRepository[models.Work]):
+
+    def find(
+        self,
+        title: str | None = None,
+        author: str | None = None,
+        year: int | None = None,
+        genre: str | None = None,
+        is_read: bool | None = False,
+    ):
+        filters = {
+            "title": title.strip() if title else None,
+            "author": author.strip() if author else None,
+            "year": year,
+            "is_read": is_read,
+        }
+
+        return self._apply_filters(filters)
