@@ -28,6 +28,7 @@ class FakeUnitOfWork(UnitOfWork):
         self.travel = fake.FakeTravelRepository()
         self.employment = fake.FakeEmploymentRepository()
         self.address = fake.FakeAddressRepository()
+        self.work = fake.FakeWorkRepository()
         self.committed = False
 
     def _start(self):
