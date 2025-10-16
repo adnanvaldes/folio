@@ -79,7 +79,7 @@ class SQLiteRepository(Repository[R]):
         rows = self.conn.execute(sql).fetchall()
         return [self._map_row(row) for row in rows]
 
-    def update(self, key: int, **fields) -> int:
+    def update(self, key: int, **field: dict[str, Any]) -> int:
         if not self.get(key):
             raise ValueError(f"Record with ID {key} not found")
 
@@ -97,7 +97,7 @@ class SQLiteRepository(Repository[R]):
         cursor = self.conn.execute(sql, update_values)
         return cursor.rowcount
 
-    def delete(self, key: int | None = None, **fields) -> int:
+    def delete(self, key: int | None = None, **fields: dict[str, Any]) -> int:
         if key:
             sql = f"DELETE FROM {self._table_name} WHERE id = ?"
             cursor = self.conn.execute(sql, (key,))
