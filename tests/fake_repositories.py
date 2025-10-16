@@ -139,10 +139,11 @@ class FakeWorkRepository(FakeRepository[models.Work]):
         is_read: bool | None = False,
     ):
         filters = {
-            "title": title.strip() if title else None,
             "author": author.strip() if author else None,
-            "year": year,
-            "is_read": is_read,
+            "title": title.strip() if title else None,
+            "year": year if year is not None else None,
+            "genre": genre.strip() if genre else None,
+            "is_read": is_read if is_read is not None else None,
         }
 
         return self._apply_filters(filters)
