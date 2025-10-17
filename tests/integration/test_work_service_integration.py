@@ -2,12 +2,12 @@ import pytest
 import sqlite3
 
 from folio.services import WorkService
-from folio.uow import WorkSQliteUoW
+from folio.uow import WorkSQLiteUoW
 from folio.repositories import SQLiteWorkRepository
 
 
 def test_add_and_list_work(fake_db):
-    uow = WorkSQliteUoW(fake_db)
+    uow = WorkSQLiteUoW(fake_db)
     service = WorkService(uow)
 
     service.add(
@@ -55,7 +55,7 @@ def test_prevent_duplicate_work(fake_db):
 
 
 def test_find_work_by_filters(fake_db):
-    uow = WorkSQliteUoW(fake_db)
+    uow = WorkSQLiteUoW(fake_db)
     service = WorkService(uow)
 
     service.add(
