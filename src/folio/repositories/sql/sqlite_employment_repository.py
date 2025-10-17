@@ -1,6 +1,5 @@
 import sqlite3
 import datetime as dt
-from typing import Optional, List
 
 from .sqlite import SQLiteRepository
 from folio.models import Employment
