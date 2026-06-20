@@ -79,10 +79,13 @@ class SQLiteRepository(Repository[R]):
         rows = self.conn.execute(sql).fetchall()
         return [self._map_row(row) for row in rows]
 
-    def update(self, key: int, **field: dict[str, Any]) -> int:
-        if not self.get(key):
-            raise ValueError(f"Record with ID {key} not found")
-
+    def update(
+        self,
+        key: int | None = None,
+        *,
+        filters: dict[str, Any] | None = None,
+        **fields: dict[str, Any],
+    ) -> int:
         if not fields:
             raise ValueError("No fields provided")
 
@@ -91,26 +94,51 @@ class SQLiteRepository(Repository[R]):
             raise ValueError(f"No valid fields passed with {fields}")
 
         set_clause = ", ".join(f"{field} = ?" for field in valid_updates)
-        values = list(valid_updates.values()) + [key]
 
-        sql = f"UPDATE {self._table_name} SET {update_fields} WHERE id = ?"
-        cursor = self.conn.execute(sql, update_values)
+        if key is not None:
+            if not self.get(key):
+                raise ValueError(f"Record with ID {key} not found")
+            values = list(valid_updates.values()) + [key]
+            sql = f"UPDATE {self._table_name} SET {set_clause} WHERE id = ?"
+            cursor = self.conn.execute(sql, values)
+            return cursor.rowcount
+
+        if not filters:
+            raise ValueError("Must provide either key or filters")
+
+        where_clause = []
+        where_values = []
+        for field, value in filters.items():
+            if field not in self.VALID_FIELDS:
+                raise ValueError(f"Invalid field: {field}")
+            if value is None:
+                where_clause.append(f"{field} IS NULL")
+            else:
+                where_clause.append(f"{field} = ?")
+                where_values.append(value)
+
+        sql = f"UPDATE {self._table_name} SET {set_clause} WHERE {' AND '.join(where_clause)}"
+        cursor = self.conn.execute(sql, list(valid_updates.values()) + where_values)
         return cursor.rowcount
 
     def delete(self, key: int | None = None, **fields: dict[str, Any]) -> int:
-        if key:
+        if key is not None:
             sql = f"DELETE FROM {self._table_name} WHERE id = ?"
             cursor = self.conn.execute(sql, (key,))
             return cursor.rowcount
 
         where_clause = []
         values = []
+
         for field, value in self._filter_fields(fields).items():
             if value is not None:
                 if field not in self.VALID_FIELDS:
                     raise ValueError(f"Invalid field:{field}")
                 where_clause.append(f"{field} = ?")
                 values.append(value)
+
+        if not where_clause:
+            raise ValueError("delete() requires either a ky or at least one filter")
 
         sql = f"DELETE FROM {self._table_name} WHERE {' AND '.join(where_clause)}"
         cursor = self.conn.execute(sql, values)
