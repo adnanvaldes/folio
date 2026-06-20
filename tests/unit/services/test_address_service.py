@@ -357,7 +357,9 @@ def test_update_address_fields(fake_uow):
         country="Canada",
         postal_code="A1B2C3",
     )
-    updated = service.update(addr_id, city="Surrey", postal_code="Z9Y8X7")
+    updated = service.update(
+        match={"city": "Vancouver"}, updates={"city": "Surrey", "postal_code": "Z9Y8X7"}
+    )
     assert updated == 1
 
     address = service.list()[0]
@@ -380,11 +382,13 @@ def test_update_address_with_no_fields_raises(fake_uow):
     )
 
     with pytest.raises(ValueError, match="No fields to update"):
-        service.update(addr_id)
+        service.update(match={"street": "123 Some Str"}, updates={})
 
 
 def test_update_nonexistent_address(fake_uow):
     service = AddressService(fake_uow)
 
-    with pytest.raises(ValueError, match="not found"):
-        service.update(999, city="Ghost Town")
+    with pytest.raises(
+        ValueError, match="No address found matching {'city': 'Ghost Town'}"
+    ):
+        service.update(match={"city": "Ghost Town"}, updates={"city": "Other Town"})
