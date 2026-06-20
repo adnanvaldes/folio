@@ -133,6 +133,9 @@ class FakeAddressRepository(FakeRepository[models.Address]):
         }
         return self._apply_filters(filters)
 
+    def find_open(self) -> list[models.Address]:
+        return [address for address in self.list() if address.end is None]
+
 
 class FakeWorkRepository(FakeRepository[models.Work]):
 
