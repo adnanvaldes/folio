@@ -1,5 +1,6 @@
 import pytest
 
+from folio.models import Work
 from folio.services import WorkService
 
 
