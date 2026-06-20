@@ -52,3 +52,27 @@ class WorkService:
 
         with self.uow:
             return self.uow.work.find(**data)
+
+    def update(
+        self,
+        key: int,
+        author: str | None = None,
+        title: str | None = None,
+        year: int | None = None,
+        genre: str | None = None,
+        is_read: bool | None = None,
+    ) -> int:
+        data = {
+            "author": author.strip() if author else None,
+            "title": title.strip() if title else None,
+            "year": year,
+            "genre": genre.strip() if genre else None,
+            "is_read": is_read,
+        }
+
+        updates = {k: v for k, v in data.items() if v is not None}
+        if not updates:
+            raise ValueError("No fields to update")
+
+        with self.uow:
+            return self.uow.work.update(key, **updates)
