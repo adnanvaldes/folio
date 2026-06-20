@@ -1,6 +1,8 @@
 import sqlite3
 import datetime as dt
 
+from typing import List
+
 from .sqlite import SQLiteRepository
 from folio.models import Address
 from folio.common import normalize_date
@@ -45,3 +47,9 @@ class SQLiteAddressRepository(SQLiteRepository[Address]):
         )
             """
         )
+
+    def find_open(self) -> List[Address]:
+        """Return all addresses with no end end"""
+        sql = f"SELECT {self.columns} FROM {self._table_name} WHERE end IS NULL"
+        rows = self.conn.execute(sql).fetchall()
+        return [self._map_row(row) for row in rows]
