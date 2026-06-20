@@ -30,16 +30,35 @@ class AddressService:
             "province": province.strip() if province else None,
         }
 
-        if self.find(**data):
-            fields = ", ".join(f"{v}" for _, v in data.items())
-            raise ValueError(f"Address already already exists for {fields}")
-
-        self._overlaps(data["start"], data["end"])
-
-        address = Address(**data)
         with self.uow:
-            new_id = self.uow.address.add(address)
-            return new_id
+            if self.uow.address.find(**data):
+                fields = ", ".join(f"{v}" for _, v in data.items())
+                raise ValueError(f"Address already already exists for {fields}")
+
+            if data["end"] is None:
+                for existing in self.uow.address.find_open():
+                    if existing.start < data["start"]:
+                        new_end = data["start"] - dt.timedelta(days=1)
+                        self.uow.address.update(
+                            filters={
+                                "street": existing.street,
+                                "city": existing.city,
+                                "country": existing.country,
+                                "postal_code": existing.postal_code,
+                                "province": existing.province,
+                                "start": existing.start,
+                                "end": None,
+                            },
+                            end=new_end,
+                        )
+                    else:
+                        raise ValueError(
+                            f"Cannot open address starting {data['start']}: "
+                            f"an address is already open starting {existing.start}: {existing}"
+                        )
+
+            self._overlaps(data["start"], data["end"], self.uow)
+            return self.uow.address.add(Address(**data))
 
     def get(self, address_id: int) -> Optional[Address]:
         with self.uow:
@@ -72,33 +91,40 @@ class AddressService:
         with self.uow:
             return self.uow.address.find(**data)
 
-    def update(
-        self,
-        key: int,
-        street: str | None = None,
-        city: str | None = None,
-        country: str | None = None,
-        postal_code: str | None = None,
-        start: dt.date | None = None,
-        end: dt.date | None = None,
-        province: str | None = None,
-    ) -> int:
-        data = {
-            "street": street.strip() if street else None,
-            "city": city.strip() if city else None,
-            "country": country.strip() if country else None,
-            "postal_code": postal_code.strip() if postal_code else None,
-            "start": dt.date.fromisoformat(start) if isinstance(start, str) else start,
-            "end": dt.date.fromisoformat(end) if isinstance(end, str) else end,
-            "province": province.strip() if province else None,
+    def update(self, match: dict, updates: dict) -> int:
+        updates = {
+            "street": updates["street"].strip() if updates.get("street") else None,
+            "city": updates["city"].strip() if updates.get("city") else None,
+            "country": updates["country"].strip() if updates.get("country") else None,
+            "postal_code": (
+                updates["postal_code"].strip() if updates.get("postal_code") else None
+            ),
+            "start": (
+                dt.date.fromisoformat(updates["start"])
+                if isinstance(updates.get("start"), str)
+                else updates.get("start")
+            ),
+            "end": (
+                dt.date.fromisoformat(updates["end"])
+                if isinstance(updates.get("end"), str)
+                else updates.get("end")
+            ),
+            "province": (
+                updates["province"].strip() if updates.get("province") else None
+            ),
         }
 
-        updates = {key: value for key, value in data.items() if value is not None}
-        if not updates:
+        data = {k: v for k, v in updates.items() if v is not None}
+        if not data:
             raise ValueError("No fields to update")
 
         with self.uow:
-            return self.uow.address.update(key, **updates)
+            records = self.uow.address.find(**match)
+            if not records:
+                raise ValueError(f"No address found matching {match}")
+            if len(records) > 1:
+                raise ValueError(f"Multiple addresses found matching {match}")
+            return self.uow.address.update(records[0], **data)
 
     def delete(
         self,
@@ -133,14 +159,15 @@ class AddressService:
             self.uow.address.delete(**filters)
             return len(addresses)
 
-    def _overlaps(self, start: dt.date, end: dt.date) -> None:
-        addresses = self.list()
+    def _overlaps(self, start: dt.date, end: dt.date, uow: UnitOfWork) -> None:
+        effective_end = end or dt.date.today()
+        addresses = uow.address.list()
 
         for address in addresses:
             existing_start = address.start
             existing_end = address.end or dt.date.today()
 
-            if start < existing_end and existing_start < end:
+            if start < existing_end and existing_start < effective_end:
                 raise ValueError(
                     f"Period with start={start} and end={end} overlaps: {address}"
                 )
