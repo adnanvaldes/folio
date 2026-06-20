@@ -84,3 +84,8 @@ def test_find_work_by_filters(fake_db):
     results = service.find(genre="SciFi", year=1965)
     assert len(results) == 1
     assert results[0].title == "Dune"
+
+
+def test_db_enforces_unique_constraints(fake_db):
+    uow = WorkSQLiteUoW(fake_db)
+    service = WorkService(uow)
