@@ -9,28 +9,34 @@ from folio.repositories import Repository
 class FakeRepository(Repository[models.R]):
     def __init__(self):
         self._data: Dict[int, models.R] = {}
+        self._identity_map: Dict[int, int] = {}
         self._next_id = 1
 
     def add(self, record: models.R) -> int:
         self._data[self._next_id] = record
+        self._identity_map[id(record)] = self._next_id
         self._next_id += 1
         return self._next_id - 1
 
     def get(self, record_id: int) -> Optional[models.R]:
-        return self._data.get(record_id)
+        record = self._data.get(record_id)
+        if record:
+            self._identity_map[id(record)] = record_id
+        return record
 
     def list(self) -> List[models.R]:
-        return list(self._data.values())
+        results = list(self._data.values())
+        for key, record in self._data.items():
+            self._identity_map[id(record)] = key
+        return results
 
-    def update(self, key: int, **data) -> int:
-        record = self._data.get(key)
-        if not record:
-            raise ValueError(f"Record with ID {key} not found")
-
+    def update(self, record: models.R, **data) -> int:
+        key = self._identity_map.get(id(record))
+        if key is None:
+            raise ValueError("Record not tracked")
         for field, value in data.items():
             if hasattr(record, field):
                 setattr(record, field, value)
-
         return 1
 
     def delete(self, key: int | None = None, **filters):
@@ -139,10 +145,11 @@ class FakeWorkRepository(FakeRepository[models.Work]):
         is_read: bool | None = False,
     ):
         filters = {
-            "title": title.strip() if title else None,
             "author": author.strip() if author else None,
-            "year": year,
-            "is_read": is_read,
+            "title": title.strip() if title else None,
+            "year": year if year is not None else None,
+            "genre": genre.strip() if genre else None,
+            "is_read": is_read if is_read is not None else None,
         }
 
         return self._apply_filters(filters)

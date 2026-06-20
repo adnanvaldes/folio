@@ -143,3 +143,56 @@ def test_delete_by_fields(fake_db):
 
     with pytest.raises(ValueError):
         service.delete(city="Vancouver")
+
+
+def test_vulnerability_delete_with_no_filters_wipes_db(fake_db):
+    uow = AddressSQLiteUoW(fake_db)
+    service = AddressService(uow)
+
+    service.add(
+        start="2000-01-01",
+        street="123 Alpha St",
+        city="London",
+        country="UK",
+        postal_code="E1 6AN",
+    )
+    service.add(
+        start="2010-01-01",
+        street="456 Beta Ave",
+        city="Paris",
+        country="France",
+        postal_code="75001",
+    )
+
+    assert len(service.list()) == 2
+
+    with pytest.raises(ValueError):
+        service.delete()
+
+    assert len(service.list()) == 2
+
+
+def test_add_new_address_updates_end_of_last_address(fake_db):
+    uow = AddressSQLiteUoW(fake_db)
+    service = AddressService(uow)
+
+    # Open ended address:
+    service.add(
+        start="2000-01-01",
+        street="123 Alpha St",
+        city="London",
+        country="UK",
+        postal_code="E1 6AN",
+    )
+
+    service.add(
+        start="2010-01-01",
+        street="456 Beta Ave",
+        city="Paris",
+        country="France",
+        postal_code="75001",
+    )
+
+    assert len(service.list()) == 2
+    result = service.find(city="London")
+    assert result[0].end == dt.date(2009, 12, 31)
