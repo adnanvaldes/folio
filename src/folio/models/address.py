@@ -34,7 +34,6 @@ class Address:
                 f"end date must be after start date, got: [start={self.start}, end={self.end}]"
             )
 
-        # Strip values to catch empty strings, i.e. ("    ")
         if not self.street:
             raise ValueError("Street is required")
         if not self.city:
