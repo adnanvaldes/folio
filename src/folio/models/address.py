@@ -15,11 +15,11 @@ class Address:
     province: str | None = None
 
     def __post_init__(self):
-        object.__setattr__(self, "street", self.street)
-        object.__setattr__(self, "city", self.city)
-        object.__setattr__(self, "country", self.country)
-        object.__setattr__(self, "postal_code", self.postal_code)
-        object.__setattr__(self, "province", self.province if self.province else None)
+        object.__setattr__(self, "street", self.street.strip())
+        object.__setattr__(self, "city", self.city.strip())
+        object.__setattr__(self, "country", self.country.strip())
+        object.__setattr__(self, "postal_code", self.postal_code.strip())
+        object.__setattr__(self, "province", self.province.strip() if self.province else None)
 
         if not isinstance(self.start, dt.date):
             raise TypeError(f"start must be a datetime.date, got {type(self.start)}")
