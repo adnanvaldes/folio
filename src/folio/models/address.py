@@ -4,7 +4,7 @@ import dataclasses
 @dataclasses.dataclass(frozen=True, eq=False)
 class Address:
     """
-    Represents a primary living address
+    Represents a primary living address and period
     """
     street: str
     city: str
@@ -109,3 +109,85 @@ class Address:
                 f"got start={self.start}, end={end}"
             )
         return dataclasses.replace(self, end=end)
+
+@dataclasses.dataclass(frozen=True)
+class TimelineDiff:
+    to_add: list[Address]
+    to_remove: list[Address]
+    to_replace: list[tuple[Address, Address]]
+
+
+def calculate_new_timeline(
+    current_timeline: list[Address],
+    new_address: Address,
+    replacing: list[Address] | None = None,
+) -> TimelineDiff:
+    if new_address in current_timeline:
+        raise ValueError(f"Address already exists: {new_address}")
+
+    to_add = [new_address]
+    to_remove = []
+    to_replace = []
+    needs_confirmation = []
+
+    for existing in sorted(current_timeline):
+        if not existing.overlaps(new_address):
+            continue
+
+        if existing.start >= new_address.start:
+            needs_confirmation.append(existing)
+            continue
+
+        if existing.is_open and new_address.end is not None:
+            needs_confirmation.append(existing)
+            continue
+
+        to_replace.append((
+            existing,
+            existing.close(end=new_address.start - dt.timedelta(days=1))
+        ))
+
+    if needs_confirmation:
+        declared = set(replacing or [])
+        actual = set(needs_confirmation)
+
+        if declared != actual:
+            missing = actual - declared
+            extra = declared - actual
+            parts = []
+
+            if missing:
+                parts.append(f"missing from declaration: {missing}")
+            if extra:
+                parts.append(f"not found in timeline: {extra}")
+
+            raise ValueError(f"Inserting this address requires confirmation: " + ", ".join(parts))
+
+        for existing in needs_confirmation:
+            if existing.start >= new_address.start:
+                if new_address.is_open:
+                    raise ValueError(f"An open address would subsume {existing}. Close it explicitly first.")
+
+                # If exact start match, the new address completely supersedes it
+                if existing.start == new_address.start:
+                    to_remove.append(existing)
+                    continue
+
+                shifted_start = new_address.end + dt.timedelta(days=1)
+                to_replace.append((
+                    existing,
+                    dataclasses.replace(existing, start=shifted_start)
+                ))
+            else:
+                assert new_address.end is not None, "Split case should only be reached when new_address has an end date"
+                closed_prior = existing.close(end=new_address.start - dt.timedelta(days=1))
+                continuation = dataclasses.replace(existing, start=new_address.end + dt.timedelta(days=1))
+
+                to_remove.append(existing)
+                to_add.extend([closed_prior, continuation])
+
+    return TimelineDiff(
+        to_add=to_add,
+        to_remove=to_remove,
+        to_replace=to_replace,
+    )
