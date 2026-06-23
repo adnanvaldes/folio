@@ -110,6 +110,16 @@ class Address:
             )
         return dataclasses.replace(self, end=end)
 
+    def reopen(self) -> "Address":
+        """
+        Return an open version of this address.
+        Used in the case where the latest open address is removed and
+        the previous one becomes current again.
+        """
+        if self.is_open:
+            raise ValueError(f"Address is already open: {self}")
+        return dataclasses.replace(self, end=None)
+
 @dataclasses.dataclass(frozen=True)
 class TimelineDiff:
     to_add: list[Address]
