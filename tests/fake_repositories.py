@@ -5,6 +5,10 @@ from abc import ABC, abstractmethod
 from folio import models
 from folio.repositories import Repository
 
+# For new version
+from folio.repositories.base import AddressRepository
+from folio.models.address import Address, TimelineDiff
+
 
 class FakeRepository(Repository[models.R]):
     def __init__(self):
@@ -110,33 +114,53 @@ class FakeEmploymentRepository(FakeRepository[models.Employment]):
         return self._apply_filters(filters)
 
 
-class FakeAddressRepository(FakeRepository[models.Address]):
+class FakeAddressRepository(AddressRepository):
 
-    def find(
-        self,
-        street: str | None = None,
-        city: str | None = None,
-        country: str | None = None,
-        postal_code: str | None = None,
-        start: dt.date | None = None,
-        end: dt.date | None = None,
-        province: str | None = None,
-    ):
-        filters = {
-            "street": street.strip() if street else None,
-            "city": city.strip() if city else None,
-            "country": country.strip() if country else None,
-            "postal_code": postal_code.strip() if postal_code else None,
-            "start": dt.date.fromisoformat(start) if isinstance(start, str) else start,
-            "end": dt.date.fromisoformat(end) if isinstance(end, str) else end,
-            "province": province.strip() if province else None,
-        }
-        return self._apply_filters(filters)
+    VALID_FIELDS = {
+        "street",
+        "city",
+        "province",
+        "country",
+        "postal_code",
+        "start",
+        "end"
+    }
 
-    def find_open(self) -> list[models.Address]:
-        return [address for address in self.list() if address.end is None]
+    def __init__(self):
+        self._data: set[Address] = set()
+
+    def list(self) -> list[Address]:
+        return sorted(self._data)
+
+    def add(self, address: Address) -> None:
+        if address in self._data:
+            raise ValueError(f"Address already exists: {address}")
+        self._data.add(address)
+
+    def remove(self, address: Address) -> None:
+        if address not in self._data:
+            raise ValueError(f"Address not found: {address}")
+        self._data.discard(address)
+
+    def replace(self, old: Address, new: Address) -> None:
+       self.remove(old)
+       self.add(new)
+
+    def find(self, **filters) -> list[Address]:
+        invalid = set(filters) - self.VALID_FILTERS
+        if invalid:
+            raise ValueError(f"Invalid filters: {invalid}")
+
+        results = set(self._data)
+        for field, value in filters.items():
+            results = {
+                address for address in results
+                if getattr(address, field) == value
+            }
+        return sorted(results)
 
 
+    
 class FakeWorkRepository(FakeRepository[models.Work]):
 
     def find(
