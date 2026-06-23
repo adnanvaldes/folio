@@ -15,6 +15,9 @@ class Address:
     province: str | None = None
 
     def __post_init__(self):
+        # TODO
+        # Check case where any of these is empty and raises error
+        # Might be worth placing the precense checks first
         object.__setattr__(self, "street", self.street.strip())
         object.__setattr__(self, "city", self.city.strip())
         object.__setattr__(self, "country", self.country.strip())
@@ -72,7 +75,7 @@ class Address:
 
     def __str__(self):
         end = self.end or "Present"
-        province = f", {self.province}" if self.province else ""
+        province = f"{self.province}" if self.province else ""
         return f"{self.street}, {self.city}, {province}, {self.country} {self.postal_code} ({self.start} → {end} [{self.duration}])"
 
     @property
@@ -122,9 +125,9 @@ class Address:
 
 @dataclasses.dataclass(frozen=True)
 class TimelineDiff:
-    to_add: list[Address]
-    to_remove: list[Address]
-    to_replace: list[tuple[Address, Address]]
+    to_add: tuple[Address, ...]
+    to_remove: tuple[Address, ...]
+    to_replace: tuple[tuple[Address, Address], ...]
 
 
 def calculate_new_timeline(
@@ -197,7 +200,7 @@ def calculate_new_timeline(
                 to_add.extend([closed_prior, continuation])
 
     return TimelineDiff(
-        to_add=to_add,
-        to_remove=to_remove,
-        to_replace=to_replace,
+        to_add=tuple(to_add),
+        to_remove=tuple(to_remove),
+        to_replace=tuple(to_replace),
     )
