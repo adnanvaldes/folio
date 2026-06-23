@@ -116,15 +116,6 @@ class FakeEmploymentRepository(FakeRepository[models.Employment]):
 
 class FakeAddressRepository(AddressRepository):
 
-    VALID_FIELDS = {
-        "street",
-        "city",
-        "province",
-        "country",
-        "postal_code",
-        "start",
-        "end"
-    }
 
     def __init__(self):
         self._data: set[Address] = set()

@@ -30,6 +30,16 @@ from folio.models.address import Address, TimelineDiff
 
 class AddressRepository(ABC):
 
+    VALID_FIELDS = {
+        "street",
+        "city",
+        "province",
+        "country",
+        "postal_code",
+        "start",
+        "end"
+    }
+
     @abstractmethod
     def list(self) -> list[Address]:
         """
