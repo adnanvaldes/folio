@@ -42,7 +42,7 @@ class EmploymentSQLiteUoW(SQLiteUnitOfWork):
 class AddressSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
-        self.address = repo.SQLiteAddressRepository(self.conn)
+        self.addresses = repo.SQLiteAddressRepository(self.conn)
         return self
 
 

@@ -25,3 +25,7 @@ class UnitOfWork(ABC):
     @abstractmethod
     def rollback(self):
         pass
+
+    @abstractmethod
+    def _cleanup(self):
+        pass
