@@ -1,394 +1,256 @@
 import datetime as dt
 import pytest
-from folio.services import AddressService
-from folio.models import Address
+from folio.models.address import Address
+from folio.services.address_service import AddressService
 
 
-def test_add_and_list_address(fake_uow, multiple_addresses):
-    service = AddressService(fake_uow)
-
-    data = multiple_addresses
-    new_id = service.add(
-        start=data["start"],
-        end=data["end"],
-        street=data["street"],
-        city=data["city"],
-        province=data["province"],
-        country=data["country"],
-        postal_code=data["postal_code"],
-    )
-    addresses = service.list()
-
-    assert len(addresses) == 1
-    addr = addresses[0]
-    assert isinstance(addr, Address)
-    assert addr.start == data["start"]
-    assert addr.end == data["end"]
-    assert addr.street == data["street"]
-    assert addr.city == data["city"]
-    assert addr.province == data["province"]
-    assert addr.country == data["country"]
-    assert addr.postal_code == data["postal_code"]
-    assert new_id == 1
-    assert fake_uow.committed is True
-
-
-def test_add_and_list_address_without_end_or_province(fake_uow):
-    service = AddressService(fake_uow)
-
-    service.add(
-        start="2020-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        country="Canada",
-        postal_code="V6Y 0A0",
-    )
-
-    addr = service.list()[0]
-    assert addr.end is None
-    assert addr.province is None
-
-    expected_duration = dt.date.today() - addr.start
-    assert addr.duration == expected_duration
-
-
-def test_prevent_end_before_start(fake_uow):
-    service = AddressService(fake_uow)
-
-    with pytest.raises(ValueError) as exc_info:
-        service.add(
-            start="2020-01-01",
-            end="1900-01-01",
-            street="123 Some Str",
-            city="Vancouver",
-            province="BC",
-            country="Canada",
-            postal_code="V6Y 0A0",
-        )
-
-    assert "end date cannot be before start date" in str(exc_info.value)
-
-
-def test_prevents_duplicate_address(fake_uow):
-    service = AddressService(fake_uow)
-
-    service.add(
-        start="1900-01-01",
-        end="1950-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="V6Y 0A0",
-    )
-
-    with pytest.raises(ValueError) as exc_info:
-        service.add(
-            start="1900-01-01",
-            end="1950-01-01",
-            street="123 Some Str",
-            city="Vancouver",
-            province="BC",
-            country="Canada",
-            postal_code="V6Y 0A0",
-        )
-
-    assert "already exists" in str(exc_info.value)
-
-
-def test_find_address_by_street(fake_uow):
-    service = AddressService(fake_uow)
-
-    service.add(
-        start="1901-01-01",
-        end="1950-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="V6Y 0A0",
-    )
-    service.add(
-        start="1951-01-01",
-        end="2000-01-01",
-        street="456 Other Street",
-        city="Mexico City",
-        country="Mexico",
-        postal_code="16040",
-    )
-
-    results = service.find(street="456 Other Street")
-    assert len(results) == 1
-    assert results[0].street == "456 Other Street"
-
-
-def test_find_address_by_start_date(fake_uow):
-    service = AddressService(fake_uow)
-
-    service.add(
-        start="1901-01-01",
-        end="1950-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="V6Y 0A0",
-    )
-
-    service.add(
-        start="2000-01-01",
-        end="2020-01-01",
-        street="789 Avenue",
-        city="Delhi",
-        country="India",
-        postal_code="Postal 123",
-    )
-
-    results = service.find(start="1901-01-01")
-    assert len(results) == 1
-    for addr in results:
-        assert addr.start == dt.date(1901, 1, 1)
-
-
-def test_find_address_by_country(fake_uow):
-    service = AddressService(fake_uow)
-
-    service.add(
-        start="1901-01-01",
-        end="1950-01-01",
-        street="456 Other Street",
-        city="Mexico City",
-        country="Mexico",
-        postal_code="16040",
-    )
-    service.add(
-        start="1951-01-01",
-        end="2000-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="V6Y 0A0",
-    )
-    service.add(
-        start="2001-01-01",
-        end="2020-01-01",
-        street="789 Avenue",
-        city="Delhi",
-        country="India",
-        postal_code="Postal 123",
-    )
-
-    results = service.find(country="Mexico")
-    assert len(results) == 1
-    for addr in results:
-        assert addr.country == "Mexico"
-
-
-def test_prevents_overlaps_addresses(fake_uow):
-    service = AddressService(fake_uow)
-
-    service.add(
-        start="2020-01-01",
-        end="2022-01-01",
+def make_address(**overrides) -> Address:
+    defaults = dict(
         street="123 Main St",
         city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="A1B2C3",
-    )
-
-    # Overlapping start date inside existing range
-    with pytest.raises(ValueError) as exc_info:
-        service.add(
-            start="2021-12-01",
-            end="2023-01-01",
-            street="123 Main St",
-            city="Vancouver",
-            province="BC",
-            country="Canada",
-            postal_code="A1B2C3",
-        )
-    assert "overlaps" in str(exc_info.value).lower()
-
-    # Overlapping end date inside existing range
-    with pytest.raises(ValueError) as exc_info:
-        service.add(
-            start="2019-01-01",
-            end="2020-06-01",
-            street="123 Main St",
-            city="Vancouver",
-            province="BC",
-            country="Canada",
-            postal_code="A1B2C3",
-        )
-    assert "overlaps" in str(exc_info.value).lower()
-
-    # Address fully inside existing range
-    with pytest.raises(ValueError) as exc_info:
-        service.add(
-            start="2020-06-01",
-            end="2021-06-01",
-            street="123 Main St",
-            city="Vancouver",
-            province="BC",
-            country="Canada",
-            postal_code="A1B2C3",
-        )
-    assert "overlaps" in str(exc_info.value).lower()
-
-    # Address with no overlap - shoulc succeed
-    service.add(
-        start="2022-02-01",
-        end="2023-01-01",
-        street="123 Main St",
-        city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="A1B2C3",
-    )
-
-    assert fake_uow.committed is True
-
-
-def test_delete_by_id(fake_uow):
-    service = AddressService(fake_uow)
-
-    service.add(
-        start="1901-01-01",
-        end="1950-01-01",
-        street="456 Other Street",
-        city="Mexico City",
-        country="Mexico",
-        postal_code="16040",
-    )
-    service.add(
-        start="1951-01-01",
-        end="2000-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        province="BC",
         country="Canada",
         postal_code="V6Y 0A0",
+        start=dt.date(2020, 1, 1),
+        end=dt.date(2022, 12, 31),
     )
-    service.add(
-        start="2001-01-01",
-        end="2020-01-01",
-        street="789 Avenue",
-        city="Delhi",
-        country="India",
-        postal_code="Postal 123",
-    )
-
-    addresses = service.list()
-    assert len(addresses) == 3
-    assert addresses[0].city == "Mexico City"
-
-    service.delete(1)
-
-    addresses = service.list()
-    assert len(addresses) == 2
-    assert addresses[0].city == "Vancouver"
+    return Address(**{**defaults, **overrides})
 
 
-def test_delete_by_fields(fake_uow):
-    service = AddressService(fake_uow)
-
-    service.add(
-        start="1901-01-01",
-        end="1950-01-01",
-        street="456 Other Street",
-        city="Mexico City",
-        country="Mexico",
-        postal_code="16040",
-    )
-    service.add(
-        start="1951-01-01",
-        end="2000-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="V6Y 0A0",
-    )
-    service.add(
-        start="2001-01-01",
-        end="2020-01-01",
-        street="789 Avenue",
-        city="Delhi",
-        country="India",
-        postal_code="Postal 123",
-    )
-
-    assert len(service.list()) == 3
-
-    service.delete(start=dt.date(1951, 1, 1))
-    assert len(service.list()) == 2
-
-    service.delete(city="Delhi")
-    assert len(service.list()) == 1
+@pytest.fixture
+def service(fake_uow):
+    return AddressService(fake_uow)
 
 
-def test_delete_invalid_field(fake_uow):
-    service = AddressService(fake_uow)
+# ---------------------------------------------------------------------------
+# add()
+# ---------------------------------------------------------------------------
 
-    service.add(
-        start="1901-01-01",
-        end="1950-01-01",
-        street="456 Other Street",
-        city="Mexico City",
-        country="Mexico",
-        postal_code="16040",
-    )
+class TestAdd:
 
-    with pytest.raises(ValueError):
-        service.delete(street="1=1 --")
+    def test_add_single_address(self, service):
+        addr = make_address()
+        service.add(addr)
+        assert addr in service.list()
+
+    def test_add_commits_transaction(self, service, fake_uow):
+        service.add(make_address())
+        assert fake_uow.committed is True
+
+    def test_add_duplicate_raises(self, service):
+        addr = make_address()
+        service.add(addr)
+        with pytest.raises(ValueError, match="already exists"):
+            service.add(addr)
+
+    def test_add_automatically_closes_open_address(self, service):
+        open_addr = make_address(end=None)
+        service.add(open_addr)
+
+        new_addr = make_address(
+            street="456 Elm St",
+            start=dt.date(2023, 1, 1),
+            end=None,
+        )
+        service.add(new_addr)
+
+        timeline = service.list()
+        assert len(timeline) == 2
+
+        original = next(a for a in timeline if a.street == "123 Main St")
+        assert not original.is_open
+        assert original.end == dt.date(2022, 12, 31)
+
+    def test_add_with_overlap_requires_confirmation(self, service):
+        existing = make_address(
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2022, 12, 31),
+        )
+        service.add(existing)
+
+        overlapping = make_address(
+            street="456 Elm St",
+            start=dt.date(2021, 6, 1),
+            end=dt.date(2023, 6, 1),
+        )
+        with pytest.raises(ValueError, match="requires confirmation"):
+            service.add(overlapping)
+
+    def test_add_with_correct_replacing_succeeds(self, service):
+        existing = make_address(
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2022, 12, 31),
+        )
+        service.add(existing)
+
+        overlapping = make_address(
+            street="456 Elm St",
+            start=dt.date(2021, 6, 1),
+            end=dt.date(2023, 6, 1),
+        )
+        service.add(overlapping, replacing=[existing])
+        assert overlapping in service.list()
 
 
-def test_update_address_fields(fake_uow):
-    service = AddressService(fake_uow)
+# ---------------------------------------------------------------------------
+# remove()
+# ---------------------------------------------------------------------------
 
-    addr_id = service.add(
-        start="2000-01-01",
-        end="2010-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="A1B2C3",
-    )
-    updated = service.update(
-        match={"city": "Vancouver"}, updates={"city": "Surrey", "postal_code": "Z9Y8X7"}
-    )
-    assert updated == 1
+class TestRemove:
 
-    address = service.list()[0]
-    assert address.city == "Surrey"
-    assert address.postal_code == "Z9Y8X7"
-    assert fake_uow.committed is True
+    def test_remove_only_address_leaves_empty_timeline(self, service):
+        addr = make_address()
+        service.add(addr)
+        service.remove(addr)
+        assert service.list() == []
+
+    def test_remove_nonexistent_raises(self, service):
+        with pytest.raises(ValueError, match="not found"):
+            service.remove(make_address())
+
+    def test_remove_latest_open_reopens_previous(self, service):
+        closed = make_address(
+            start=dt.date(2018, 1, 1),
+            end=dt.date(2019, 12, 31),
+        )
+        open_addr = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 1, 1),
+            end=None,
+        )
+        service.add(closed)
+        service.add(open_addr)
+
+        service.remove(open_addr)
+
+        timeline = service.list()
+        assert len(timeline) == 1
+        assert timeline[0].is_open
+        assert timeline[0].street == "123 Main St"
+
+    def test_remove_middle_address_raises(self, service):
+        a = make_address(
+            start=dt.date(2018, 1, 1),
+            end=dt.date(2019, 12, 31),
+        )
+        b = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2021, 12, 31),
+        )
+        c = make_address(
+            street="789 Oak Ave",
+            start=dt.date(2022, 1, 1),
+            end=None,
+        )
+        service.add(a)
+        service.add(b)
+        service.add(c)
+
+        with pytest.raises(ValueError, match="gap"):
+            service.remove(b)
+
+    def test_remove_closed_last_address_raises(self, service):
+        """
+        Removing the last address when it is closed would create a gap
+        since the previous one wouldn't become open.
+        """
+        a = make_address(
+            start=dt.date(2018, 1, 1),
+            end=dt.date(2019, 12, 31),
+        )
+        b = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2022, 12, 31),
+        )
+        service.add(a)
+        service.add(b)
+
+        with pytest.raises(ValueError, match="gap"):
+            service.remove(b)
 
 
-def test_update_address_with_no_fields_raises(fake_uow):
-    service = AddressService(fake_uow)
+# ---------------------------------------------------------------------------
+# replace()
+# ---------------------------------------------------------------------------
 
-    addr_id = service.add(
-        start="2000-01-01",
-        end="2010-01-01",
-        street="123 Some Str",
-        city="Old City",
-        province="BC",
-        country="Canada",
-        postal_code="A1B2C3",
-    )
+class TestReplace:
 
-    with pytest.raises(ValueError, match="No fields to update"):
-        service.update(match={"street": "123 Some Str"}, updates={})
+    def test_replace_corrects_street_typo(self, service):
+        original = make_address(street="123 Main St")
+        service.add(original)
+
+        corrected = make_address(street="123 Main Street")
+        service.replace(original, corrected)
+
+        timeline = service.list()
+        assert len(timeline) == 1
+        assert timeline[0].street == "123 Main Street"
+
+    def test_replace_nonexistent_raises(self, service):
+        original = make_address()
+        other = make_address(street="456 Elm St")
+
+        with pytest.raises(ValueError, match="not found"):
+            service.replace(original, other)
+
+    def test_replace_raises_if_new_overlaps_other_records(self, service):
+        a = make_address(
+            start=dt.date(2018, 1, 1),
+            end=dt.date(2019, 12, 31),
+        )
+        b = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2022, 12, 31),
+        )
+        service.add(a)
+        service.add(b)
+
+        # Try to extend a so it overlaps b
+        extended_a = make_address(
+            start=dt.date(2018, 1, 1),
+            end=dt.date(2021, 1, 1),
+        )
+        with pytest.raises(ValueError, match="overlaps"):
+            service.replace(a, extended_a)
 
 
-def test_update_nonexistent_address(fake_uow):
-    service = AddressService(fake_uow)
+# ---------------------------------------------------------------------------
+# find()
+# ---------------------------------------------------------------------------
 
-    with pytest.raises(
-        ValueError, match="No address found matching {'city': 'Ghost Town'}"
-    ):
-        service.update(match={"city": "Ghost Town"}, updates={"city": "Other Town"})
+class TestFind:
+
+    def test_find_by_city(self, service):
+        a = make_address(city="Vancouver")
+        b = make_address(
+            street="456 Elm St",
+            city="Toronto",
+            start=dt.date(2023, 1, 1),
+            end=None,
+        )
+        service.add(a)
+        service.add(b)
+
+        results = service.find(city="Vancouver")
+        assert len(results) == 1
+        assert results[0].city == "Vancouver"
+
+    def test_find_open_addresses(self, service):
+        closed = make_address(end=dt.date(2022, 12, 31))
+        open_addr = make_address(
+            street="456 Elm St",
+            start=dt.date(2023, 1, 1),
+            end=None,
+        )
+        service.add(closed)
+        service.add(open_addr)
+
+        results = service.find(end=None)
+        assert len(results) == 1
+        assert results[0] == open_addr
+
+    def test_find_invalid_field_raises(self, service):
+        with pytest.raises(ValueError, match="Invalid filter fields"):
+            service.find(nonexistent_field="value")

@@ -41,7 +41,7 @@ class AddressRepository(ABC):
     }
 
     @abstractmethod
-    def list(self) -> list[Address]:
+    def list(self) -> List[Address]:
         """
         Return full residence timeline in chronological order
         """
@@ -55,7 +55,7 @@ class AddressRepository(ABC):
         """
         ...
 
-    @abstractmehod
+    @abstractmethod
     def remove(self, address: Address) -> None:
         """
         Remove an address from the timeline.
@@ -72,8 +72,8 @@ class AddressRepository(ABC):
         """
         ...
 
-    @absractmethod
-    def find(self, **filters) -> list[Address]:
+    @abstractmethod
+    def find(self, **filters) -> List[Address]:
         """
         Return all addresses matching the given filters.
         Omitting a field means do not filter on that field.

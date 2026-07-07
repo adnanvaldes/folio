@@ -148,17 +148,27 @@ def calculate_new_timeline(
             continue
 
         if existing.start >= new_address.start:
+            # existing starts at or after new — needs confirmation
             needs_confirmation.append(existing)
             continue
 
-        if existing.is_open and new_address.end is not None:
-            needs_confirmation.append(existing)
+        # existing.start < new_address.start from here on
+
+        if existing.is_open and new_address.is_open:
+            # ↓ changed: this is the ONLY automatic case
+            # New open address follows existing open one — unambiguous close
+            to_replace.append((
+                existing,
+                existing.close(end=new_address.start - dt.timedelta(days=1))
+            ))
             continue
 
-        to_replace.append((
-            existing,
-            existing.close(end=new_address.start - dt.timedelta(days=1))
-        ))
+        # ↓ changed: all other overlapping cases require confirmation
+        # This includes:
+        # - existing open, new closed (split case)
+        # - existing closed, new closed (trimming historical record)
+        # - existing closed, new open (subsuming)
+        needs_confirmation.append(existing)
 
     if needs_confirmation:
         declared = set(replacing or [])
@@ -168,36 +178,57 @@ def calculate_new_timeline(
             missing = actual - declared
             extra = declared - actual
             parts = []
-
             if missing:
                 parts.append(f"missing from declaration: {missing}")
             if extra:
                 parts.append(f"not found in timeline: {extra}")
-
-            raise ValueError(f"Inserting this address requires confirmation: " + ", ".join(parts))
+            raise ValueError(
+                f"Inserting this address requires confirmation: "
+                + ", ".join(parts)
+            )
 
         for existing in needs_confirmation:
             if existing.start >= new_address.start:
+                # existing starts at or after new
                 if new_address.is_open:
-                    raise ValueError(f"An open address would subsume {existing}. Close it explicitly first.")
-
-                # If exact start match, the new address completely supersedes it
+                    raise ValueError(
+                        f"An open address would subsume {existing}. "
+                        f"Close it explicitly first."
+                    )
                 if existing.start == new_address.start:
                     to_remove.append(existing)
                     continue
-
-                shifted_start = new_address.end + dt.timedelta(days=1)
+                # ↓ shift existing's start to after new ends
                 to_replace.append((
                     existing,
-                    dataclasses.replace(existing, start=shifted_start)
+                    dataclasses.replace(
+                        existing,
+                        start=new_address.end + dt.timedelta(days=1)
+                    )
                 ))
-            else:
-                assert new_address.end is not None, "Split case should only be reached when new_address has an end date"
-                closed_prior = existing.close(end=new_address.start - dt.timedelta(days=1))
-                continuation = dataclasses.replace(existing, start=new_address.end + dt.timedelta(days=1))
-
+            elif existing.is_open:
+                # ↓ split case: open existing, closed new, existing starts before new
+                assert new_address.end is not None, (
+                    "Split case should only be reached when new_address has an end date"
+                )
+                closed_prior = existing.close(
+                    end=new_address.start - dt.timedelta(days=1)
+                )
+                continuation = dataclasses.replace(
+                    existing, start=new_address.end + dt.timedelta(days=1)
+                )
                 to_remove.append(existing)
                 to_add.extend([closed_prior, continuation])
+            else:
+                # ↓ changed: closed existing, starts before new — trim its end
+                # Requires confirmation because we're modifying a historical record
+                to_replace.append((
+                    existing,
+                    dataclasses.replace(
+                        existing,
+                        end=new_address.start - dt.timedelta(days=1)
+                    )
+                ))
 
     return TimelineDiff(
         to_add=tuple(to_add),

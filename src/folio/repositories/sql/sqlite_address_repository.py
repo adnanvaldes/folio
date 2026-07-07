@@ -1,5 +1,6 @@
 import sqlite3
 import datetime as dt
+from typing import List
 
 from folio.repositories.base import AddressRepository
 from folio.models import Address
@@ -8,7 +9,7 @@ class SQLiteAddressRepository(AddressRepository):
 
     def __init__(self, connection: sqlite3.Connection):
         self.conn = connection
-        self.conn,row_factory = sqlite3.Row
+        self.conn.row_factory = sqlite3.Row
         self._ensure_table()
 
     def _ensure_table(self) -> None:
@@ -29,7 +30,7 @@ class SQLiteAddressRepository(AddressRepository):
     def _map_row(self, row: sqlite3.Row) -> Address:
         data = dict(row)
         data["start"] = dt.date.fromisoformat(data["start"])
-        data["end"] = dt.date.fromisoformat(data["end"] if data["end"] else None)
+        data["end"] = dt.date.fromisoformat(data["end"]) if data["end"] else None
         return Address(**data)
 
     def _to_params(self, address: Address) -> dict:
@@ -113,8 +114,8 @@ class SQLiteAddressRepository(AddressRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Address not found: {old}")
 
-    def find(self, **filters) -> list[Address]:
-        invalid = set(filters) - self.VALID_FILTERS
+    def find(self, **filters) -> List[Address]:
+        invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filters: {invalid}")
 
