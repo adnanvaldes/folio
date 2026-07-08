@@ -4,7 +4,13 @@ from typing import List
 import datetime as dt
 import dataclasses
 
-from folio.repositories.base import AddressRepository, TravelRepository, WorkRepository, EmploymentRepository, BookRepository
+from folio.repositories.base import (
+    AddressRepository,
+    TravelRepository,
+    WorkRepository,
+    EmploymentRepository,
+    BookRepository,
+)
 from folio.models.address import Address
 from folio.models.travel import Travel
 from folio.models.work import Work
@@ -123,7 +129,11 @@ class FakeWorkRepository(WorkRepository):
             raise ValueError(f"Work not found: {work}")
         if genre is None and is_read is None:
             raise ValueError("No fields to update")
-        updated = dataclasses.replace(work, genre=genre or work.genre, is_read=is_read if is_read is not None else work.is_read)
+        updated = dataclasses.replace(
+            work,
+            genre=genre or work.genre,
+            is_read=is_read if is_read is not None else work.is_read,
+        )
         self._data.discard(work)
         self._data.add(updated)
 
@@ -160,7 +170,11 @@ class FakeEmploymentRepository(EmploymentRepository):
         results = set(self._data)
         for field, value in filters.items():
             if field == "company" and value is not None:
-                results = {e for e in results if e.company.lower().strip() == value.lower().strip()}
+                results = {
+                    e
+                    for e in results
+                    if e.company.lower().strip() == value.lower().strip()
+                }
             else:
                 results = {e for e in results if getattr(e, field) == value}
         return sorted(results)
@@ -232,7 +246,8 @@ class FakeBookRepository(BookRepository):
                     results = {
                         b
                         for b in results
-                        if getattr(b.work, field).lower().strip() == value.lower().strip()
+                        if getattr(b.work, field).lower().strip()
+                        == value.lower().strip()
                     }
             elif field == "format_type":
                 ft = value if isinstance(value, FormatType) else FormatType(value)

@@ -113,7 +113,9 @@ class TestUpdate:
             service.update(w, genre="Sci-Fi")
 
     def test_update_preserves_identity(self, service):
-        w = make_work(author="George Orwell", title="1984", year=1949, genre="Dystopian")
+        w = make_work(
+            author="George Orwell", title="1984", year=1949, genre="Dystopian"
+        )
         service.add(w)
         service.update(w, genre="Classic")
         result = service.list()
@@ -155,7 +157,12 @@ class TestFind:
 
     def test_find_by_genre(self, service):
         w1 = make_work(genre="Dystopian")
-        w2 = make_work(author="Aldous Huxley", title="Brave New World", year=1932, genre="Science fiction")
+        w2 = make_work(
+            author="Aldous Huxley",
+            title="Brave New World",
+            year=1932,
+            genre="Science fiction",
+        )
         service.add(w1)
         service.add(w2)
 
@@ -164,7 +171,9 @@ class TestFind:
 
     def test_find_by_is_read(self, service):
         w1 = make_work(is_read=True)
-        w2 = make_work(author="Aldous Huxley", title="Brave New World", year=1932, is_read=False)
+        w2 = make_work(
+            author="Aldous Huxley", title="Brave New World", year=1932, is_read=False
+        )
         service.add(w1)
         service.add(w2)
 

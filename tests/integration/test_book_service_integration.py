@@ -6,7 +6,13 @@ from folio.services.work_service import WorkService
 from folio.uow import BookSQLiteUoW, WorkSQLiteUoW
 
 
-A_WORK = Work(author="Brandon Sanderson", title="The Way of Kings", year=2010, genre="Fantasy", is_read=True)
+A_WORK = Work(
+    author="Brandon Sanderson",
+    title="The Way of Kings",
+    year=2010,
+    genre="Fantasy",
+    is_read=True,
+)
 
 
 @pytest.fixture
@@ -34,7 +40,13 @@ class TestBookServiceIntegration:
         assert book in service.list()
 
     def test_work_auto_created(self, service):
-        new_work = Work(author="New Author", title="New Book", year=2020, genre="Fiction", is_read=False)
+        new_work = Work(
+            author="New Author",
+            title="New Book",
+            year=2020,
+            genre="Fiction",
+            is_read=False,
+        )
         book = make_book(work=new_work)
         service.add(book)
         assert book in service.list()

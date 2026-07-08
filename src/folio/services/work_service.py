@@ -35,9 +35,7 @@ class WorkService:
         with self.uow:
             book_repo = getattr(self.uow, "book", None)
             if book_repo is not None:
-                refs = book_repo.find(
-                    author=old.author, title=old.title, year=old.year
-                )
+                refs = book_repo.find(author=old.author, title=old.title, year=old.year)
                 updated = [dataclasses.replace(b, work=new) for b in refs]
             self.uow.work.replace(old, new)
             if book_repo is not None:
