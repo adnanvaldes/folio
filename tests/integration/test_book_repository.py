@@ -29,7 +29,7 @@ def make_book(**overrides) -> Book:
     defaults = dict(
         work=A_WORK,
         format_type=FormatType.PRINT,
-        isbn="978-0-7653-2635-5",
+        isbn="9780765326355",
         pages=1007,
     )
     return Book(**{**defaults, **overrides})
@@ -57,7 +57,7 @@ class TestSQLiteBookRepositoryAdd:
                 genre="Fiction",
                 is_read=True,
             ),
-            isbn="0000000001",
+            isbn="9780000000033",
         )
         b2 = make_book(
             work=Work(
@@ -67,7 +67,7 @@ class TestSQLiteBookRepositoryAdd:
                 genre="Fiction",
                 is_read=True,
             ),
-            isbn="0000000002",
+            isbn="9780000000040",
         )
         work_repo = SQLiteWorkRepository(repo.conn)
         work_repo.add(b1.work)
@@ -92,7 +92,7 @@ class TestSQLiteBookRepositoryAdd:
             format_type=FormatType.AUDIO,
             pages=None,
             duration_minutes=552,
-            isbn="978-1-2345-6789-0",
+            isbn="9780000000019",
         )
         repo.add(book)
         assert book in repo.list()
@@ -127,7 +127,7 @@ class TestSQLiteBookRepositoryNullHandling:
             format_type=FormatType.AUDIO,
             pages=None,
             duration_minutes=552,
-            isbn="978-1-2345-6789-0",
+            isbn="9780000000019",
             narrator="Michael Kramer",
         )
         repo.add(book)
@@ -161,16 +161,16 @@ class TestSQLiteBookRepositoryReplace:
         original = make_book()
         repo.add(original)
 
-        corrected = make_book(isbn="978-0-0000-0000-0")
+        corrected = make_book(isbn="9780000000026")
         repo.replace(original, corrected)
 
         result = repo.list()
         assert len(result) == 1
-        assert result[0].isbn == "978-0-0000-0000-0"
+        assert result[0].isbn == "9780000000026"
 
     def test_replace_nonexistent_raises(self, repo):
         original = make_book()
-        corrected = make_book(isbn="978-0-0000-0000-0")
+        corrected = make_book(isbn="9780000000026")
         with pytest.raises(ValueError, match="not found"):
             repo.replace(original, corrected)
 
@@ -178,11 +178,11 @@ class TestSQLiteBookRepositoryReplace:
         book = make_book(isbn=None)
         repo.add(book)
 
-        updated = make_book(isbn="978-0-7653-2635-5")
+        updated = make_book(isbn="9780765326355")
         repo.replace(book, updated)
 
         result = repo.list()
-        assert result[0].isbn == "978-0-7653-2635-5"
+        assert result[0].isbn == "9780765326355"
 
 
 class TestSQLiteBookRepositoryFind:
@@ -196,7 +196,7 @@ class TestSQLiteBookRepositoryFind:
             genre="Fantasy",
             is_read=True,
         )
-        b2 = make_book(work=other_work, isbn="978-0-0000-0000-0")
+        b2 = make_book(work=other_work, isbn="9780000000026")
         work_repo = SQLiteWorkRepository(repo.conn)
         work_repo.add(other_work)
         repo.add(b1)
@@ -208,7 +208,7 @@ class TestSQLiteBookRepositoryFind:
 
     def test_find_by_isbn_none_uses_is_null(self, repo):
         b1 = make_book(isbn=None)
-        b2 = make_book(isbn="978-0-0000-0000-0")
+        b2 = make_book(isbn="9780000000026")
         repo.add(b1)
         repo.add(b2)
 
@@ -218,7 +218,7 @@ class TestSQLiteBookRepositoryFind:
 
     def test_find_by_format_type(self, repo):
         b1 = make_book()
-        b2 = make_book(format_type=FormatType.EBOOK, isbn="978-0-0000-0000-0")
+        b2 = make_book(format_type=FormatType.EBOOK, isbn="9780000000026")
         repo.add(b1)
         repo.add(b2)
 
@@ -232,7 +232,7 @@ class TestSQLiteBookRepositoryFind:
 
     def test_find_empty_returns_all(self, repo):
         b1 = make_book()
-        b2 = make_book(isbn="978-0-0000-0000-0")
+        b2 = make_book(isbn="9780000000026")
         repo.add(b1)
         repo.add(b2)
 

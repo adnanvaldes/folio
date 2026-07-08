@@ -26,7 +26,7 @@ def make_book(**overrides) -> Book:
     defaults = dict(
         work=A_WORK,
         format_type=FormatType.PRINT,
-        isbn="978-0-7653-2635-5",
+        isbn="9780765326355",
         pages=1007,
     )
     return Book(**{**defaults, **overrides})
@@ -65,7 +65,7 @@ class TestBookServiceIntegration:
 
     def test_find_isbn_none_uses_is_null_in_sql(self, service):
         b1 = make_book(isbn=None)
-        b2 = make_book(isbn="978-0-0000-0000-0")
+        b2 = make_book(isbn="9780000000026")
         service.add(b1)
         service.add(b2)
 
@@ -75,7 +75,7 @@ class TestBookServiceIntegration:
 
     def test_find_by_format_type_as_enum(self, service):
         b1 = make_book()
-        b2 = make_book(format_type=FormatType.EBOOK, isbn="978-0-0000-0000-0")
+        b2 = make_book(format_type=FormatType.EBOOK, isbn="9780000000026")
         service.add(b1)
         service.add(b2)
 
@@ -102,9 +102,9 @@ class TestBookServiceIntegration:
         original = make_book()
         service.add(original)
 
-        corrected = make_book(isbn="978-0-0000-0000-0")
+        corrected = make_book(isbn="9780000000026")
         service.replace(original, corrected)
 
         result = service.list()
         assert len(result) == 1
-        assert result[0].isbn == "978-0-0000-0000-0"
+        assert result[0].isbn == "9780000000026"
