@@ -1,7 +1,50 @@
 import dataclasses
+import re
 from enum import Enum
 
 from folio.models.work import Work
+
+
+def validate_isbn(isbn: str | None) -> str | None:
+    if isbn is None:
+        return None
+    cleaned = re.sub(r"[^a-zA-Z0-9]", "", isbn)
+    if _is_valid_isbn_13(cleaned):
+        return cleaned
+    converted = _convert_isbn_10_to_13(cleaned)
+    if converted is not None:
+        return converted
+    raise ValueError(f"Invalid ISBN: {isbn}")
+
+
+def _is_valid_isbn_10(isbn: str) -> bool:
+    chars = list(isbn.lower())
+    if len(chars) != 10:
+        return False
+    if chars[9] == "x":
+        chars[9] = "10"
+    if not all(str(c).isdigit() for c in chars):
+        return False
+    digits = list(map(int, chars))
+    checksum = sum((10 - i) * d for i, d in enumerate(digits))
+    return checksum % 11 == 0
+
+
+def _is_valid_isbn_13(isbn: str) -> bool:
+    if len(isbn) != 13 or not all(c.isdigit() for c in isbn):
+        return False
+    digits = [int(c) for c in isbn]
+    checksum = sum(d * (1 if i % 2 == 0 else 3) for i, d in enumerate(digits))
+    return checksum % 10 == 0
+
+
+def _convert_isbn_10_to_13(isbn: str) -> str | None:
+    if not _is_valid_isbn_10(isbn):
+        return None
+    isbn_13_digits = [9, 7, 8] + [int(c) for c in isbn[:-1]]
+    checksum = sum(d * (1 if i % 2 == 0 else 3) for i, d in enumerate(isbn_13_digits))
+    check_digit = 0 if checksum % 10 == 0 else 10 - (checksum % 10)
+    return "".join(str(d) for d in isbn_13_digits + [check_digit])
 
 
 class FormatType(Enum):
@@ -28,6 +71,8 @@ class Book:
             )
 
         isbn = self.isbn.strip() if self.isbn else None
+        if isbn:
+            isbn = validate_isbn(isbn)
         object.__setattr__(self, "isbn", isbn or None)
         narrator = self.narrator.strip() if self.narrator else None
         object.__setattr__(self, "narrator", narrator or None)
