@@ -1,56 +1,29 @@
-import datetime as dt
-import re
-from typing import List, Optional
-from folio.models import Travel
-from folio.uow import UnitOfWork
+from typing import List
 
-COUNTRY_CODE_RE = re.compile(r"^[A-Z]{3}$")
+from folio.models.travel import Travel
+from folio.uow import UnitOfWork
 
 
 class TravelService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def add(self, origin: str, destination: str, date: dt.date, notes: str = "") -> int:
-        date = dt.date.fromisoformat(date) if isinstance(date, str) else date
-
-        origin, destination = origin.upper(), destination.upper()
-        self._validate_country_codes(origin, destination)
-
-        if self.find(origin, destination, date):
-            raise ValueError(f"Travel already exists for {origin, destination, date}")
-
-        travel = Travel(origin=origin, destination=destination, date=date, notes=notes)
-
+    def add(self, travel: Travel) -> None:
         with self.uow:
-            new_id = self.uow.travel.add(travel)
-            return new_id
+            self.uow.travel.add(travel)
 
-    def get(self, travel_id) -> Optional[Travel]:
+    def remove(self, travel: Travel) -> None:
         with self.uow:
-            return self.uow.travel.get(travel_id)
+            self.uow.travel.remove(travel)
 
-    def list(self) -> List[Travel]:
+    def replace(self, old: Travel, new: Travel) -> None:
+        with self.uow:
+            self.uow.travel.replace(old, new)
+
+    def find(self, **filters) -> List[Travel]:
+        with self.uow:
+            return self.uow.travel.find(**filters)
+
+    def list(self) -> list[Travel]:
         with self.uow:
             return self.uow.travel.list()
-
-    def find(self, origin=None, destination=None, date=None) -> List[Travel]:
-        data = {
-            "origin": origin.strip() if origin else None,
-            "destination": destination.strip() if destination else None,
-            "date": dt.date.fromisoformat(date) if isinstance(date, str) else date,
-        }
-        with self.uow:
-            return self.uow.travel.find(**data)
-
-    def _validate_country_codes(self, origin: str, destination: str) -> None:
-        if not COUNTRY_CODE_RE.match(origin):
-            raise ValueError(
-                f"Invalid origin country code: '{origin}'. "
-                f"Must be a valid 3-letter ISO 3166-1 alpha-3 code."
-            )
-        if not COUNTRY_CODE_RE.match(destination):
-            raise ValueError(
-                f"Invalid destination country code: '{destination}'. "
-                f"Must be a valid 3-letter ISO 3166-1 alpha-3 code."
-            )
