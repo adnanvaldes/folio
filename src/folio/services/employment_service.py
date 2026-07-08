@@ -1,6 +1,7 @@
 import datetime as dt
-from typing import List, Optional
-from folio.models import Employment
+from typing import List
+
+from folio.models.employment import Employment
 from folio.uow import UnitOfWork
 
 
@@ -8,60 +9,36 @@ class EmploymentService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def add(
+    def add(self, employment: Employment) -> None:
+        with self.uow:
+            self.uow.employment.add(employment)
+
+    def remove(self, employment: Employment) -> None:
+        with self.uow:
+            self.uow.employment.remove(employment)
+
+    def replace(self, old: Employment, new: Employment) -> None:
+        with self.uow:
+            self.uow.employment.replace(old, new)
+
+    def update(
         self,
-        company: str,
-        supervisor: str,
-        address: str,
-        phone: str,
-        start: dt.date,
+        employment: Employment,
+        *,
         end: dt.date | None = None,
-    ) -> int:
-
-        start = dt.date.fromisoformat(start) if isinstance(start, str) else start
-        end = dt.date.fromisoformat(end) if isinstance(end, str) else end
-
-        if self.find(company=company, start=start):
-            raise ValueError(f"Employment already exists for {company, start}")
-
-        employment = Employment(
-            start=start,
-            end=end,
-            company=company,
-            supervisor=supervisor,
-            address=address,
-            phone=phone,
-        )
-
-        with self.uow:
-            new_id = self.uow.employment.add(employment)
-            return new_id
-
-    def get(self, employment_id: int) -> Optional[Employment]:
-        with self.uow:
-            return self.uow.employment.get(employment_id)
-
-    def list(self) -> List[Employment]:
-        with self.uow:
-            return self.uow.employment.list()
-
-    def find(
-        self,
-        start: dt.date | None = None,
-        end: dt.date | None = None,
-        company: str | None = None,
         supervisor: str | None = None,
         address: str | None = None,
         phone: str | None = None,
-    ) -> List[Employment]:
-        data = {
-            "start": dt.date.fromisoformat(start) if isinstance(start, str) else start,
-            "end": dt.date.fromisoformat(end) if isinstance(end, str) else end,
-            "company": company.strip() if company else None,
-            "supervisor": supervisor.strip() if supervisor else None,
-            "address": address.strip() if address else None,
-            "phone": phone.strip() if phone else None,
-        }
-
+    ) -> None:
         with self.uow:
-            return self.uow.employment.find(**data)
+            self.uow.employment.update(
+                employment, end=end, supervisor=supervisor, address=address, phone=phone
+            )
+
+    def find(self, **filters) -> List[Employment]:
+        with self.uow:
+            return self.uow.employment.find(**filters)
+
+    def list(self) -> list[Employment]:
+        with self.uow:
+            return self.uow.employment.list()
