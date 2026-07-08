@@ -18,7 +18,7 @@ def make_book(**overrides) -> Book:
     defaults = dict(
         work=A_WORK,
         format_type=FormatType.PRINT,
-        isbn="978-0-7653-2635-5",
+        isbn="9780765326355",
         pages=1007,
     )
     return Book(**{**defaults, **overrides})
@@ -84,16 +84,16 @@ class TestReplace:
         original = make_book()
         service.add(original)
 
-        corrected = make_book(isbn="978-0-0000-0000-0")
+        corrected = make_book(isbn="9780000000026")
         service.replace(original, corrected)
 
         result = service.list()
         assert len(result) == 1
-        assert result[0].isbn == "978-0-0000-0000-0"
+        assert result[0].isbn == "9780000000026"
 
     def test_replace_nonexistent_raises(self, service):
         original = make_book()
-        other = make_book(isbn="978-0-0000-0000-0")
+        other = make_book(isbn="9780000000026")
         with pytest.raises(ValueError, match="not found"):
             service.replace(original, other)
 
@@ -109,7 +109,7 @@ class TestFind:
             genre="Fantasy",
             is_read=True,
         )
-        b2 = make_book(work=other_work, isbn="978-0-0000-0000-0")
+        b2 = make_book(work=other_work, isbn="9780000000026")
         service.add(b1)
         service.add(b2)
 
@@ -131,7 +131,7 @@ class TestFind:
             format_type=FormatType.AUDIO,
             pages=None,
             duration_minutes=552,
-            isbn="978-0-0000-0000-0",
+            isbn="9780000000026",
         )
         service.add(b1)
         service.add(b2)
@@ -142,7 +142,7 @@ class TestFind:
 
     def test_find_by_format_type(self, service):
         b1 = make_book()
-        b2 = make_book(format_type=FormatType.EBOOK, isbn="978-0-0000-0000-0")
+        b2 = make_book(format_type=FormatType.EBOOK, isbn="9780000000026")
         service.add(b1)
         service.add(b2)
 
@@ -152,11 +152,11 @@ class TestFind:
 
     def test_find_by_isbn(self, service):
         b1 = make_book()
-        b2 = make_book(isbn="978-0-0000-0000-0")
+        b2 = make_book(isbn="9780000000026")
         service.add(b1)
         service.add(b2)
 
-        results = service.find(isbn="978-0-7653-2635-5")
+        results = service.find(isbn="9780765326355")
         assert len(results) == 1
         assert results[0] == b1
 
@@ -166,7 +166,7 @@ class TestFind:
             format_type=FormatType.AUDIO,
             pages=None,
             duration_minutes=552,
-            isbn="978-0-0000-0000-0",
+            isbn="9780000000026",
             narrator="Michael Kramer",
         )
         service.add(b1)
@@ -188,7 +188,7 @@ class TestList:
 
     def test_list_returns_all_books(self, service):
         b1 = make_book()
-        b2 = make_book(isbn="978-0-0000-0000-0")
+        b2 = make_book(isbn="9780000000026")
         service.add(b1)
         service.add(b2)
 
