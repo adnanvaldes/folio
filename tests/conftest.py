@@ -8,6 +8,7 @@ from tests.fake_repositories import (
     FakeAddressRepository,
     FakeTravelRepository,
     FakeWorkRepository,
+    FakeEmploymentRepository,
 )
 
 
@@ -21,6 +22,7 @@ class FakeUnitOfWork(UnitOfWork):
         self.addresses = FakeAddressRepository()
         self.travel = FakeTravelRepository()
         self.work = FakeWorkRepository()
+        self.employment = FakeEmploymentRepository()
         self.committed = False
 
     def _start(self):
