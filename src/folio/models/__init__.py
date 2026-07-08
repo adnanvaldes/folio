@@ -8,8 +8,10 @@ from .employment import Employment
 __all__ = [
     "Work",
     "Book",
+    "FormatType",
     "Travel",
     "Address",
+    "TimelineDiff",
+    "calculate_new_timeline",
     "Employment",
-    "FormatType",
 ]
