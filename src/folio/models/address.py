@@ -222,6 +222,11 @@ def calculate_new_timeline(
             else:
                 # ↓ changed: closed existing, starts before new — trim its end
                 # Requires confirmation because we're modifying a historical record
+                if new_address.is_open:
+                    raise ValueError(
+                        f"An open address would subsume {existing}. "
+                        f"Close it explicitly first."
+                    )
                 to_replace.append((
                     existing,
                     dataclasses.replace(

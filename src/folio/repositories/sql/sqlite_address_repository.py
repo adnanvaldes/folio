@@ -65,6 +65,17 @@ class SQLiteAddressRepository(AddressRepository):
         return [self._map_row(row) for row in rows]
 
     def add(self, address: Address) -> None:
+        existing = self.find(
+            street=address.street,
+            city=address.city,
+            country=address.country,
+            postal_code=address.postal_code,
+            province=address.province,
+            start=address.start,
+            end=address.end,
+        )
+        if existing:
+            raise ValueError(f"Address already exists: {address}")
         params = self._to_params(address)
         try:
             self.conn.execute("""
@@ -74,7 +85,7 @@ class SQLiteAddressRepository(AddressRepository):
                     (:street, :city, :country, :postal_code, :province, :start, :end)
             """, params)
         except sqlite3.IntegrityError:
-            raise ValueError(f"Address already exist: {address}")
+            raise ValueError(f"Address already exists: {address}")
 
     def remove(self, address: Address) -> None:
         params = self._to_params(address)
@@ -117,7 +128,7 @@ class SQLiteAddressRepository(AddressRepository):
     def find(self, **filters) -> List[Address]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
-            raise ValueError(f"Invalid filters: {invalid}")
+            raise ValueError(f"Invalid filter fields: {invalid}")
 
         if not filters:
             return self.list()
