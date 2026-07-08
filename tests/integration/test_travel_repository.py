@@ -1,0 +1,118 @@
+import datetime as dt
+import sqlite3
+import pytest
+
+from folio.models.travel import Travel
+from folio.repositories.sql.sqlite_travel_repository import SQLiteTravelRepository
+
+
+@pytest.fixture
+def repo(fake_db):
+    conn = sqlite3.connect(fake_db)
+    conn.row_factory = sqlite3.Row
+    conn.execute("BEGIN")
+    repo = SQLiteTravelRepository(conn)
+    yield repo
+    conn.close()
+
+
+def make_travel(**overrides) -> Travel:
+    defaults = dict(
+        origin="USA",
+        destination="CAN",
+        date=dt.date(2024, 7, 20),
+        notes="Business trip",
+    )
+    return Travel(**{**defaults, **overrides})
+
+
+class TestSQLiteTravelRepositoryAdd:
+
+    def test_add_and_list(self, repo):
+        t = make_travel()
+        repo.add(t)
+        result = repo.list()
+        assert len(result) == 1
+        assert result[0] == t
+
+    def test_add_duplicate_raises(self, repo):
+        t = make_travel()
+        repo.add(t)
+        with pytest.raises(ValueError, match="already exists"):
+            repo.add(t)
+
+    def test_list_returns_chronological_order(self, repo):
+        t1 = make_travel(date=dt.date(2024, 6, 1))
+        t2 = make_travel(date=dt.date(2024, 1, 1))
+        t3 = make_travel(date=dt.date(2024, 3, 1))
+        repo.add(t1)
+        repo.add(t2)
+        repo.add(t3)
+        assert repo.list() == [t2, t3, t1]
+
+
+class TestSQLiteTravelRepositoryDates:
+
+    def test_date_round_trips_as_date_object(self, repo):
+        t = make_travel()
+        repo.add(t)
+        result = repo.list()[0]
+        assert isinstance(result.date, dt.date)
+        assert result.date == dt.date(2024, 7, 20)
+
+
+class TestSQLiteTravelRepositoryRemove:
+
+    def test_remove_existing(self, repo):
+        t = make_travel()
+        repo.add(t)
+        repo.remove(t)
+        assert repo.list() == []
+
+    def test_remove_nonexistent_raises(self, repo):
+        with pytest.raises(ValueError, match="not found"):
+            repo.remove(make_travel())
+
+
+class TestSQLiteTravelRepositoryReplace:
+
+    def test_replace_updates_record(self, repo):
+        original = make_travel(notes="Wrong")
+        repo.add(original)
+
+        corrected = make_travel(notes="Corrected")
+        repo.replace(original, corrected)
+
+        result = repo.list()
+        assert len(result) == 1
+        assert result[0].notes == "Corrected"
+
+    def test_replace_nonexistent_raises(self, repo):
+        original = make_travel()
+        other = make_travel(origin="MEX", destination="USA", date=dt.date(2024, 1, 1))
+        with pytest.raises(ValueError, match="not found"):
+            repo.replace(original, other)
+
+
+class TestSQLiteTravelRepositoryFind:
+
+    def test_find_by_origin(self, repo):
+        t1 = make_travel(origin="USA")
+        t2 = make_travel(origin="MEX", destination="USA", date=dt.date(2024, 1, 1))
+        repo.add(t1)
+        repo.add(t2)
+
+        results = repo.find(origin="USA")
+        assert len(results) == 1
+        assert results[0].origin == "USA"
+
+    def test_find_no_filters_returns_all(self, repo):
+        t1 = make_travel(date=dt.date(2024, 1, 1))
+        t2 = make_travel(origin="MEX", destination="USA", date=dt.date(2024, 6, 1))
+        repo.add(t1)
+        repo.add(t2)
+        assert len(repo.find()) == 2
+
+    def test_find_invalid_field_raises(self, repo):
+        with pytest.raises(ValueError, match="Invalid filter fields"):
+            repo.find(invalid="x")
