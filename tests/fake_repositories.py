@@ -35,8 +35,5 @@ class FakeAddressRepository(AddressRepository):
 
         results = set(self._data)
         for field, value in filters.items():
-            results = {
-                a for a in results
-                if getattr(a, field) == value
-            }
+            results = {a for a in results if getattr(a, field) == value}
         return sorted(results)
