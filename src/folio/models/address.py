@@ -1,11 +1,13 @@
 import datetime as dt
 import dataclasses
 
+
 @dataclasses.dataclass(frozen=True, eq=False)
 class Address:
     """
     Represents a primary living address and period
     """
+
     street: str
     city: str
     country: str
@@ -15,14 +17,22 @@ class Address:
     province: str | None = None
 
     def __post_init__(self):
-        # TODO
-        # Check case where any of these is empty and raises error
-        # Might be worth placing the precense checks first
         object.__setattr__(self, "street", self.street.strip())
         object.__setattr__(self, "city", self.city.strip())
         object.__setattr__(self, "country", self.country.strip())
         object.__setattr__(self, "postal_code", self.postal_code.strip())
-        object.__setattr__(self, "province", self.province.strip() if self.province else None)
+
+        prov = self.province.strip() if self.province else None
+        object.__setattr__(self, "province", prov or None)
+
+        if not self.street:
+            raise ValueError("Street is required")
+        if not self.city:
+            raise ValueError("City is required")
+        if not self.country:
+            raise ValueError("Country is required")
+        if not self.postal_code:
+            raise ValueError("Postal code is required")
 
         if not isinstance(self.start, dt.date):
             raise TypeError(f"start must be a datetime.date, got {type(self.start)}")
@@ -36,15 +46,6 @@ class Address:
             raise ValueError(
                 f"end date must be after start date, got: [start={self.start}, end={self.end}]"
             )
-
-        if not self.street:
-            raise ValueError("Street is required")
-        if not self.city:
-            raise ValueError("City is required")
-        if not self.country:
-            raise ValueError("Country is required")
-        if not self.postal_code:
-            raise ValueError("Postal code is required")
 
     def _identity_fields(self) -> tuple:
         """
@@ -68,10 +69,13 @@ class Address:
     def __hash__(self) -> int:
         return hash(self._identity_fields())
 
+    def _ordering_fields(self) -> tuple:
+        return (self.start,)
+
     def __lt__(self, other: "Address") -> bool:
         if not isinstance(other, Address):
             return NotImplemented
-        return self.start < other.start
+        return self._ordering_fields() < other._ordering_fields()
 
     def __str__(self):
         end = self.end or "Present"
@@ -88,7 +92,7 @@ class Address:
         Returns the duratoin of a stay as a dt.timedelta.
         If end is None, uses today's date.
         """
-        return(self.end or dt.date.today()) - self.start
+        return (self.end or dt.date.today()) - self.start
 
     def overlaps(self, other: "Address") -> bool:
         """
@@ -122,121 +126,3 @@ class Address:
         if self.is_open:
             raise ValueError(f"Address is already open: {self}")
         return dataclasses.replace(self, end=None)
-
-@dataclasses.dataclass(frozen=True)
-class TimelineDiff:
-    to_add: tuple[Address, ...]
-    to_remove: tuple[Address, ...]
-    to_replace: tuple[tuple[Address, Address], ...]
-
-
-def calculate_new_timeline(
-    current_timeline: list[Address],
-    new_address: Address,
-    replacing: list[Address] | None = None,
-) -> TimelineDiff:
-    if new_address in current_timeline:
-        raise ValueError(f"Address already exists: {new_address}")
-
-    to_add = [new_address]
-    to_remove = []
-    to_replace = []
-    needs_confirmation = []
-
-    for existing in sorted(current_timeline):
-        if not existing.overlaps(new_address):
-            continue
-
-        if existing.start >= new_address.start:
-            # existing starts at or after new — needs confirmation
-            needs_confirmation.append(existing)
-            continue
-
-        # existing.start < new_address.start from here on
-
-        if existing.is_open and new_address.is_open:
-            # ↓ changed: this is the ONLY automatic case
-            # New open address follows existing open one — unambiguous close
-            to_replace.append((
-                existing,
-                existing.close(end=new_address.start - dt.timedelta(days=1))
-            ))
-            continue
-
-        # ↓ changed: all other overlapping cases require confirmation
-        # This includes:
-        # - existing open, new closed (split case)
-        # - existing closed, new closed (trimming historical record)
-        # - existing closed, new open (subsuming)
-        needs_confirmation.append(existing)
-
-    if needs_confirmation:
-        declared = set(replacing or [])
-        actual = set(needs_confirmation)
-
-        if declared != actual:
-            missing = actual - declared
-            extra = declared - actual
-            parts = []
-            if missing:
-                parts.append(f"missing from declaration: {missing}")
-            if extra:
-                parts.append(f"not found in timeline: {extra}")
-            raise ValueError(
-                f"Inserting this address requires confirmation: "
-                + ", ".join(parts)
-            )
-
-        for existing in needs_confirmation:
-            if existing.start >= new_address.start:
-                # existing starts at or after new
-                if new_address.is_open:
-                    raise ValueError(
-                        f"An open address would subsume {existing}. "
-                        f"Close it explicitly first."
-                    )
-                if existing.start == new_address.start:
-                    to_remove.append(existing)
-                    continue
-                # ↓ shift existing's start to after new ends
-                to_replace.append((
-                    existing,
-                    dataclasses.replace(
-                        existing,
-                        start=new_address.end + dt.timedelta(days=1)
-                    )
-                ))
-            elif existing.is_open:
-                # ↓ split case: open existing, closed new, existing starts before new
-                assert new_address.end is not None, (
-                    "Split case should only be reached when new_address has an end date"
-                )
-                closed_prior = existing.close(
-                    end=new_address.start - dt.timedelta(days=1)
-                )
-                continuation = dataclasses.replace(
-                    existing, start=new_address.end + dt.timedelta(days=1)
-                )
-                to_remove.append(existing)
-                to_add.extend([closed_prior, continuation])
-            else:
-                # ↓ changed: closed existing, starts before new — trim its end
-                # Requires confirmation because we're modifying a historical record
-                if new_address.is_open:
-                    raise ValueError(
-                        f"An open address would subsume {existing}. "
-                        f"Close it explicitly first."
-                    )
-                to_replace.append((
-                    existing,
-                    dataclasses.replace(
-                        existing,
-                        end=new_address.start - dt.timedelta(days=1)
-                    )
-                ))
-
-    return TimelineDiff(
-        to_add=tuple(to_add),
-        to_remove=tuple(to_remove),
-        to_replace=tuple(to_replace),
-    )

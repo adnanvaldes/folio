@@ -50,6 +50,14 @@ class TestAddressConstruction:
         addr = make_address(province=None)
         assert addr.province is None
 
+    def test_province_empty_string_normalized_to_none(self):
+        addr = make_address(province="")
+        assert addr.province is None
+
+    def test_province_whitespace_only_normalized_to_none(self):
+        addr = make_address(province="   ")
+        assert addr.province is None
+
     def test_rejects_non_date_start(self):
         with pytest.raises(TypeError, match="start must be a datetime.date"):
             make_address(start="2020-01-01")
@@ -136,8 +144,7 @@ class TestAddressIdentity:
 
     def test_different_start_not_equal(self):
         a1 = make_address(start=dt.date(2020, 1, 1))
-        a2 = make_address(start=dt.date(2021, 1, 1),
-                          end=dt.date(2022, 12, 31))
+        a2 = make_address(start=dt.date(2021, 1, 1), end=dt.date(2022, 12, 31))
         assert a1 != a2
 
     def test_different_end_not_equal(self):
@@ -197,6 +204,10 @@ class TestAddressOrdering:
             start=dt.date(2022, 1, 1),
         )
         assert sorted([a3, a1, a2]) == [a1, a2, a3]
+
+    def test_ordering_fields_returns_tuple(self):
+        addr = make_address()
+        assert addr._ordering_fields() == (addr.start,)
 
 
 class TestAddressProperties:
