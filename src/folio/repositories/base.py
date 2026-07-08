@@ -2,36 +2,12 @@ import datetime as dt
 from typing import Optional, List
 from abc import ABC, abstractmethod
 
-from folio.models import Record, R
 from folio.models.address import Address
 from folio.models.timeline import TimelineDiff
 from folio.models.travel import Travel
 from folio.models.work import Work
 from folio.models.employment import Employment
 from folio.models.book import Book
-
-
-class Repository[R: Record](ABC):
-    @abstractmethod
-    def add(self, record: R) -> int:
-        """
-        Add a new record to the repository and return its assigned ID
-        """
-        ...
-
-    @abstractmethod
-    def get(self, id: int) -> Optional[R]:
-        """
-        Retrieve a record by its repository-assigned ID
-        """
-        ...
-
-    @abstractmethod
-    def list(self) -> List[R]:
-        """
-        Retrun all records in the repository
-        """
-        ...
 
 
 class AddressRepository(ABC):
