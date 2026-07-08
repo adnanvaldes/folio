@@ -1,198 +1,139 @@
-import pytest
-import sqlite3
 import datetime as dt
-
-from folio.models import Address
-from folio.services import AddressService
+import pytest
+from folio.models.address import Address
+from folio.services.address_service import AddressService
 from folio.uow import AddressSQLiteUoW
-from folio.repositories import SQLiteAddressRepository
 
 
-def test_add_and_list_address(fake_db, multiple_addresses):
-    uow = AddressSQLiteUoW(fake_db)
-    service = AddressService(uow)
-
-    data = multiple_addresses
-    new_id = service.add(
-        start=data["start"],
-        end=data["end"],
-        street=data["street"],
-        city=data["city"],
-        province=data["province"],
-        country=data["country"],
-        postal_code=data["postal_code"],
-    )
-    addresses = service.list()
-
-    assert len(addresses) == 1
-    addr = addresses[0]
-    assert isinstance(addr, Address)
-    assert addr.start == data["start"]
-    assert addr.end == data["end"]
-    assert addr.street == data["street"]
-    assert addr.city == data["city"]
-    assert addr.province == data["province"]
-    assert addr.country == data["country"]
-    assert addr.postal_code == data["postal_code"]
-    assert new_id == 1
+@pytest.fixture
+def service(fake_db):
+    return AddressService(AddressSQLiteUoW(fake_db))
 
 
-def test_get_address_by_id(fake_db):
-    uow = AddressSQLiteUoW(fake_db)
-    service = AddressService(uow)
-
-    service.add(
-        start="2020-01-01",
-        street="123 Some Str",
+def make_address(**overrides) -> Address:
+    defaults = dict(
+        street="123 Main St",
         city="Vancouver",
         country="Canada",
         postal_code="V6Y 0A0",
+        start=dt.date(2020, 1, 1),
+        end=dt.date(2022, 12, 31),
     )
-    address_id = 1
-    address = service.get(address_id)
-
-    assert address is not None
-    assert address.start == dt.date(2020, 1, 1)
-    assert address.country == "Canada"
+    return Address(**{**defaults, **overrides})
 
 
-def test_prevent_duplicate_address(fake_db):
-    uow = AddressSQLiteUoW(fake_db)
-    service = AddressService(uow)
+class TestAddressServiceIntegration:
 
-    service.add(
-        start="1900-01-01",
-        end="1950-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="V6Y 0A0",
-    )
+    def test_add_and_list(self, service):
+        addr = make_address()
+        service.add(addr)
+        assert addr in service.list()
 
-    with pytest.raises(ValueError) as e:
-        service.add(
-            start="1900-01-01",
-            end="1950-01-01",
-            street="123 Some Str",
-            city="Vancouver",
-            province="BC",
-            country="Canada",
-            postal_code="V6Y 0A0",
+    def test_dates_survive_sqlite_round_trip(self, service):
+        """
+        Verifies the deprecated implicit date adapter is not being used.
+        If it were, this would produce a DeprecationWarning or wrong type.
+        """
+        addr = make_address(
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2022, 12, 31),
         )
+        service.add(addr)
+        retrieved = service.list()[0]
 
-    assert "already exists" in str(e.value)
+        assert isinstance(retrieved.start, dt.date)
+        assert isinstance(retrieved.end, dt.date)
+        assert retrieved.start == dt.date(2020, 1, 1)
+        assert retrieved.end == dt.date(2022, 12, 31)
 
+    def test_null_end_survives_round_trip(self, service):
+        addr = make_address(end=None)
+        service.add(addr)
+        retrieved = service.list()[0]
+        assert retrieved.end is None
 
-def test_find_address_by_street(fake_db):
-    uow = AddressSQLiteUoW(fake_db)
-    service = AddressService(uow)
+    def test_null_province_survives_round_trip(self, service):
+        addr = make_address(province=None)
+        service.add(addr)
+        retrieved = service.list()[0]
+        assert retrieved.province is None
 
-    service.add(
-        start="1901-01-01",
-        end="1950-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="V6Y 0A0",
-    )
-    service.add(
-        start="1951-01-01",
-        end="2000-01-01",
-        street="456 Other Street",
-        city="Mexico City",
-        country="Mexico",
-        postal_code="16040",
-    )
+    def test_automatically_closes_open_address(self, service):
+        open_addr = make_address(end=None)
+        service.add(open_addr)
 
-    results = service.find(street="456 Other Street")
-    assert len(results) == 1
-    assert results[0].street == "456 Other Street"
+        new_addr = make_address(
+            street="456 Elm St",
+            start=dt.date(2023, 1, 1),
+            end=None,
+        )
+        service.add(new_addr)
 
+        timeline = service.list()
+        assert len(timeline) == 2
 
-def test_delete_by_fields(fake_db):
-    uow = AddressSQLiteUoW(fake_db)
-    service = AddressService(uow)
+        original = next(a for a in timeline if a.street == "123 Main St")
+        assert not original.is_open
+        assert original.end == dt.date(2022, 12, 31)
 
-    service.add(
-        start="1901-01-01",
-        end="1950-01-01",
-        street="123 Some Str",
-        city="Vancouver",
-        province="BC",
-        country="Canada",
-        postal_code="V6Y 0A0",
-    )
-    service.add(
-        start="1951-01-01",
-        end="2000-01-01",
-        street="456 Other Street",
-        city="Mexico City",
-        country="Mexico",
-        postal_code="16040",
-    )
+    def test_remove_latest_open_reopens_previous(self, service):
+        closed = make_address(
+            start=dt.date(2018, 1, 1),
+            end=dt.date(2019, 12, 31),
+        )
+        open_addr = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 1, 1),
+            end=None,
+        )
+        service.add(closed)
+        service.add(open_addr)
+        service.remove(open_addr)
 
-    assert len(service.list()) == 2
+        timeline = service.list()
+        assert len(timeline) == 1
+        assert timeline[0].is_open
 
-    service.delete(country="Mexico")
-    assert len(service.list()) == 1
+    def test_replace_persists_correctly(self, service):
+        original = make_address(street="123 Main St")
+        service.add(original)
 
-    service.delete(postal_code="V6Y 0A0")
-    assert service.list() == []
+        corrected = make_address(street="123 Main Street")
+        service.replace(original, corrected)
 
-    with pytest.raises(ValueError):
-        service.delete(city="Vancouver")
+        timeline = service.list()
+        assert len(timeline) == 1
+        assert timeline[0].street == "123 Main Street"
 
+    def test_find_open_uses_is_null_in_sql(self, service):
+        """
+        This test would pass with the fake repo but fail with SQLite
+        if find(end=None) generates = NULL instead of IS NULL.
+        """
+        closed = make_address(end=dt.date(2022, 12, 31))
+        open_addr = make_address(
+            street="456 Elm St",
+            start=dt.date(2023, 1, 1),
+            end=None,
+        )
+        service.add(closed)
+        service.add(open_addr)
 
-def test_vulnerability_delete_with_no_filters_wipes_db(fake_db):
-    uow = AddressSQLiteUoW(fake_db)
-    service = AddressService(uow)
+        results = service.find(end=None)
+        assert len(results) == 1
+        assert results[0] == open_addr
 
-    service.add(
-        start="2000-01-01",
-        street="123 Alpha St",
-        city="London",
-        country="UK",
-        postal_code="E1 6AN",
-    )
-    service.add(
-        start="2010-01-01",
-        street="456 Beta Ave",
-        city="Paris",
-        country="France",
-        postal_code="75001",
-    )
+    def test_transaction_rolls_back_on_failure(self, service):
+        """
+        If an operation fails mid-transaction, no partial state
+        should be committed to the database.
+        """
+        addr = make_address()
+        service.add(addr)
 
-    assert len(service.list()) == 2
+        # Adding a duplicate should fail and roll back
+        with pytest.raises(ValueError):
+            service.add(addr)
 
-    with pytest.raises(ValueError):
-        service.delete()
-
-    assert len(service.list()) == 2
-
-
-def test_add_new_address_updates_end_of_last_address(fake_db):
-    uow = AddressSQLiteUoW(fake_db)
-    service = AddressService(uow)
-
-    # Open ended address:
-    service.add(
-        start="2000-01-01",
-        street="123 Alpha St",
-        city="London",
-        country="UK",
-        postal_code="E1 6AN",
-    )
-
-    service.add(
-        start="2010-01-01",
-        street="456 Beta Ave",
-        city="Paris",
-        country="France",
-        postal_code="75001",
-    )
-
-    assert len(service.list()) == 2
-    result = service.find(city="London")
-    assert result[0].end == dt.date(2009, 12, 31)
+        # Timeline should be unchanged
+        assert len(service.list()) == 1
