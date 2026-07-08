@@ -4,10 +4,10 @@ from .employment_service import EmploymentService
 from .travel_service import TravelService
 from .work_service import WorkService
 
-__all__ = {
+__all__ = [
     "AddressService",
     "BookService",
     "EmploymentService",
     "TravelService",
     "WorkService",
-}
+]
