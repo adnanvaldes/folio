@@ -1,9 +1,6 @@
-import datetime as dt
-from dataclasses import dataclass
+import dataclasses
 from enum import Enum
-from abc import ABC, abstractmethod
 
-from folio.models.record import Record
 from folio.models.work import Work
 
 
@@ -13,113 +10,77 @@ class FormatType(Enum):
     AUDIO = "audio"
 
 
-class BookFormat(ABC):
-
-    @property
-    @abstractmethod
-    def length(self) -> int | None:
-        """
-        Return a comparable length (pages or minutes)
-        """
-        ...
-
-    @property
-    def format(self):
-        return self.format_type.value
-
-
-@dataclass
-class TextFormat(BookFormat):
-    """
-    A textual book, either print or ebook
-    """
-
-    pages: int | None
+@dataclasses.dataclass(frozen=True, eq=False)
+class Book:
+    work: Work
     format_type: FormatType
+    isbn: str | None
+    pages: int | None = None
+    duration_minutes: int | None = None
+    narrator: str | None = None
 
     def __post_init__(self):
-        if self.format_type not in (FormatType.PRINT, FormatType.EBOOK):
-            raise ValueError("Invalid format type for text")
+        if not isinstance(self.work, Work):
+            raise TypeError(f"work must be a Work, got {type(self.work)}")
+        if not isinstance(self.format_type, FormatType):
+            raise TypeError(
+                f"format_type must be a FormatType, got {type(self.format_type)}"
+            )
+
+        isbn = self.isbn.strip() if self.isbn else None
+        object.__setattr__(self, "isbn", isbn or None)
+        narrator = self.narrator.strip() if self.narrator else None
+        object.__setattr__(self, "narrator", narrator or None)
+
+        if self.pages is not None and not isinstance(self.pages, int):
+            raise TypeError(f"pages must be an int or None, got {type(self.pages)}")
+        if self.duration_minutes is not None and not isinstance(
+            self.duration_minutes, int
+        ):
+            raise TypeError(
+                f"duration_minutes must be an int or None, got {type(self.duration_minutes)}"
+            )
+
+        if self.format_type == FormatType.AUDIO:
+            if self.duration_minutes is None:
+                raise ValueError("duration_minutes is required for audio books")
+        else:
+            if self.pages is None:
+                raise ValueError("pages is required for text books")
+
+    def _identity_fields(self) -> tuple:
+        return (
+            *self.work._identity_fields(),
+            self.format_type.value,
+            (self.isbn or "").lower().strip(),
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Book):
+            return NotImplemented
+        return self._identity_fields() == other._identity_fields()
+
+    def __hash__(self) -> int:
+        return hash(self._identity_fields())
+
+    def _ordering_fields(self) -> tuple:
+        return (
+            *self.work._ordering_fields(),
+            self.format_type.value,
+            (self.isbn or "").lower().strip(),
+        )
+
+    def __lt__(self, other: "Book") -> bool:
+        if not isinstance(other, Book):
+            return NotImplemented
+        return self._ordering_fields() < other._ordering_fields()
 
     @property
     def length(self) -> int | None:
+        if self.format_type == FormatType.AUDIO:
+            return self.duration_minutes
         return self.pages
 
     def __str__(self):
-        return f"{self.length} ({self.format})"
-
-
-@dataclass
-class AudioFormat(BookFormat):
-
-    duration: dt.timedelta
-    narrator: str | None
-    format_type: FormatType = FormatType.AUDIO
-
-    @property
-    def length(self) -> int:
-        return int(self.duration.total_seconds() // 60)
-
-    def __str__(self):
-        return f"{self.length} ({self.format}) (Narrator: {self.narrator})"
-
-
-@dataclass(eq=False)
-class Book(Record["Book"]):
-    """
-    Represents a specific book instance
-    """
-
-    work: Work
-    format_data: BookFormat
-    isbn: str | None
-
-    @property
-    def title(self) -> str:
-        return self.work.title
-
-    @property
-    def author(self) -> str:
-        return self.work.author
-
-    @property
-    def year(self) -> int | None:
-        return self.work.year
-
-    @property
-    def genre(self) -> str:
-        return self.work.genre
-
-    @property
-    def read(self) -> bool:
-        return self.work.is_read
-
-    @property
-    def format(self) -> str:
-        return self.format_data.format
-
-    @property
-    def length(self) -> int | None:
-        return self.format_data.length
-
-    def __str__(self):
-        return f"{self.work.title} - {self.work.author}: {self.format}, [{self.isbn}]"
-
-    def _identity_fields(self):
-        """
-        Equality and hashing use Work, format, and ISBN
-        """
-        return (
-            self.work,  # uses Work's identity fields
-            self.format,
-            self.isbn or "",
-        )
-
-    def _ordering_fields(self):
-        """
-        Sort by Work, format, ISBN, then pages.
-        """
-        return (
-            *self._identity_fields(),
-            (self.length is None, self.length),  # None pages sort last
-        )
+        isbn = self.isbn or "no ISBN"
+        return f"{self.work.title} by {self.work.author} ({self.format_type.value}, {isbn})"

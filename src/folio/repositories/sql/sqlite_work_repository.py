@@ -16,6 +16,7 @@ class SQLiteWorkRepository(WorkRepository):
         self.conn.execute(
             """
             CREATE TABLE IF NOT EXISTS work (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 author      TEXT NOT NULL,
                 title       TEXT NOT NULL,
                 year        INTEGER,
