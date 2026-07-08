@@ -56,17 +56,22 @@ class SQLiteBookRepository(BookRepository):
         }
 
     def _lookup_work_id(self, work: Work) -> int:
-        row = self.conn.execute(
-            """
-            SELECT id FROM work
-            WHERE LOWER(author) = ? AND LOWER(title) = ? AND year IS ?
-        """,
-            (
-                work.author.lower().strip(),
-                work.title.lower().strip(),
-                work.year,
-            ),
-        ).fetchone()
+        if work.year is None:
+            row = self.conn.execute(
+                """
+                SELECT id FROM work
+                WHERE LOWER(author) = ? AND LOWER(title) = ? AND year IS NULL
+            """,
+                (work.author.lower().strip(), work.title.lower().strip()),
+            ).fetchone()
+        else:
+            row = self.conn.execute(
+                """
+                SELECT id FROM work
+                WHERE LOWER(author) = ? AND LOWER(title) = ? AND year = ?
+            """,
+                (work.author.lower().strip(), work.title.lower().strip(), work.year),
+            ).fetchone()
         if row is None:
             raise ValueError(f"Referenced work does not exist: {work}")
         return row["id"]
