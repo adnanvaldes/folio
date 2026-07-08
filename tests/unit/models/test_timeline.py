@@ -9,6 +9,7 @@ from folio.models.timeline import calculate_new_timeline, TimelineDiff
 # Helper — same pattern as test_address.py
 # ---------------------------------------------------------------------------
 
+
 def make_address(**overrides) -> Address:
     defaults = dict(
         street="123 Main St",
@@ -24,6 +25,7 @@ def make_address(**overrides) -> Address:
 # ---------------------------------------------------------------------------
 # Return type
 # ---------------------------------------------------------------------------
+
 
 class TestTimelineDiff:
 
@@ -42,6 +44,7 @@ class TestTimelineDiff:
 # ---------------------------------------------------------------------------
 # Simple insertion cases
 # ---------------------------------------------------------------------------
+
 
 class TestSimpleInsertion:
 
@@ -95,6 +98,7 @@ class TestSimpleInsertion:
 # Automatic resolution: closing the open address
 # ---------------------------------------------------------------------------
 
+
 class TestAutomaticClose:
 
     def test_new_open_address_closes_existing_open(self):
@@ -131,9 +135,11 @@ class TestAutomaticClose:
         with pytest.raises(ValueError, match="requires confirmation"):
             calculate_new_timeline([existing], new)
 
+
 # ---------------------------------------------------------------------------
 # Confirmation required cases
 # ---------------------------------------------------------------------------
+
 
 class TestConfirmationRequired:
 
@@ -161,9 +167,7 @@ class TestConfirmationRequired:
             end=dt.date(2023, 6, 1),
         )
         # Should not raise
-        diff = calculate_new_timeline(
-            [existing], overlapping, replacing=[existing]
-        )
+        diff = calculate_new_timeline([existing], overlapping, replacing=[existing])
         assert overlapping in diff.to_add
 
     def test_incomplete_replacing_raises_with_details(self):
@@ -202,14 +206,13 @@ class TestConfirmationRequired:
         )
         with pytest.raises(ValueError, match="not found in timeline"):
             # Declares unrelated, which isn't actually affected
-            calculate_new_timeline(
-                [existing], overlapping, replacing=[unrelated]
-            )
+            calculate_new_timeline([existing], overlapping, replacing=[unrelated])
 
 
 # ---------------------------------------------------------------------------
 # Split case
 # ---------------------------------------------------------------------------
+
 
 class TestSplitCase:
 
@@ -230,9 +233,7 @@ class TestSplitCase:
             start=dt.date(2022, 1, 1),
             end=dt.date(2022, 12, 31),
         )
-        diff = calculate_new_timeline(
-            [existing], temporary, replacing=[existing]
-        )
+        diff = calculate_new_timeline([existing], temporary, replacing=[existing])
 
         # existing is removed, three addresses added
         assert existing in diff.to_remove
@@ -242,12 +243,10 @@ class TestSplitCase:
         added = list(diff.to_add)
 
         closed_prior = next(
-            a for a in added
-            if a.street == existing.street and a.end is not None
+            a for a in added if a.street == existing.street and a.end is not None
         )
         continuation = next(
-            a for a in added
-            if a.street == existing.street and a.end is None
+            a for a in added if a.street == existing.street and a.end is None
         )
 
         assert closed_prior.end == dt.date(2021, 12, 31)
@@ -281,6 +280,22 @@ class TestSplitCase:
             end=None,
         )
         with pytest.raises(ValueError, match="subsume"):
-            calculate_new_timeline(
-                [existing], subsuming, replacing=[existing]
-            )
+            calculate_new_timeline([existing], subsuming, replacing=[existing])
+
+    def test_open_address_subsuming_from_left_raises(self):
+        """
+        An open address starting before an existing closed address
+        should raise — the open address would subsume the existing one.
+        This tests the guard at line 193 where existing.start >= new.start.
+        """
+        existing = make_address(
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2022, 12, 31),
+        )
+        subsuming = make_address(
+            street="456 Elm St",
+            start=dt.date(2019, 1, 1),
+            end=None,
+        )
+        with pytest.raises(ValueError, match="subsume"):
+            calculate_new_timeline([existing], subsuming, replacing=[existing])

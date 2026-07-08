@@ -200,6 +200,21 @@ class TestSQLiteAddressRepositoryFind:
         assert len(results) == 1
         assert results[0].city == "Vancouver"
 
+    def test_find_province_is_null(self, repo):
+        with_province = make_address(province="BC")
+        without_province = make_address(
+            street="456 Elm St",
+            province=None,
+            start=dt.date(2023, 1, 1),
+            end=None,
+        )
+        repo.add(with_province)
+        repo.add(without_province)
+
+        results = repo.find(province=None)
+        assert len(results) == 1
+        assert results[0].province is None
+
     def test_find_invalid_field_raises(self, repo):
         with pytest.raises(ValueError, match="Invalid filter fields"):
             repo.find(nonexistent="value")
