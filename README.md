@@ -44,17 +44,19 @@ Each row represents a literary `Work`, which contains :
 
 #### Book
 
-| Work                      | Pages | Format | ISBN          |
-| ------------------------- | ----- | ------ | ------------- |
-| Hyperion - Dan Simmons    | 482   | Print  | 9780385249492 |
-| The Histories - Herodotus | 784   | Ebook  | 9780140449082 |
+| Work                      | Pages | Duration (min) | Format | ISBN          | Narrator       |
+| ------------------------- | ----- | -------------- | ------ | ------------- | -------------- |
+| Hyperion - Dan Simmons    | 482   |                | Print  | 9780385249492 |                |
+| The Histories - Herodotus | 784   |                | Ebook  | 9780140449082 |                |
 
 Each row represents a `Book`, such that:
 
 - `work` is the [work](#work) the book contains
-- `pages` is the page number of this edition
-- `format` is one of `"Audio", "Print", or "Ebook"
+- `pages` is the page number of this edition (required for Print/Ebook formats)
+- `duration_minutes` is the runtime in minutes (required for Audio format)
+- `format` is one of `"Audio"`, `"Print"`, or `"Ebook"`
 - `isbn` is the ISBN-13 of the edition
+- `narrator` is the narrator (relevant for Audio format)
 
 
 ### Travel
@@ -75,10 +77,10 @@ Country codes are written using  [ISO 3166-1 alpha-3](https://en.wikipedia.org/w
 
 There are a few - but often critical - situations where having a detailed history of addresses is necessary. Just like with [travel](#travel), government-related services can require this kind of detail (often to the previous 5-year period). Nonetheless, I find it useful to simply keep a record with basic fields, such as `start`, `end`, `address`, etc. 
 
-| Start      | End        | Street Address          | Province      | Country | Postal Code | Notes |
-| ---------- | ---------- | ----------------------- | ------------- | ------- | ----------- | ----- |
-| 1900-01-1  | 1902-01-25 | Apt 1 - 123 Street Name | Province Name | CAN     | V0V V0V     |       |
-| 1902-01-26 | 2025-01-01 | 456 Road Name           |               | MEX     | 10000       |       |
+| Start      | End        | Street Address          | Province      | Country | Postal Code |
+| ---------- | ---------- | ----------------------- | ------------- | ------- | ----------- |
+| 1900-01-1  | 1902-01-25 | Apt 1 - 123 Street Name | Province Name | CAN     | V0V V0V     |
+| 1902-01-26 | 2025-01-01 | 456 Road Name           |               | MEX     | 10000       |
 
 Each row represents a primary address, such that:
 
@@ -96,15 +98,14 @@ Due to variability in addresses between countries, most of these fields are simp
 
 Much like [addresses](#addresses), I keep track of places I've worked. In the data I include relevant phone numbers, addresses, and employment periods. The `Employment` data includes the following fields:
 
-| Start      | End        | Period | Company          | Supervisor | Address                                        | Phone number |
-| ---------- | ---------- | ------ | ---------------- | ---------- | ---------------------------------------------- | ------------ |
-| 1900-01-01 | 1902-01-01 | 1      | ABC Company      | Jane Smith | Unit 1 - 123 Street Name, Country, Postal Code | 123456789    |
-| 1900-01-01 | 2025-01-01 | 124    | DEF Organization | John Doe   | 456 Address, Province, Country, Postal code    | 987654321    |
+| Start      | End        | Company          | Supervisor | Address                                        | Phone number |
+| ---------- | ---------- | ---------------- | ---------- | ---------------------------------------------- | ------------ |
+| 1900-01-01 | 1902-01-01 | ABC Company      | Jane Smith | Unit 1 - 123 Street Name, Country, Postal Code | 123456789    |
+| 1900-01-01 | 2025-01-01 | DEF Organization | John Doe   | 456 Address, Province, Country, Postal code    | 987654321    |
 
 Each row represents a period of employment where:
-- `start` is the [ISO 3166-1 alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) date when employment began
-- `end` is the [ISO 3166-1 alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) date when employment ended (or the current date if still employed there)
-- `period` is the difference between `start` and `end`
+- `start` is the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date when employment began
+- `end` is the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date when employment ended (or the current date if still employed there)
 - `company` is the name of the organization
 - `supervisor` is the last supervisor I had
 - `address` is the address of the company
