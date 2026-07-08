@@ -4,6 +4,7 @@ from .sqlite.sqlite_uow import (
     EmploymentSQLiteUoW,
     AddressSQLiteUoW,
     WorkSQLiteUoW,
+    BookSQLiteUoW,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "EmploymentSQLiteUoW",
     "AddressSQLiteUoW",
     "WorkSQLiteUoW",
+    "BookSQLiteUoW",
 ]
