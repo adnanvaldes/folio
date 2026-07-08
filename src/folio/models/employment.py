@@ -1,28 +1,31 @@
 import datetime as dt
-from dataclasses import dataclass
+import dataclasses
 
 
-from folio.models.record import Record
-
-
-@dataclass(eq=False)
-class Employment(Record["Employment"]):
-    """
-    Represents a period of employment
-    """
-
-    start: dt.date
-    end: dt.date | None
+@dataclasses.dataclass(frozen=True, eq=False)
+class Employment:
     company: str
+    start: dt.date
     supervisor: str
     address: str
     phone: str
-
-    def __str__(self):
-        end = self.end or "Present"
-        return f"{self.company} ({self.start} -> {end} [{self.duration}])"
+    end: dt.date | None = None
 
     def __post_init__(self):
+        object.__setattr__(self, "company", self.company.strip())
+        object.__setattr__(self, "supervisor", self.supervisor.strip())
+        object.__setattr__(self, "address", self.address.strip())
+        object.__setattr__(self, "phone", self.phone.strip())
+
+        if not self.company:
+            raise ValueError("Company is required")
+        if not self.supervisor:
+            raise ValueError("Supervisor is required")
+        if not self.address:
+            raise ValueError("Address is required")
+        if not self.phone:
+            raise ValueError("Phone is required")
+
         if not isinstance(self.start, dt.date):
             raise TypeError(f"start must be a datetime.date, got {type(self.start)}")
 
@@ -36,29 +39,32 @@ class Employment(Record["Employment"]):
                 f"end date cannot be before start date, got: [start={self.start}, end={self.end}]"
             )
 
+    def _identity_fields(self) -> tuple:
+        return (self.company.lower().strip(), self.start)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Employment):
+            return NotImplemented
+        return self._identity_fields() == other._identity_fields()
+
+    def __hash__(self) -> int:
+        return hash(self._identity_fields())
+
+    def _ordering_fields(self) -> tuple:
+        return (self.start,)
+
+    def __lt__(self, other: "Employment") -> bool:
+        if not isinstance(other, Employment):
+            return NotImplemented
+        return self._ordering_fields() < other._ordering_fields()
+
     @property
     def duration(self) -> dt.timedelta:
-        """
-        Returns the duration of employment as a timedelta.
-        """
         end_date = self.end or dt.date.today()
         if end_date < self.start:
             raise ValueError("End date cannot be before start date.")
         return end_date - self.start
 
-    def _identity_fields(self):
-        """
-        Equality and hasing use company name only.
-        """
-        return (self.company.lower().strip(),)
-
-    def _ordering_fields(self):
-        """
-        Sort employments by duration (longest first), then start date, then end date.
-        """
-        end_date = self.end or dt.date.today()
-        return (
-            -self.duration.days,  # Negative used so that longer durations come first
-            self.start,
-            self.end,
-        )
+    def __str__(self):
+        end = self.end or "Present"
+        return f"{self.company} ({self.start} -> {end} [{self.duration}])"
