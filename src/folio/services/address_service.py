@@ -1,7 +1,8 @@
 import datetime as dt
 from typing import List
 
-from folio.models.address import Address, calculate_new_timeline
+from folio.models.address import Address
+from folio.models.timeline import calculate_new_timeline
 from folio.uow import UnitOfWork
 
 
@@ -82,10 +83,7 @@ class AddressService:
             if old not in current:
                 raise ValueError(f"Address not found: {old}")
 
-            conflicts = [
-                a for a in current
-                if a != old and a.overlaps(new)
-            ]
+            conflicts = [a for a in current if a != old and a.overlaps(new)]
             if conflicts:
                 raise ValueError(
                     f"Replacement overlaps existing records: {conflicts}. "

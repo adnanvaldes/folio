@@ -26,7 +26,10 @@ class Repository[R: Record](ABC):
         """
         ...
 
-from folio.models.address import Address, TimelineDiff
+
+from folio.models.address import Address
+from folio.models.timeline import TimelineDiff
+
 
 class AddressRepository(ABC):
 
@@ -37,7 +40,7 @@ class AddressRepository(ABC):
         "country",
         "postal_code",
         "start",
-        "end"
+        "end",
     }
 
     @abstractmethod

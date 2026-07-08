@@ -1,7 +1,8 @@
 import datetime as dt
 import pytest
 import dataclasses
-from folio.models.address import Address, calculate_new_timeline, TimelineDiff
+from folio.models.address import Address
+from folio.models.timeline import calculate_new_timeline, TimelineDiff
 
 
 # ---------------------------------------------------------------------------
