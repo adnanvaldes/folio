@@ -1,10 +1,14 @@
 import dataclasses
 from typing import List
 
-from folio.repositories.base import AddressRepository, TravelRepository, WorkRepository
+import datetime as dt
+import dataclasses
+
+from folio.repositories.base import AddressRepository, TravelRepository, WorkRepository, EmploymentRepository
 from folio.models.address import Address
 from folio.models.travel import Travel
 from folio.models.work import Work
+from folio.models.employment import Employment
 
 
 class FakeAddressRepository(AddressRepository):
@@ -120,4 +124,68 @@ class FakeWorkRepository(WorkRepository):
             raise ValueError("No fields to update")
         updated = dataclasses.replace(work, genre=genre or work.genre, is_read=is_read if is_read is not None else work.is_read)
         self._data.discard(work)
+        self._data.add(updated)
+
+
+class FakeEmploymentRepository(EmploymentRepository):
+
+    def __init__(self):
+        self._data: set[Employment] = set()
+
+    def list(self) -> list[Employment]:
+        return sorted(self._data)
+
+    def add(self, employment: Employment) -> None:
+        if employment in self._data:
+            raise ValueError(f"Employment already exists: {employment}")
+        self._data.add(employment)
+
+    def remove(self, employment: Employment) -> None:
+        if employment not in self._data:
+            raise ValueError(f"Employment not found: {employment}")
+        self._data.discard(employment)
+
+    def replace(self, old: Employment, new: Employment) -> None:
+        if old not in self._data:
+            raise ValueError(f"Employment not found: {old}")
+        self._data.discard(old)
+        self._data.add(new)
+
+    def find(self, **filters) -> List[Employment]:
+        invalid = set(filters) - self.VALID_FIELDS
+        if invalid:
+            raise ValueError(f"Invalid filter fields: {invalid}")
+
+        results = set(self._data)
+        for field, value in filters.items():
+            if field == "company" and value is not None:
+                results = {e for e in results if e.company.lower().strip() == value.lower().strip()}
+            else:
+                results = {e for e in results if getattr(e, field) == value}
+        return sorted(results)
+
+    def update(
+        self,
+        employment: Employment,
+        *,
+        end: dt.date | None = None,
+        supervisor: str | None = None,
+        address: str | None = None,
+        phone: str | None = None,
+    ) -> None:
+        if employment not in self._data:
+            raise ValueError(f"Employment not found: {employment}")
+        if end is None and supervisor is None and address is None and phone is None:
+            raise ValueError("No fields to update")
+        kwargs = {}
+        if end is not None:
+            kwargs["end"] = end
+        if supervisor is not None:
+            kwargs["supervisor"] = supervisor.strip()
+        if address is not None:
+            kwargs["address"] = address.strip()
+        if phone is not None:
+            kwargs["phone"] = phone.strip()
+        updated = dataclasses.replace(employment, **kwargs)
+        self._data.discard(employment)
         self._data.add(updated)

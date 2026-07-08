@@ -1,3 +1,4 @@
+import datetime as dt
 from typing import Optional, List
 from abc import ABC, abstractmethod
 
@@ -6,6 +7,7 @@ from folio.models.address import Address
 from folio.models.timeline import TimelineDiff
 from folio.models.travel import Travel
 from folio.models.work import Work
+from folio.models.employment import Employment
 
 
 class Repository[R: Record](ABC):
@@ -186,5 +188,65 @@ class WorkRepository(ABC):
         Update identity-safe fields (genre, is_read) for a given work.
         Lookup by full identity. Raises ValueError if work not found
         or if no fields to update.
+        """
+        ...
+
+
+class EmploymentRepository(ABC):
+
+    VALID_FIELDS = {"company", "start", "end", "supervisor", "address", "phone"}
+
+    @abstractmethod
+    def list(self) -> List[Employment]: ...
+
+    @abstractmethod
+    def add(self, employment: Employment) -> None:
+        """
+        Add a new employment record.
+        Raises ValueError if it already exists (by identity).
+        """
+        ...
+
+    @abstractmethod
+    def remove(self, employment: Employment) -> None:
+        """
+        Remove an employment record.
+        Raises ValueError if it does not exist.
+        """
+        ...
+
+    @abstractmethod
+    def replace(self, old: Employment, new: Employment) -> None:
+        """
+        Replace old with new. Raises ValueError if old does not exist.
+        """
+        ...
+
+    @abstractmethod
+    def find(self, **filters) -> List[Employment]:
+        """
+        Return all employment records matching the given filters.
+        Omitting a field means do not filter on that field.
+        Passing None for a field means matching on NULL.
+        Raises ValueError on unrecognized fields.
+        """
+        ...
+
+    @abstractmethod
+    def update(
+        self,
+        employment: Employment,
+        *,
+        end: dt.date | None = None,
+        supervisor: str | None = None,
+        address: str | None = None,
+        phone: str | None = None,
+    ) -> None:
+        """
+        Update identity-safe fields (end, supervisor, address, phone)
+        for a given employment. Lookup by full identity.
+        Pass None to leave a field unchanged (to explicitly set a field
+        to None, use replace() instead).
+        Raises ValueError if employment not found or if no fields to update.
         """
         ...
