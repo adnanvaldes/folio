@@ -5,6 +5,7 @@ from typing import List
 from folio.repositories.base import AddressRepository
 from folio.models import Address
 
+
 class SQLiteAddressRepository(AddressRepository):
 
     def __init__(self, connection: sqlite3.Connection):
@@ -13,7 +14,8 @@ class SQLiteAddressRepository(AddressRepository):
         self._ensure_table()
 
     def _ensure_table(self) -> None:
-        self.conn.execute("""
+        self.conn.execute(
+            """
             CREATE TABLE IF NOT EXISTS address (
                 street      TEXT NOT NULL,
                 city        TEXT NOT NULL,
@@ -25,7 +27,8 @@ class SQLiteAddressRepository(AddressRepository):
                 CHECK(end IS NULL OR end > start),
                 UNIQUE(street, city, country, postal_code, province, start, end)
             )
-        """)
+        """
+        )
 
     def _map_row(self, row: sqlite3.Row) -> Address:
         data = dict(row)
@@ -35,13 +38,13 @@ class SQLiteAddressRepository(AddressRepository):
 
     def _to_params(self, address: Address) -> dict:
         return {
-            "street":      address.street,
-            "city":        address.city,
-            "country":     address.country,
+            "street": address.street,
+            "city": address.city,
+            "country": address.country,
             "postal_code": address.postal_code,
-            "province":    address.province,
-            "start":       address.start.isoformat(),
-            "end":         address.end.isoformat() if address.end else None,
+            "province": address.province,
+            "start": address.start.isoformat(),
+            "end": address.end.isoformat() if address.end else None,
         }
 
     def _where_clause(self, params: dict) -> str:
@@ -57,11 +60,13 @@ class SQLiteAddressRepository(AddressRepository):
         return " AND ".join(parts)
 
     def list(self) -> list[Address]:
-        rows = self.conn.execute("""
+        rows = self.conn.execute(
+            """
             SELECT start, end, street, city, province, country, postal_code
             FROM address
             ORDER BY start
-        """).fetchall()
+        """
+        ).fetchall()
         return [self._map_row(row) for row in rows]
 
     def add(self, address: Address) -> None:
@@ -78,12 +83,15 @@ class SQLiteAddressRepository(AddressRepository):
             raise ValueError(f"Address already exists: {address}")
         params = self._to_params(address)
         try:
-            self.conn.execute("""
+            self.conn.execute(
+                """
                 INSERT INTO address
                     (street, city, country, postal_code, province, start, end)
                 VALUES
                     (:street, :city, :country, :postal_code, :province, :start, :end)
-            """, params)
+            """,
+                params,
+            )
         except sqlite3.IntegrityError:
             raise ValueError(f"Address already exists: {address}")
 
@@ -91,7 +99,7 @@ class SQLiteAddressRepository(AddressRepository):
         params = self._to_params(address)
         cursor = self.conn.execute(
             f"DELETE FROM address WHERE {self._where_clause(params)}",
-            {k: v for k,v in params.items() if v is not None}
+            {k: v for k, v in params.items() if v is not None},
         )
         if cursor.rowcount == 0:
             raise ValueError(f"Address not found: {address}")
@@ -134,21 +142,15 @@ class SQLiteAddressRepository(AddressRepository):
             return self.list()
 
         params = {}
-        conditions = []
-
         for field, value in filters.items():
-            if value is None:
-                conditions.append(f"{field} IS NULL")
+            if field in ("start", "end") and value is not None:
+                params[field] = value.isoformat()
             else:
-                if field in ("start", "end"):
-                    value = value.isoformat()
-
-                conditions.append(f"{field} = :{field}")
                 params[field] = value
 
         sql = (
             f"SELECT start, end, street, city, province, country, postal_code "
-            f"FROM address WHERE {' AND '.join(conditions)} ORDER BY start"
+            f"FROM address WHERE {self._where_clause(params)} ORDER BY start"
         )
         rows = self.conn.execute(sql, params).fetchall()
         return [self._map_row(row) for row in rows]
