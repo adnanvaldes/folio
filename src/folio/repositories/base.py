@@ -8,6 +8,7 @@ from folio.models.timeline import TimelineDiff
 from folio.models.travel import Travel
 from folio.models.work import Work
 from folio.models.employment import Employment
+from folio.models.book import Book
 
 
 class Repository[R: Record](ABC):
@@ -248,5 +249,55 @@ class EmploymentRepository(ABC):
         Pass None to leave a field unchanged (to explicitly set a field
         to None, use replace() instead).
         Raises ValueError if employment not found or if no fields to update.
+        """
+        ...
+
+
+class BookRepository(ABC):
+
+    VALID_FIELDS = {
+        "author",
+        "title",
+        "year",
+        "format_type",
+        "isbn",
+        "pages",
+        "duration_minutes",
+        "narrator",
+    }
+
+    @abstractmethod
+    def list(self) -> List[Book]: ...
+
+    @abstractmethod
+    def add(self, book: Book) -> None:
+        """
+        Add a new book.
+        Raises ValueError if it already exists (by identity).
+        """
+        ...
+
+    @abstractmethod
+    def remove(self, book: Book) -> None:
+        """
+        Remove a book.
+        Raises ValueError if it does not exist.
+        """
+        ...
+
+    @abstractmethod
+    def replace(self, old: Book, new: Book) -> None:
+        """
+        Replace old with new. Raises ValueError if old does not exist.
+        """
+        ...
+
+    @abstractmethod
+    def find(self, **filters) -> List[Book]:
+        """
+        Return all books matching the given filters.
+        Omitting a field means do not filter on that field.
+        Passing None for a field means matching on NULL.
+        Raises ValueError on unrecognized fields.
         """
         ...

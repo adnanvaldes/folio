@@ -51,3 +51,10 @@ class WorkSQLiteUoW(SQLiteUnitOfWork):
         super()._start()
         self.work = repo.SQLiteWorkRepository(self.conn)
         return self
+
+
+class BookSQLiteUoW(SQLiteUnitOfWork):
+    def _start(self):
+        super()._start()
+        self.book = repo.SQLiteBookRepository(self.conn)
+        return self
