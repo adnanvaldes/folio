@@ -4,7 +4,11 @@ import tempfile
 import pytest
 
 from folio.uow import UnitOfWork
-from tests.fake_repositories import FakeAddressRepository, FakeTravelRepository
+from tests.fake_repositories import (
+    FakeAddressRepository,
+    FakeTravelRepository,
+    FakeWorkRepository,
+)
 
 
 class FakeUnitOfWork(UnitOfWork):
@@ -16,6 +20,7 @@ class FakeUnitOfWork(UnitOfWork):
     def __init__(self):
         self.addresses = FakeAddressRepository()
         self.travel = FakeTravelRepository()
+        self.work = FakeWorkRepository()
         self.committed = False
 
     def _start(self):

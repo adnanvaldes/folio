@@ -1,36 +1,49 @@
-from dataclasses import dataclass
-
-from folio.models.record import Record
+import dataclasses
 
 
-@dataclass(eq=False)
-class Work(Record["Work"]):
-    """
-    Represents a literary work (the concept of a book, rather than a specific instance)
-    """
-
-    title: str
+@dataclasses.dataclass(frozen=True, eq=False)
+class Work:
     author: str
+    title: str
     year: int | None
     genre: str | None
     is_read: bool
 
-    def __str__(self):
-        read = "Read" if self.is_read else "Not read"
-        return f"{self.title} by {self.author} (year: {self.year}, {read})"
+    def __post_init__(self):
+        if not self.author.strip():
+            raise ValueError("Author is required")
+        if not self.title.strip():
+            raise ValueError("Title is required")
+        if self.year is not None and not isinstance(self.year, int):
+            raise TypeError(f"year must be an int or None, got {type(self.year)}")
 
-    def _identity_fields(self):
-        """
-        Equality and hasing use title, author, and year.
-        """
+    def _identity_fields(self) -> tuple:
         return (
             self.author.lower().strip(),
             self.title.lower().strip(),
-            (self.year is None, self.year),  # None years sort last
+            (self.year is None, self.year),
         )
 
-    def _ordering_fields(self):
-        """
-        Sort by author, then title, then year.
-        """
-        return self._identity_fields()
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Work):
+            return NotImplemented
+        return self._identity_fields() == other._identity_fields()
+
+    def __hash__(self) -> int:
+        return hash(self._identity_fields())
+
+    def _ordering_fields(self) -> tuple:
+        return (
+            self.author.lower().strip(),
+            self.title.lower().strip(),
+            (self.year is None, self.year),
+        )
+
+    def __lt__(self, other: "Work") -> bool:
+        if not isinstance(other, Work):
+            return NotImplemented
+        return self._ordering_fields() < other._ordering_fields()
+
+    def __str__(self):
+        read = "Read" if self.is_read else "Not read"
+        return f"{self.title} by {self.author} (year: {self.year}, {read})"

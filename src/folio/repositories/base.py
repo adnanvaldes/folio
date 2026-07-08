@@ -5,6 +5,7 @@ from folio.models import Record, R
 from folio.models.address import Address
 from folio.models.timeline import TimelineDiff
 from folio.models.travel import Travel
+from folio.models.work import Work
 
 
 class Repository[R: Record](ABC):
@@ -133,5 +134,57 @@ class TravelRepository(ABC):
         Omitting a field means do not filter on that field.
         Passing None for a field means matching on NULL.
         Raises ValueError on unrecognized fields.
+        """
+        ...
+
+
+class WorkRepository(ABC):
+
+    VALID_FIELDS = {"author", "title", "year", "genre", "is_read"}
+
+    @abstractmethod
+    def list(self) -> List[Work]: ...
+
+    @abstractmethod
+    def add(self, work: Work) -> None:
+        """
+        Add a new work.
+        Raises ValueError if it already exists (by identity).
+        """
+        ...
+
+    @abstractmethod
+    def remove(self, work: Work) -> None:
+        """
+        Remove a work.
+        Raises ValueError if it does not exist.
+        """
+        ...
+
+    @abstractmethod
+    def replace(self, old: Work, new: Work) -> None:
+        """
+        Replace old with new. Raises ValueError if old does not exist.
+        """
+        ...
+
+    @abstractmethod
+    def find(self, **filters) -> List[Work]:
+        """
+        Return all works matching the given filters.
+        Omitting a field means do not filter on that field.
+        Passing None for a field means matching on NULL.
+        Raises ValueError on unrecognized fields.
+        """
+        ...
+
+    @abstractmethod
+    def update(
+        self, work: Work, *, genre: str | None = None, is_read: bool | None = None
+    ) -> None:
+        """
+        Update identity-safe fields (genre, is_read) for a given work.
+        Lookup by full identity. Raises ValueError if work not found
+        or if no fields to update.
         """
         ...
