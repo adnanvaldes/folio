@@ -2,6 +2,9 @@ from typing import Optional, List
 from abc import ABC, abstractmethod
 
 from folio.models import Record, R
+from folio.models.address import Address
+from folio.models.timeline import TimelineDiff
+from folio.models.travel import Travel
 
 
 class Repository[R: Record](ABC):
@@ -25,10 +28,6 @@ class Repository[R: Record](ABC):
         Retrun all records in the repository
         """
         ...
-
-
-from folio.models.address import Address
-from folio.models.timeline import TimelineDiff
 
 
 class AddressRepository(ABC):
@@ -95,3 +94,44 @@ class AddressRepository(ABC):
             self.replace(old, new)
         for address in diff.to_add:
             self.add(address)
+
+
+class TravelRepository(ABC):
+
+    VALID_FIELDS = {"origin", "destination", "date", "notes"}
+
+    @abstractmethod
+    def list(self) -> List[Travel]: ...
+
+    @abstractmethod
+    def add(self, travel: Travel) -> None:
+        """
+        Add a new travel record.
+        Raises ValueError if it already exists.
+        """
+        ...
+
+    @abstractmethod
+    def remove(self, travel: Travel) -> None:
+        """
+        Remove a travel record.
+        Raises ValueError if it does not exist.
+        """
+        ...
+
+    @abstractmethod
+    def replace(self, old: Travel, new: Travel) -> None:
+        """
+        Replace old with new. Raises ValueError if old does not exist.
+        """
+        ...
+
+    @abstractmethod
+    def find(self, **filters) -> List[Travel]:
+        """
+        Return all travel records matching the given filters.
+        Omitting a field means do not filter on that field.
+        Passing None for a field means matching on NULL.
+        Raises ValueError on unrecognized fields.
+        """
+        ...
