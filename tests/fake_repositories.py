@@ -4,11 +4,12 @@ from typing import List
 import datetime as dt
 import dataclasses
 
-from folio.repositories.base import AddressRepository, TravelRepository, WorkRepository, EmploymentRepository
+from folio.repositories.base import AddressRepository, TravelRepository, WorkRepository, EmploymentRepository, BookRepository
 from folio.models.address import Address
 from folio.models.travel import Travel
 from folio.models.work import Work
 from folio.models.employment import Employment
+from folio.models.book import Book, FormatType
 
 
 class FakeAddressRepository(AddressRepository):
@@ -189,3 +190,56 @@ class FakeEmploymentRepository(EmploymentRepository):
         updated = dataclasses.replace(employment, **kwargs)
         self._data.discard(employment)
         self._data.add(updated)
+
+
+class FakeBookRepository(BookRepository):
+
+    def __init__(self):
+        self._data: set[Book] = set()
+
+    def list(self) -> list[Book]:
+        return sorted(self._data)
+
+    def add(self, book: Book) -> None:
+        if book in self._data:
+            raise ValueError(f"Book already exists: {book}")
+        self._data.add(book)
+
+    def remove(self, book: Book) -> None:
+        if book not in self._data:
+            raise ValueError(f"Book not found: {book}")
+        self._data.discard(book)
+
+    def replace(self, old: Book, new: Book) -> None:
+        if old not in self._data:
+            raise ValueError(f"Book not found: {old}")
+        self._data.discard(old)
+        self._data.add(new)
+
+    def find(self, **filters) -> List[Book]:
+        invalid = set(filters) - self.VALID_FIELDS
+        if invalid:
+            raise ValueError(f"Invalid filter fields: {invalid}")
+
+        results = set(self._data)
+        for field, value in filters.items():
+            if field in ("author", "title", "year"):
+                if value is None:
+                    results = {b for b in results if getattr(b.work, field) is None}
+                elif field == "year":
+                    results = {b for b in results if b.work.year == value}
+                else:
+                    results = {
+                        b
+                        for b in results
+                        if getattr(b.work, field).lower().strip() == value.lower().strip()
+                    }
+            elif field == "format_type":
+                ft = value if isinstance(value, FormatType) else FormatType(value)
+                results = {b for b in results if b.format_type == ft}
+            else:
+                if value is None:
+                    results = {b for b in results if getattr(b, field) is None}
+                else:
+                    results = {b for b in results if getattr(b, field) == value}
+        return sorted(results)
