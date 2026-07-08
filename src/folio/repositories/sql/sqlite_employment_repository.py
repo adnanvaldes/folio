@@ -186,7 +186,9 @@ class SQLiteEmploymentRepository(EmploymentRepository):
         set_clause = ", ".join(f"{f} = :set_{f}" for f in updates)
         set_params = {f"set_{k}": v for k, v in updates.items()}
 
-        sql = f"UPDATE employment SET {set_clause} WHERE {' AND '.join(where_conditions)}"
+        sql = (
+            f"UPDATE employment SET {set_clause} WHERE {' AND '.join(where_conditions)}"
+        )
 
         cursor = self.conn.execute(sql, {**where_params, **set_params})
         if cursor.rowcount == 0:

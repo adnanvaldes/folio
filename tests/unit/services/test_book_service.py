@@ -5,7 +5,13 @@ from folio.services.book_service import BookService
 from folio.services.work_service import WorkService
 
 
-A_WORK = Work(author="Brandon Sanderson", title="The Way of Kings", year=2010, genre="Fantasy", is_read=True)
+A_WORK = Work(
+    author="Brandon Sanderson",
+    title="The Way of Kings",
+    year=2010,
+    genre="Fantasy",
+    is_read=True,
+)
 
 
 def make_book(**overrides) -> Book:
@@ -41,7 +47,13 @@ class TestAdd:
             service.add(book)
 
     def test_add_auto_creates_work(self, service):
-        new_work = Work(author="New Author", title="New Book", year=2020, genre="Fiction", is_read=False)
+        new_work = Work(
+            author="New Author",
+            title="New Book",
+            year=2020,
+            genre="Fiction",
+            is_read=False,
+        )
         book = make_book(work=new_work)
         service.add(book)
         assert new_work in service.work_service.list()
@@ -90,7 +102,13 @@ class TestFind:
 
     def test_find_by_author(self, service):
         b1 = make_book()
-        other_work = Work(author="Robert Jordan", title="The Eye of the World", year=1990, genre="Fantasy", is_read=True)
+        other_work = Work(
+            author="Robert Jordan",
+            title="The Eye of the World",
+            year=1990,
+            genre="Fantasy",
+            is_read=True,
+        )
         b2 = make_book(work=other_work, isbn="978-0-0000-0000-0")
         service.add(b1)
         service.add(b2)
@@ -101,8 +119,20 @@ class TestFind:
 
     def test_find_by_title(self, service):
         b1 = make_book()
-        other_work = Work(author="Brandon Sanderson", title="Words of Radiance", year=2014, genre="Fantasy", is_read=True)
-        b2 = make_book(work=other_work, format_type=FormatType.AUDIO, pages=None, duration_minutes=552, isbn="978-0-0000-0000-0")
+        other_work = Work(
+            author="Brandon Sanderson",
+            title="Words of Radiance",
+            year=2014,
+            genre="Fantasy",
+            is_read=True,
+        )
+        b2 = make_book(
+            work=other_work,
+            format_type=FormatType.AUDIO,
+            pages=None,
+            duration_minutes=552,
+            isbn="978-0-0000-0000-0",
+        )
         service.add(b1)
         service.add(b2)
 
@@ -132,7 +162,13 @@ class TestFind:
 
     def test_find_by_narrator_is_none(self, service):
         b1 = make_book()
-        b2 = make_book(format_type=FormatType.AUDIO, pages=None, duration_minutes=552, isbn="978-0-0000-0000-0", narrator="Michael Kramer")
+        b2 = make_book(
+            format_type=FormatType.AUDIO,
+            pages=None,
+            duration_minutes=552,
+            isbn="978-0-0000-0000-0",
+            narrator="Michael Kramer",
+        )
         service.add(b1)
         service.add(b2)
 

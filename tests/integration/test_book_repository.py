@@ -6,7 +6,13 @@ from folio.repositories.sql.sqlite_book_repository import SQLiteBookRepository
 from folio.repositories.sql.sqlite_work_repository import SQLiteWorkRepository
 
 
-A_WORK = Work(author="Brandon Sanderson", title="The Way of Kings", year=2010, genre="Fantasy", is_read=True)
+A_WORK = Work(
+    author="Brandon Sanderson",
+    title="The Way of Kings",
+    year=2010,
+    genre="Fantasy",
+    is_read=True,
+)
 
 
 @pytest.fixture
@@ -44,11 +50,23 @@ class TestSQLiteBookRepositoryAdd:
 
     def test_list_returns_ordered(self, repo):
         b1 = make_book(
-            work=Work(author="Z Author", title="Last", year=2020, genre="Fiction", is_read=True),
+            work=Work(
+                author="Z Author",
+                title="Last",
+                year=2020,
+                genre="Fiction",
+                is_read=True,
+            ),
             isbn="0000000001",
         )
         b2 = make_book(
-            work=Work(author="A Author", title="First", year=2020, genre="Fiction", is_read=True),
+            work=Work(
+                author="A Author",
+                title="First",
+                year=2020,
+                genre="Fiction",
+                is_read=True,
+            ),
             isbn="0000000002",
         )
         work_repo = SQLiteWorkRepository(repo.conn)
@@ -60,10 +78,22 @@ class TestSQLiteBookRepositoryAdd:
         assert result == [b2, b1]
 
     def test_add_audio_book(self, repo):
-        work = Work(author="Brandon Sanderson", title="Words of Radiance", year=2014, genre="Fantasy", is_read=True)
+        work = Work(
+            author="Brandon Sanderson",
+            title="Words of Radiance",
+            year=2014,
+            genre="Fantasy",
+            is_read=True,
+        )
         work_repo = SQLiteWorkRepository(repo.conn)
         work_repo.add(work)
-        book = make_book(work=work, format_type=FormatType.AUDIO, pages=None, duration_minutes=552, isbn="978-1-2345-6789-0")
+        book = make_book(
+            work=work,
+            format_type=FormatType.AUDIO,
+            pages=None,
+            duration_minutes=552,
+            isbn="978-1-2345-6789-0",
+        )
         repo.add(book)
         assert book in repo.list()
 
@@ -83,10 +113,23 @@ class TestSQLiteBookRepositoryNullHandling:
         assert retrieved.narrator is None
 
     def test_narrator_value_round_trips_correctly(self, repo):
-        work = Work(author="Brandon Sanderson", title="Words of Radiance", year=2014, genre="Fantasy", is_read=True)
+        work = Work(
+            author="Brandon Sanderson",
+            title="Words of Radiance",
+            year=2014,
+            genre="Fantasy",
+            is_read=True,
+        )
         work_repo = SQLiteWorkRepository(repo.conn)
         work_repo.add(work)
-        book = make_book(work=work, format_type=FormatType.AUDIO, pages=None, duration_minutes=552, isbn="978-1-2345-6789-0", narrator="Michael Kramer")
+        book = make_book(
+            work=work,
+            format_type=FormatType.AUDIO,
+            pages=None,
+            duration_minutes=552,
+            isbn="978-1-2345-6789-0",
+            narrator="Michael Kramer",
+        )
         repo.add(book)
         retrieved = repo.list()[0]
         assert retrieved.narrator == "Michael Kramer"
@@ -146,7 +189,13 @@ class TestSQLiteBookRepositoryFind:
 
     def test_find_by_author(self, repo):
         b1 = make_book()
-        other_work = Work(author="Robert Jordan", title="The Eye of the World", year=1990, genre="Fantasy", is_read=True)
+        other_work = Work(
+            author="Robert Jordan",
+            title="The Eye of the World",
+            year=1990,
+            genre="Fantasy",
+            is_read=True,
+        )
         b2 = make_book(work=other_work, isbn="978-0-0000-0000-0")
         work_repo = SQLiteWorkRepository(repo.conn)
         work_repo.add(other_work)
