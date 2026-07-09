@@ -1,9 +1,9 @@
-from .work import Work
-from .book import Book, FormatType
-from .travel import Travel
 from .address import Address
-from .timeline import TimelineDiff, calculate_new_timeline
+from .book import Book, FormatType
 from .employment import Employment
+from .timeline import TimelineDiff, calculate_new_timeline
+from .travel import Travel
+from .work import Work
 
 __all__ = [
     "Work",

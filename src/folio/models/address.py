@@ -1,5 +1,5 @@
-import datetime as dt
 import dataclasses
+import datetime as dt
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -44,7 +44,8 @@ class Address:
 
         if self.end is not None and self.end <= self.start:
             raise ValueError(
-                f"end date must be after start date, got: [start={self.start}, end={self.end}]"
+                f"end date must be after start date, "
+                f"got: [start={self.start}, end={self.end}]"
             )
 
     def _identity_fields(self) -> tuple:
@@ -80,7 +81,11 @@ class Address:
     def __str__(self):
         end = self.end or "Present"
         province = f"{self.province}" if self.province else ""
-        return f"{self.street}, {self.city}, {province}, {self.country} {self.postal_code} ({self.start} → {end} [{self.duration}])"
+        return (
+            f"{self.street}, {self.city}, {province}, "
+            f"{self.country} {self.postal_code} "
+            f"({self.start} → {end} [{self.duration}])"
+        )
 
     @property
     def is_open(self) -> bool:
@@ -89,7 +94,7 @@ class Address:
     @property
     def duration(self) -> dt.timedelta:
         """
-        Returns the duratoin of a stay as a dt.timedelta.
+        Returns the duration of a stay as a dt.timedelta.
         If end is None, uses today's date.
         """
         return (self.end or dt.date.today()) - self.start

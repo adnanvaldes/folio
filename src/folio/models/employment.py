@@ -1,5 +1,5 @@
-import datetime as dt
 import dataclasses
+import datetime as dt
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -36,7 +36,8 @@ class Employment:
 
         if self.end is not None and self.end < self.start:
             raise ValueError(
-                f"end date cannot be before start date, got: [start={self.start}, end={self.end}]"
+                f"end date cannot be before start date, "
+                f"got: [start={self.start}, end={self.end}]"
             )
 
     def _identity_fields(self) -> tuple:

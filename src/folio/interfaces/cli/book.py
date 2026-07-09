@@ -1,10 +1,11 @@
-from folio.models.book import Book, FormatType
-from folio.models.work import Work
+from collections.abc import Callable
+
+from folio.models import Book, FormatType, Work
 from folio.services import BookService, WorkService
 from folio.uow import BookSQLiteUoW, WorkSQLiteUoW
 
+from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
-from .interactive import prompt_field, confirm, print_record
 
 
 def _parse_bool(s):
@@ -102,7 +103,7 @@ def setup(parser):
     ap.add_argument("--narrator", default=None)
     ap.add_argument("--is-read", default="no", dest="is_read")
 
-    lp = parser.add_parser("list", help="List all books")
+    parser.add_parser("list", help="List all books")
 
     fp = parser.add_parser("find", help="Search books")
     fp.add_argument("--author", default=None)
@@ -137,7 +138,7 @@ def setup(parser):
     rep.add_argument("--new-narrator", default=None, dest="new_narrator")
 
 
-_HANDLERS = {}
+_HANDLERS: dict[str, Callable] = {}
 
 
 def handler(action):

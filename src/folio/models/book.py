@@ -83,7 +83,8 @@ class Book:
             self.duration_minutes, int
         ):
             raise TypeError(
-                f"duration_minutes must be an int or None, got {type(self.duration_minutes)}"
+                f"duration_minutes must be an int or None, "
+                f"got {type(self.duration_minutes)}"
             )
 
         if self.format_type == FormatType.AUDIO:
@@ -128,4 +129,7 @@ class Book:
 
     def __str__(self):
         isbn = self.isbn or "no ISBN"
-        return f"{self.work.title} by {self.work.author} ({self.format_type.value}, {isbn})"
+        return (
+            f"{self.work.title} by {self.work.author} "
+            f"({self.format_type.value}, {isbn})"
+        )

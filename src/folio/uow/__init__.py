@@ -1,11 +1,11 @@
-from .unit_of_work import UnitOfWork
 from .sqlite.sqlite_uow import (
-    TravelSQLiteUoW,
-    EmploymentSQLiteUoW,
     AddressSQLiteUoW,
-    WorkSQLiteUoW,
     BookSQLiteUoW,
+    EmploymentSQLiteUoW,
+    TravelSQLiteUoW,
+    WorkSQLiteUoW,
 )
+from .unit_of_work import UnitOfWork
 
 __all__ = [
     "UnitOfWork",

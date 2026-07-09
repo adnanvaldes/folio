@@ -1,11 +1,12 @@
 import datetime as dt
+from collections.abc import Callable
 
-from folio.models.address import Address
+from folio.models import Address
 from folio.services import AddressService
 from folio.uow import AddressSQLiteUoW
 
+from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
-from .interactive import prompt_field, confirm, print_record
 
 
 def _interactive_replace(old):
@@ -65,7 +66,7 @@ def setup(parser):
     ap.add_argument("--end", default=None, help="ISO-8601 date (omit if current)")
     ap.add_argument("--province", default=None)
 
-    lp = parser.add_parser("list", help="List all addresses")
+    parser.add_parser("list", help="List all addresses")
 
     fp = parser.add_parser("find", help="Search addresses")
     fp.add_argument("--street", default=None)
@@ -123,7 +124,7 @@ def _make_addr(**kwargs):
     )
 
 
-_HANDLERS = {}
+_HANDLERS: dict[str, Callable] = {}
 
 
 def handler(action):
