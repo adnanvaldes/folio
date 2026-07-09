@@ -1,5 +1,5 @@
-import datetime as dt
 import dataclasses
+import datetime as dt
 from enum import Enum, auto
 
 from .address import Address
@@ -59,12 +59,13 @@ def calculate_new_timeline(
         if kind is _OverlapKind.NONE:
             continue
 
-        if new_address.is_open:
-            if not existing.is_open or existing.start >= new_address.start:
-                raise ValueError(
-                    f"An open address would subsume {existing}. "
-                    f"Close it explicitly first."
-                )
+        if new_address.is_open and (
+            not existing.is_open or existing.start >= new_address.start
+        ):
+            raise ValueError(
+                f"An open address would subsume {existing}. "
+                f"Close it explicitly first."
+            )
 
         if (
             kind is _OverlapKind.TRUNCATE_BACK
@@ -91,7 +92,7 @@ def calculate_new_timeline(
             if extra:
                 parts.append(f"not found in timeline: {extra}")
             raise ValueError(
-                f"Inserting this address requires confirmation: " + ", ".join(parts)
+                "Inserting this address requires confirmation: " + ", ".join(parts)
             )
 
         for existing in needs_confirmation:
@@ -101,6 +102,10 @@ def calculate_new_timeline(
                 to_remove.append(existing)
 
             elif kind is _OverlapKind.SPLIT:
+                if new_address.end is None:
+                    raise ValueError(
+                        "Cannot split timeline with an open-ended address"
+                    )
                 closed_prior = (
                     existing.close(end=new_address.start - dt.timedelta(days=1))
                     if existing.is_open
@@ -115,6 +120,10 @@ def calculate_new_timeline(
                 to_add.extend([closed_prior, continuation])
 
             elif kind is _OverlapKind.TRUNCATE_FRONT:
+                if new_address.end is None:
+                    raise ValueError(
+                        "Cannot truncate front of timeline with an open-ended address"
+                    )
                 to_replace.append(
                     (
                         existing,
