@@ -1,7 +1,5 @@
-
-from __future__ import annotations
-
 import sqlite3
+from typing import List
 
 from folio.models import Work
 from folio.repositories import WorkRepository
@@ -50,7 +48,7 @@ class SQLiteWorkRepository(WorkRepository):
                 parts.append(f"{field} = :{field}")
         return " AND ".join(parts)
 
-    def list(self) -> list[Work]:
+    def list(self) -> List[Work]:
         rows = self.conn.execute("""
             SELECT author, title, year, genre, is_read
             FROM work
@@ -116,7 +114,7 @@ class SQLiteWorkRepository(WorkRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Work not found: {old}")
 
-    def find(self, **filters) -> list[Work]:
+    def find(self, **filters) -> List[Work]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
