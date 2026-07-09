@@ -37,10 +37,12 @@ class WorkService:
             if book_repo is not None:
                 refs = book_repo.find(author=old.author, title=old.title, year=old.year)
                 updated = [dataclasses.replace(b, work=new) for b in refs]
+                for old_book in refs:
+                    book_repo.remove(old_book)
             self.uow.work.replace(old, new)
             if book_repo is not None:
-                for old_book, new_book in zip(refs, updated):
-                    book_repo.replace(old_book, new_book)
+                for new_book in updated:
+                    book_repo.add(new_book)
 
     def update(
         self, work: Work, *, genre: str | None = None, is_read: bool | None = None
