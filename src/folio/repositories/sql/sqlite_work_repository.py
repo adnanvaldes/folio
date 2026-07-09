@@ -1,8 +1,10 @@
-import sqlite3
-from typing import List
 
-from folio.repositories import WorkRepository
+from __future__ import annotations
+
+import sqlite3
+
 from folio.models import Work
+from folio.repositories import WorkRepository
 
 
 class SQLiteWorkRepository(WorkRepository):
@@ -13,8 +15,7 @@ class SQLiteWorkRepository(WorkRepository):
         self._ensure_table()
 
     def _ensure_table(self) -> None:
-        self.conn.execute(
-            """
+        self.conn.execute("""
             CREATE TABLE IF NOT EXISTS work (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 author      TEXT NOT NULL,
@@ -24,8 +25,7 @@ class SQLiteWorkRepository(WorkRepository):
                 is_read     INTEGER NOT NULL CHECK(is_read IN (0,1)),
                 UNIQUE(author, title, year)
             )
-        """
-        )
+        """)
 
     def _map_row(self, row: sqlite3.Row) -> Work:
         data = dict(row)
@@ -51,13 +51,11 @@ class SQLiteWorkRepository(WorkRepository):
         return " AND ".join(parts)
 
     def list(self) -> list[Work]:
-        rows = self.conn.execute(
-            """
+        rows = self.conn.execute("""
             SELECT author, title, year, genre, is_read
             FROM work
             ORDER BY LOWER(author), LOWER(title), year
-        """
-        ).fetchall()
+        """).fetchall()
         return [self._map_row(row) for row in rows]
 
     def add(self, work: Work) -> None:
@@ -118,7 +116,7 @@ class SQLiteWorkRepository(WorkRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Work not found: {old}")
 
-    def find(self, **filters) -> List[Work]:
+    def find(self, **filters) -> list[Work]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -140,7 +138,8 @@ class SQLiteWorkRepository(WorkRepository):
 
         sql = (
             f"SELECT author, title, year, genre, is_read "
-            f"FROM work WHERE {' AND '.join(conditions)} ORDER BY LOWER(author), LOWER(title), year"
+            f"FROM work WHERE {' AND '.join(conditions)} "
+            f"ORDER BY LOWER(author), LOWER(title), year"
         )
         rows = self.conn.execute(sql, params).fetchall()
         return [self._map_row(row) for row in rows]
@@ -151,7 +150,7 @@ class SQLiteWorkRepository(WorkRepository):
         if genre is None and is_read is None:
             raise ValueError("No fields to update")
 
-        updates = {}
+        updates: dict[str, str | int] = {}
         if genre is not None:
             updates["genre"] = genre
         if is_read is not None:

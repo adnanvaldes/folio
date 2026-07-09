@@ -1,16 +1,16 @@
-import dataclasses
-from typing import List
+from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 
+from folio.models import Address, Book, Employment, FormatType, Travel, Work
 from folio.repositories import (
     AddressRepository,
+    BookRepository,
+    EmploymentRepository,
     TravelRepository,
     WorkRepository,
-    EmploymentRepository,
-    BookRepository,
 )
-from folio.models import Address, Travel, Work, Employment, Book, FormatType
 
 
 class FakeAddressRepository(AddressRepository):
@@ -37,7 +37,7 @@ class FakeAddressRepository(AddressRepository):
         self._data.discard(old)
         self._data.add(new)
 
-    def find(self, **filters) -> List[Address]:
+    def find(self, **filters) -> list[Address]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -72,7 +72,7 @@ class FakeTravelRepository(TravelRepository):
         self._data.discard(old)
         self._data.add(new)
 
-    def find(self, **filters) -> List[Travel]:
+    def find(self, **filters) -> list[Travel]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -107,7 +107,7 @@ class FakeWorkRepository(WorkRepository):
         self._data.discard(old)
         self._data.add(new)
 
-    def find(self, **filters) -> List[Work]:
+    def find(self, **filters) -> list[Work]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -157,7 +157,7 @@ class FakeEmploymentRepository(EmploymentRepository):
         self._data.discard(old)
         self._data.add(new)
 
-    def find(self, **filters) -> List[Employment]:
+    def find(self, **filters) -> list[Employment]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -225,7 +225,7 @@ class FakeBookRepository(BookRepository):
         self._data.discard(old)
         self._data.add(new)
 
-    def find(self, **filters) -> List[Book]:
+    def find(self, **filters) -> list[Book]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")

@@ -1,9 +1,11 @@
-import sqlite3
-import datetime as dt
-from typing import List
 
-from folio.repositories import AddressRepository
+from __future__ import annotations
+
+import datetime as dt
+import sqlite3
+
 from folio.models import Address
+from folio.repositories import AddressRepository
 
 
 class SQLiteAddressRepository(AddressRepository):
@@ -14,8 +16,7 @@ class SQLiteAddressRepository(AddressRepository):
         self._ensure_table()
 
     def _ensure_table(self) -> None:
-        self.conn.execute(
-            """
+        self.conn.execute("""
             CREATE TABLE IF NOT EXISTS address (
                 street      TEXT NOT NULL,
                 city        TEXT NOT NULL,
@@ -27,8 +28,7 @@ class SQLiteAddressRepository(AddressRepository):
                 CHECK(end IS NULL OR end > start),
                 UNIQUE(street, city, country, postal_code, province, start, end)
             )
-        """
-        )
+        """)
 
     def _map_row(self, row: sqlite3.Row) -> Address:
         data = dict(row)
@@ -60,13 +60,11 @@ class SQLiteAddressRepository(AddressRepository):
         return " AND ".join(parts)
 
     def list(self) -> list[Address]:
-        rows = self.conn.execute(
-            """
+        rows = self.conn.execute("""
             SELECT start, end, street, city, province, country, postal_code
             FROM address
             ORDER BY start
-        """
-        ).fetchall()
+        """).fetchall()
         return [self._map_row(row) for row in rows]
 
     def add(self, address: Address) -> None:
@@ -133,7 +131,7 @@ class SQLiteAddressRepository(AddressRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Address not found: {old}")
 
-    def find(self, **filters) -> List[Address]:
+    def find(self, **filters) -> list[Address]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -142,7 +140,11 @@ class SQLiteAddressRepository(AddressRepository):
             return self.list()
 
         case_insensitive_fields = {
-            "street", "city", "province", "country", "postal_code"
+            "street",
+            "city",
+            "province",
+            "country",
+            "postal_code",
         }
 
         conditions = []

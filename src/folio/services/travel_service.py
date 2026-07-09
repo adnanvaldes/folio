@@ -1,5 +1,3 @@
-from typing import List
-
 from folio.models import Travel
 from folio.uow import UnitOfWork
 
@@ -20,7 +18,7 @@ class TravelService:
         with self.uow:
             self.uow.travel.replace(old, new)
 
-    def find(self, **filters) -> List[Travel]:
+    def find(self, **filters) -> list[Travel]:
         with self.uow:
             return self.uow.travel.find(**filters)
 

@@ -1,8 +1,10 @@
-import sqlite3
-from typing import List
 
-from folio.repositories import BookRepository
+from __future__ import annotations
+
+import sqlite3
+
 from folio.models import Book, FormatType, Work
+from folio.repositories import BookRepository
 
 
 class SQLiteBookRepository(BookRepository):
@@ -13,8 +15,7 @@ class SQLiteBookRepository(BookRepository):
         self._ensure_table()
 
     def _ensure_table(self) -> None:
-        self.conn.execute(
-            """
+        self.conn.execute("""
             CREATE TABLE IF NOT EXISTS book (
                 work_id          INTEGER NOT NULL REFERENCES work(id),
                 format_type      TEXT NOT NULL,
@@ -24,8 +25,7 @@ class SQLiteBookRepository(BookRepository):
                 narrator         TEXT,
                 UNIQUE(work_id, format_type, isbn)
             )
-        """
-        )
+        """)
 
     def _map_row(self, row: sqlite3.Row) -> Book:
         work = Work(
@@ -85,13 +85,11 @@ class SQLiteBookRepository(BookRepository):
         """
 
     def list(self) -> list[Book]:
-        rows = self.conn.execute(
-            f"""
+        rows = self.conn.execute(f"""
             {self._join_select()}
             ORDER BY LOWER(w.author), LOWER(w.title), w.year,
                      b.format_type, b.isbn
-        """
-        ).fetchall()
+        """).fetchall()
         return [self._map_row(row) for row in rows]
 
     def add(self, book: Book) -> None:
@@ -166,7 +164,7 @@ class SQLiteBookRepository(BookRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Book not found: {old}")
 
-    def find(self, **filters) -> List[Book]:
+    def find(self, **filters) -> list[Book]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")

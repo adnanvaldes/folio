@@ -1,9 +1,11 @@
-import sqlite3
-import datetime as dt
-from typing import List
 
-from folio.repositories import EmploymentRepository
+from __future__ import annotations
+
+import datetime as dt
+import sqlite3
+
 from folio.models import Employment
+from folio.repositories import EmploymentRepository
 
 
 class SQLiteEmploymentRepository(EmploymentRepository):
@@ -14,8 +16,7 @@ class SQLiteEmploymentRepository(EmploymentRepository):
         self._ensure_table()
 
     def _ensure_table(self) -> None:
-        self.conn.execute(
-            """
+        self.conn.execute("""
             CREATE TABLE IF NOT EXISTS employment (
                 company     TEXT NOT NULL,
                 start       TEXT NOT NULL,
@@ -26,8 +27,7 @@ class SQLiteEmploymentRepository(EmploymentRepository):
                 CHECK(end IS NULL OR end >= start),
                 UNIQUE(company, start)
             )
-        """
-        )
+        """)
 
     def _map_row(self, row: sqlite3.Row) -> Employment:
         data = dict(row)
@@ -55,13 +55,11 @@ class SQLiteEmploymentRepository(EmploymentRepository):
         return " AND ".join(parts)
 
     def list(self) -> list[Employment]:
-        rows = self.conn.execute(
-            """
+        rows = self.conn.execute("""
             SELECT company, start, end, supervisor, address, phone
             FROM employment
             ORDER BY start
-        """
-        ).fetchall()
+        """).fetchall()
         return [self._map_row(row) for row in rows]
 
     def add(self, employment: Employment) -> None:
@@ -121,7 +119,7 @@ class SQLiteEmploymentRepository(EmploymentRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Employment not found: {old}")
 
-    def find(self, **filters) -> List[Employment]:
+    def find(self, **filters) -> list[Employment]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
