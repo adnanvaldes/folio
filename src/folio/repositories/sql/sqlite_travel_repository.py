@@ -1,9 +1,11 @@
-import sqlite3
-import datetime as dt
-from typing import List
 
-from folio.repositories import TravelRepository
+from __future__ import annotations
+
+import datetime as dt
+import sqlite3
+
 from folio.models import Travel
+from folio.repositories import TravelRepository
 
 
 class SQLiteTravelRepository(TravelRepository):
@@ -14,19 +16,17 @@ class SQLiteTravelRepository(TravelRepository):
         self._ensure_table()
 
     def _ensure_table(self) -> None:
-        self.conn.execute(
-            """
+        self.conn.execute("""
             CREATE TABLE IF NOT EXISTS travel (
                 origin      TEXT NOT NULL,
                 destination TEXT NOT NULL,
                 date        TEXT NOT NULL,
-                notes       TEXT,
+                note       TEXT,
                 CHECK(length(origin) = 3 AND origin = UPPER(origin)),
                 CHECK(length(destination) = 3 AND destination = UPPER(destination)),
                 UNIQUE(origin, destination, date)
             )
-        """
-        )
+        """)
 
     def _map_row(self, row: sqlite3.Row) -> Travel:
         data = dict(row)
@@ -38,7 +38,7 @@ class SQLiteTravelRepository(TravelRepository):
             "origin": travel.origin,
             "destination": travel.destination,
             "date": travel.date.isoformat(),
-            "notes": travel.notes,
+            "note": travel.note,
         }
 
     def _where_clause(self, params: dict) -> str:
@@ -51,13 +51,11 @@ class SQLiteTravelRepository(TravelRepository):
         return " AND ".join(parts)
 
     def list(self) -> list[Travel]:
-        rows = self.conn.execute(
-            """
-            SELECT origin, destination, date, notes
+        rows = self.conn.execute("""
+            SELECT origin, destination, date, note
             FROM travel
             ORDER BY date
-        """
-        ).fetchall()
+        """).fetchall()
         return [self._map_row(row) for row in rows]
 
     def add(self, travel: Travel) -> None:
@@ -72,8 +70,8 @@ class SQLiteTravelRepository(TravelRepository):
         try:
             self.conn.execute(
                 """
-                INSERT INTO travel (origin, destination, date, notes)
-                VALUES (:origin, :destination, :date, :notes)
+                INSERT INTO travel (origin, destination, date, note)
+                VALUES (:origin, :destination, :date, :note)
             """,
                 params,
             )
@@ -118,7 +116,7 @@ class SQLiteTravelRepository(TravelRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Travel not found: {old}")
 
-    def find(self, **filters) -> List[Travel]:
+    def find(self, **filters) -> list[Travel]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -134,7 +132,7 @@ class SQLiteTravelRepository(TravelRepository):
                 params[field] = value
 
         sql = (
-            f"SELECT origin, destination, date, notes "
+            f"SELECT origin, destination, date, note "
             f"FROM travel WHERE {self._where_clause(params)} ORDER BY date"
         )
         rows = self.conn.execute(sql, params).fetchall()

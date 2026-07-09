@@ -1,5 +1,5 @@
-import datetime as dt
 import dataclasses
+import datetime as dt
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -7,13 +7,13 @@ class Travel:
     origin: str
     destination: str
     date: dt.date
-    notes: str
+    note: str
 
     def __post_init__(self):
         object.__setattr__(self, "origin", self.origin.strip().upper())
         object.__setattr__(self, "destination", self.destination.strip().upper())
 
-        object.__setattr__(self, "notes", self.notes.strip())
+        object.__setattr__(self, "note", self.note.strip())
 
         if not self.origin:
             raise ValueError("Origin is required")
@@ -52,4 +52,4 @@ class Travel:
         return self._ordering_fields() < other._ordering_fields()
 
     def __str__(self):
-        return f"{self.date}: {self.origin} -> {self.destination} ({self.notes})"
+        return f"{self.date}: {self.origin} -> {self.destination} ({self.note})"

@@ -2,11 +2,7 @@ import datetime as dt
 import json
 from enum import Enum
 
-from folio.models.travel import Travel
-from folio.models.address import Address
-from folio.models.employment import Employment
-from folio.models.work import Work
-from folio.models.book import Book
+from folio.models import Address, Book, Employment, Travel, Work
 
 
 def _obj_to_dict(obj):
@@ -33,8 +29,8 @@ def _obj_to_dict(obj):
 def _travel_rows(travels):
     rows = []
     for t in travels:
-        rows.append([str(t.date), t.origin, t.destination, t.notes])
-    return ["Date", "Origin", "Destination", "Notes"], sorted(rows)
+        rows.append([str(t.date), t.origin, t.destination, t.note])
+    return ["Date", "Origin", "Destination", "Note"], sorted(rows)
 
 
 def _address_rows(addresses):

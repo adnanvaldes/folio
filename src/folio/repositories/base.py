@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import datetime as dt
-from typing import List
 from abc import ABC, abstractmethod
 
-from folio.models import Address, TimelineDiff, Travel, Work, Employment, Book
+from folio.models import Address, Book, Employment, TimelineDiff, Travel, Work
 
 
 class AddressRepository(ABC):
@@ -18,7 +19,7 @@ class AddressRepository(ABC):
     }
 
     @abstractmethod
-    def list(self) -> List[Address]:
+    def list(self) -> list[Address]:
         """
         Return full residence timeline in chronological order
         """
@@ -50,7 +51,7 @@ class AddressRepository(ABC):
         ...
 
     @abstractmethod
-    def find(self, **filters) -> List[Address]:
+    def find(self, **filters) -> list[Address]:
         """
         Return all addresses matching the given filters.
         Omitting a field means do not filter on that field.
@@ -73,10 +74,10 @@ class AddressRepository(ABC):
 
 class TravelRepository(ABC):
 
-    VALID_FIELDS = {"origin", "destination", "date", "notes"}
+    VALID_FIELDS = {"origin", "destination", "date", "note"}
 
     @abstractmethod
-    def list(self) -> List[Travel]: ...
+    def list(self) -> list[Travel]: ...
 
     @abstractmethod
     def add(self, travel: Travel) -> None:
@@ -102,7 +103,7 @@ class TravelRepository(ABC):
         ...
 
     @abstractmethod
-    def find(self, **filters) -> List[Travel]:
+    def find(self, **filters) -> list[Travel]:
         """
         Return all travel records matching the given filters.
         Omitting a field means do not filter on that field.
@@ -117,7 +118,7 @@ class WorkRepository(ABC):
     VALID_FIELDS = {"author", "title", "year", "genre", "is_read"}
 
     @abstractmethod
-    def list(self) -> List[Work]: ...
+    def list(self) -> list[Work]: ...
 
     @abstractmethod
     def add(self, work: Work) -> None:
@@ -143,7 +144,7 @@ class WorkRepository(ABC):
         ...
 
     @abstractmethod
-    def find(self, **filters) -> List[Work]:
+    def find(self, **filters) -> list[Work]:
         """
         Return all works matching the given filters.
         Omitting a field means do not filter on that field.
@@ -169,7 +170,7 @@ class EmploymentRepository(ABC):
     VALID_FIELDS = {"company", "start", "end", "supervisor", "address", "phone"}
 
     @abstractmethod
-    def list(self) -> List[Employment]: ...
+    def list(self) -> list[Employment]: ...
 
     @abstractmethod
     def add(self, employment: Employment) -> None:
@@ -195,7 +196,7 @@ class EmploymentRepository(ABC):
         ...
 
     @abstractmethod
-    def find(self, **filters) -> List[Employment]:
+    def find(self, **filters) -> list[Employment]:
         """
         Return all employment records matching the given filters.
         Omitting a field means do not filter on that field.
@@ -238,7 +239,7 @@ class BookRepository(ABC):
     }
 
     @abstractmethod
-    def list(self) -> List[Book]: ...
+    def list(self) -> list[Book]: ...
 
     @abstractmethod
     def add(self, book: Book) -> None:
@@ -264,7 +265,7 @@ class BookRepository(ABC):
         ...
 
     @abstractmethod
-    def find(self, **filters) -> List[Book]:
+    def find(self, **filters) -> list[Book]:
         """
         Return all books matching the given filters.
         Omitting a field means do not filter on that field.

@@ -1,4 +1,5 @@
 import datetime as dt
+
 import pytest
 
 from folio.models import Travel
@@ -17,7 +18,7 @@ def make_travel(**overrides) -> Travel:
         origin="USA",
         destination="CAN",
         date=dt.date(2024, 7, 20),
-        notes="Business trip",
+        note="Business trip",
     )
     return Travel(**{**defaults, **overrides})
 
@@ -45,15 +46,15 @@ class TestTravelServiceIntegration:
         assert service.list() == []
 
     def test_replace_persists_correctly(self, service):
-        original = make_travel(notes="Old notes")
+        original = make_travel(note="Old note")
         service.add(original)
 
-        corrected = make_travel(notes="New notes")
+        corrected = make_travel(note="New note")
         service.replace(original, corrected)
 
         result = service.list()
         assert len(result) == 1
-        assert result[0].notes == "New notes"
+        assert result[0].note == "New note"
 
     def test_find_by_destination(self, service):
         t1 = make_travel(destination="CAN")

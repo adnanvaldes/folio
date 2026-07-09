@@ -1,5 +1,7 @@
 import datetime as dt
+
 import pytest
+
 from folio.models import Travel
 from folio.services import TravelService
 
@@ -9,7 +11,7 @@ def make_travel(**overrides) -> Travel:
         origin="USA",
         destination="CAN",
         date=dt.date(2024, 7, 20),
-        notes="Business trip",
+        note="Business trip",
     )
     return Travel(**{**defaults, **overrides})
 
@@ -64,15 +66,15 @@ class TestRemove:
 class TestReplace:
 
     def test_replace_updates_record(self, service):
-        original = make_travel(notes="Wrong notes")
+        original = make_travel(note="Wrong note")
         service.add(original)
 
-        corrected = make_travel(notes="Corrected notes")
+        corrected = make_travel(note="Corrected note")
         service.replace(original, corrected)
 
         result = service.list()
         assert len(result) == 1
-        assert result[0].notes == "Corrected notes"
+        assert result[0].note == "Corrected note"
 
     def test_replace_nonexistent_raises(self, service):
         original = make_travel()

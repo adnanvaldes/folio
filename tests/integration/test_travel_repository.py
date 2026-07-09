@@ -1,5 +1,6 @@
 import datetime as dt
 import sqlite3
+
 import pytest
 
 from folio.models import Travel
@@ -21,7 +22,7 @@ def make_travel(**overrides) -> Travel:
         origin="USA",
         destination="CAN",
         date=dt.date(2024, 7, 20),
-        notes="Business trip",
+        note="Business trip",
     )
     return Travel(**{**defaults, **overrides})
 
@@ -77,15 +78,15 @@ class TestSQLiteTravelRepositoryRemove:
 class TestSQLiteTravelRepositoryReplace:
 
     def test_replace_updates_record(self, repo):
-        original = make_travel(notes="Wrong")
+        original = make_travel(note="Wrong")
         repo.add(original)
 
-        corrected = make_travel(notes="Corrected")
+        corrected = make_travel(note="Corrected")
         repo.replace(original, corrected)
 
         result = repo.list()
         assert len(result) == 1
-        assert result[0].notes == "Corrected"
+        assert result[0].note == "Corrected"
 
     def test_replace_nonexistent_raises(self, repo):
         original = make_travel()

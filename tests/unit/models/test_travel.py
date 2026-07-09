@@ -1,6 +1,8 @@
-import datetime as dt
-import pytest
 import dataclasses
+import datetime as dt
+
+import pytest
+
 from folio.models import Travel
 
 
@@ -9,7 +11,7 @@ def make_travel(**overrides) -> Travel:
         origin="USA",
         destination="CAN",
         date=dt.date(2024, 7, 20),
-        notes="Business trip",
+        note="Business trip",
     )
     return Travel(**{**defaults, **overrides})
 
@@ -21,7 +23,7 @@ class TestTravelConstruction:
         assert t.origin == "USA"
         assert t.destination == "CAN"
         assert t.date == dt.date(2024, 7, 20)
-        assert t.notes == "Business trip"
+        assert t.note == "Business trip"
 
     def test_origin_uppercased(self):
         t = make_travel(origin="usa")
@@ -39,9 +41,9 @@ class TestTravelConstruction:
         t = make_travel(destination="  CAN  ")
         assert t.destination == "CAN"
 
-    def test_notes_stripped(self):
-        t = make_travel(notes="  Business trip  ")
-        assert t.notes == "Business trip"
+    def test_note_stripped(self):
+        t = make_travel(note="  Business trip  ")
+        assert t.note == "Business trip"
 
     def test_rejects_non_date(self):
         with pytest.raises(TypeError, match="date must be a datetime.date"):
@@ -84,10 +86,10 @@ class TestTravelImmutability:
         with pytest.raises(dataclasses.FrozenInstanceError):
             t.date = dt.date(2025, 1, 1)
 
-    def test_cannot_mutate_notes(self):
+    def test_cannot_mutate_note(self):
         t = make_travel()
         with pytest.raises(dataclasses.FrozenInstanceError):
-            t.notes = "Changed"
+            t.note = "Changed"
 
 
 class TestTravelIdentity:
@@ -117,9 +119,9 @@ class TestTravelIdentity:
         t2 = make_travel(date=dt.date(2024, 7, 21))
         assert t1 != t2
 
-    def test_different_notes_still_equal(self):
-        t1 = make_travel(notes="Trip A")
-        t2 = make_travel(notes="Trip B")
+    def test_different_note_still_equal(self):
+        t1 = make_travel(note="Trip A")
+        t2 = make_travel(note="Trip B")
         assert t1 == t2
         assert hash(t1) == hash(t2)
 

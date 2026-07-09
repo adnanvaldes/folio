@@ -1,11 +1,12 @@
 import datetime as dt
+from collections.abc import Callable
 
-from folio.models.travel import Travel
+from folio.models import Travel
 from folio.services import TravelService
 from folio.uow import TravelSQLiteUoW
 
+from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
-from .interactive import prompt_field, confirm, print_record
 
 
 def _interactive_replace(old):
@@ -15,22 +16,22 @@ def _interactive_replace(old):
             ("origin", old.origin),
             ("destination", old.destination),
             ("date", old.date),
-            ("notes", old.notes),
+            ("note", old.note),
         ]
     )
     print()
     origin = prompt_field("origin", old.origin)
     destination = prompt_field("destination", old.destination)
     date = prompt_field("date", old.date, _parse_date)
-    notes = prompt_field("notes", old.notes)
-    new = Travel(origin=origin, destination=destination, date=date, notes=notes)
+    note = prompt_field("note", old.note)
+    new = Travel(origin=origin, destination=destination, date=date, note=note)
     print()
     print_record(
         [
             ("origin", new.origin),
             ("destination", new.destination),
             ("date", new.date),
-            ("notes", new.notes),
+            ("note", new.note),
         ]
     )
     if not confirm():
@@ -43,15 +44,15 @@ def setup(parser):
     ap.add_argument("origin", help="3-letter origin country code")
     ap.add_argument("destination", help="3-letter destination country code")
     ap.add_argument("date", help="ISO-8601 date (YYYY-MM-DD)")
-    ap.add_argument("--notes", default="", help="Optional notes")
+    ap.add_argument("--note", default="", help="Optional note")
 
-    rp = parser.add_parser("list", help="List all travel records")
+    parser.add_parser("list", help="List all travel records")
 
     fp = parser.add_parser("find", help="Search travel records")
     fp.add_argument("--origin", default=None)
     fp.add_argument("--destination", default=None)
     fp.add_argument("--date", default=None)
-    fp.add_argument("--notes", default=None)
+    fp.add_argument("--note", default=None)
 
     rmp = parser.add_parser("remove", help="Remove a travel record")
     rmp.add_argument("origin")
@@ -65,7 +66,7 @@ def setup(parser):
     rep.add_argument("--new-origin", default=None, dest="new_origin")
     rep.add_argument("--new-destination", default=None, dest="new_destination")
     rep.add_argument("--new-date", default=None, dest="new_date")
-    rep.add_argument("--notes", default=None)
+    rep.add_argument("--new-note", default=None, dest="new_note")
 
 
 def _parse_date(s):
@@ -81,7 +82,7 @@ def _find_one(service, **kwargs):
     return results[0]
 
 
-_HANDLERS = {}
+_HANDLERS: dict[str, Callable] = {}
 
 
 def handler(action):
@@ -100,7 +101,7 @@ def _add(args):
         origin=args.origin,
         destination=args.destination,
         date=_parse_date(args.date),
-        notes=args.notes,
+        note=args.note,
     )
     svc.add(obj)
     print_item(obj, args.json)
@@ -119,7 +120,7 @@ def _find(args):
     uow = TravelSQLiteUoW(args.db_path)
     svc = TravelService(uow)
     filters = {}
-    for key in ("origin", "destination", "date", "notes"):
+    for key in ("origin", "destination", "date", "note"):
         val = getattr(args, key)
         if val is not None:
             filters[key] = _parse_date(val) if key == "date" else val
@@ -156,7 +157,7 @@ def _replace(args):
             getattr(args, f"new_{f}", None) is not None
             for f in ("origin", "destination", "date")
         )
-        or args.notes is not None
+        or args.new_note is not None
     )
     if has_new:
         new = Travel(
@@ -167,7 +168,7 @@ def _replace(args):
                 else args.destination
             ),
             date=_parse_date(args.new_date) if args.new_date is not None else old.date,
-            notes=args.notes if args.notes is not None else old.notes,
+            note=args.new_note if args.new_note is not None else old.note,
         )
     else:
         new = _interactive_replace(old)
