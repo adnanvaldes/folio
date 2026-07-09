@@ -141,16 +141,28 @@ class SQLiteAddressRepository(AddressRepository):
         if not filters:
             return self.list()
 
+        case_insensitive_fields = {
+            "street", "city", "province", "country", "postal_code"
+        }
+
+        conditions = []
         params = {}
         for field, value in filters.items():
-            if field in ("start", "end") and value is not None:
+            if value is None:
+                conditions.append(f"{field} IS NULL")
+            elif field in ("start", "end"):
                 params[field] = value.isoformat()
+                conditions.append(f"{field} = :{field}")
+            elif field in case_insensitive_fields:
+                conditions.append(f"LOWER({field}) = :{field}")
+                params[field] = value.lower().strip()
             else:
+                conditions.append(f"{field} = :{field}")
                 params[field] = value
 
         sql = (
             f"SELECT start, end, street, city, province, country, postal_code "
-            f"FROM address WHERE {self._where_clause(params)} ORDER BY start"
+            f"FROM address WHERE {' AND '.join(conditions)} ORDER BY start"
         )
         rows = self.conn.execute(sql, params).fetchall()
         return [self._map_row(row) for row in rows]
