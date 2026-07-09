@@ -2,10 +2,8 @@ import datetime as dt
 import sqlite3
 import pytest
 
-from folio.models.employment import Employment
-from folio.repositories.sql.sqlite_employment_repository import (
-    SQLiteEmploymentRepository,
-)
+from folio.models import Employment
+from folio.repositories import SQLiteEmploymentRepository
 
 
 @pytest.fixture

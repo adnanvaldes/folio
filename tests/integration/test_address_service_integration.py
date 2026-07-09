@@ -1,7 +1,7 @@
 import datetime as dt
 import pytest
-from folio.models.address import Address
-from folio.services.address_service import AddressService
+from folio.models import Address
+from folio.services import AddressService
 from folio.uow import AddressSQLiteUoW
 
 

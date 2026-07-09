@@ -1,7 +1,7 @@
 import datetime as dt
 import pytest
 import dataclasses
-from folio.models.address import Address
+from folio.models import Address
 
 
 def make_address(**overrides) -> Address:

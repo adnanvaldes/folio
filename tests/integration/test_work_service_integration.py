@@ -1,8 +1,8 @@
 import pytest
 
-from folio.models.work import Work
-from folio.services.work_service import WorkService
-from folio.uow.sqlite.sqlite_uow import WorkSQLiteUoW
+from folio.models import Work
+from folio.services import WorkService
+from folio.uow import WorkSQLiteUoW
 
 
 @pytest.fixture

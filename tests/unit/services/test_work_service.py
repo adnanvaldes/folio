@@ -1,6 +1,6 @@
 import pytest
-from folio.models.work import Work
-from folio.services.work_service import WorkService
+from folio.models import Work
+from folio.services import WorkService
 
 
 def make_work(**overrides) -> Work:

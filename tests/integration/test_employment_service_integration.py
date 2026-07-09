@@ -1,9 +1,9 @@
 import datetime as dt
 import pytest
 
-from folio.models.employment import Employment
-from folio.services.employment_service import EmploymentService
-from folio.uow.sqlite.sqlite_uow import EmploymentSQLiteUoW
+from folio.models import Employment
+from folio.services import EmploymentService
+from folio.uow import EmploymentSQLiteUoW
 
 
 @pytest.fixture

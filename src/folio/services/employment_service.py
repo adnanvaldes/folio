@@ -1,7 +1,7 @@
 import datetime as dt
 from typing import List
 
-from folio.models.employment import Employment
+from folio.models import Employment
 from folio.uow import UnitOfWork
 
 

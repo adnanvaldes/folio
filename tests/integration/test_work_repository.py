@@ -1,8 +1,8 @@
 import sqlite3
 import pytest
 
-from folio.models.work import Work
-from folio.repositories.sql.sqlite_work_repository import SQLiteWorkRepository
+from folio.models import Work
+from folio.repositories import SQLiteWorkRepository
 
 
 @pytest.fixture

@@ -3,18 +3,14 @@ from typing import List
 
 import datetime as dt
 
-from folio.repositories.base import (
+from folio.repositories import (
     AddressRepository,
     TravelRepository,
     WorkRepository,
     EmploymentRepository,
     BookRepository,
 )
-from folio.models.address import Address
-from folio.models.travel import Travel
-from folio.models.work import Work
-from folio.models.employment import Employment
-from folio.models.book import Book, FormatType
+from folio.models import Address, Travel, Work, Employment, Book, FormatType
 
 
 class FakeAddressRepository(AddressRepository):

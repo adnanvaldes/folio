@@ -1,7 +1,7 @@
 import datetime as dt
 import pytest
-from folio.models.employment import Employment
-from folio.services.employment_service import EmploymentService
+from folio.models import Employment
+from folio.services import EmploymentService
 
 
 def make_employment(**overrides) -> Employment:

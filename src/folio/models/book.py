@@ -2,7 +2,7 @@ import dataclasses
 import re
 from enum import Enum
 
-from folio.models.work import Work
+from .work import Work
 
 
 def validate_isbn(isbn: str | None) -> str | None:

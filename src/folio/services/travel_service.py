@@ -1,6 +1,6 @@
 from typing import List
 
-from folio.models.travel import Travel
+from folio.models import Travel
 from folio.uow import UnitOfWork
 
 

@@ -1,6 +1,6 @@
 import pytest
 import dataclasses
-from folio.models.work import Work
+from folio.models import Work
 
 
 def make_work(**overrides) -> Work:

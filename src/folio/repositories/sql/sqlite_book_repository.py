@@ -1,9 +1,8 @@
 import sqlite3
 from typing import List
 
-from folio.repositories.base import BookRepository
-from folio.models.book import Book, FormatType
-from folio.models.work import Work
+from folio.repositories import BookRepository
+from folio.models import Book, FormatType, Work
 
 
 class SQLiteBookRepository(BookRepository):

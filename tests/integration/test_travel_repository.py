@@ -2,8 +2,8 @@ import datetime as dt
 import sqlite3
 import pytest
 
-from folio.models.travel import Travel
-from folio.repositories.sql.sqlite_travel_repository import SQLiteTravelRepository
+from folio.models import Travel
+from folio.repositories import SQLiteTravelRepository
 
 
 @pytest.fixture

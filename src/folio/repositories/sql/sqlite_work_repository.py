@@ -1,8 +1,8 @@
 import sqlite3
 from typing import List
 
-from folio.repositories.base import WorkRepository
-from folio.models.work import Work
+from folio.repositories import WorkRepository
+from folio.models import Work
 
 
 class SQLiteWorkRepository(WorkRepository):

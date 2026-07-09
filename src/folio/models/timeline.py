@@ -2,7 +2,7 @@ import datetime as dt
 import dataclasses
 from enum import Enum, auto
 
-from folio.models.address import Address
+from .address import Address
 
 
 @dataclasses.dataclass(frozen=True)

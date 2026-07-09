@@ -1,6 +1,6 @@
 from typing import List
 
-from folio.models.book import Book
+from folio.models import Book
 from folio.uow import UnitOfWork
 
 

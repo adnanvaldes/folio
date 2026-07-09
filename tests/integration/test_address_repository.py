@@ -1,8 +1,8 @@
 import datetime as dt
 import pytest
 import sqlite3
-from folio.models.address import Address
-from folio.repositories.sql.sqlite_address_repository import SQLiteAddressRepository
+from folio.models import Address
+from folio.repositories import SQLiteAddressRepository
 
 
 @pytest.fixture

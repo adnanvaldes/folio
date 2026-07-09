@@ -1,9 +1,9 @@
 import datetime as dt
 import pytest
 
-from folio.models.travel import Travel
-from folio.services.travel_service import TravelService
-from folio.uow.sqlite.sqlite_uow import TravelSQLiteUoW
+from folio.models import Travel
+from folio.services import TravelService
+from folio.uow import TravelSQLiteUoW
 
 
 @pytest.fixture

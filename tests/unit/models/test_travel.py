@@ -1,7 +1,7 @@
 import datetime as dt
 import pytest
 import dataclasses
-from folio.models.travel import Travel
+from folio.models import Travel
 
 
 def make_travel(**overrides) -> Travel:

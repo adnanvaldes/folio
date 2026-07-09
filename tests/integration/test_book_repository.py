@@ -1,9 +1,7 @@
 import pytest
 import sqlite3
-from folio.models.book import Book, FormatType
-from folio.models.work import Work
-from folio.repositories.sql.sqlite_book_repository import SQLiteBookRepository
-from folio.repositories.sql.sqlite_work_repository import SQLiteWorkRepository
+from folio.models import Book, FormatType, Work
+from folio.repositories import SQLiteBookRepository, SQLiteWorkRepository
 
 
 A_WORK = Work(

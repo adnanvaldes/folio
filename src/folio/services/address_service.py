@@ -1,7 +1,6 @@
 from typing import List
 
-from folio.models.address import Address
-from folio.models.timeline import calculate_new_timeline
+from folio.models import Address, calculate_new_timeline
 from folio.uow import UnitOfWork
 
 

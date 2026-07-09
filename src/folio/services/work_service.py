@@ -1,7 +1,7 @@
 import dataclasses
 from typing import List
 
-from folio.models.work import Work
+from folio.models import Work
 from folio.uow import UnitOfWork
 
 

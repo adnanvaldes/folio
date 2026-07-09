@@ -1,4 +1,10 @@
-from .base import BookRepository
+from .base import (
+    AddressRepository,
+    TravelRepository,
+    WorkRepository,
+    EmploymentRepository,
+    BookRepository,
+)
 
 from .sql.sqlite_travel_repository import SQLiteTravelRepository
 from .sql.sqlite_employment_repository import SQLiteEmploymentRepository
@@ -8,6 +14,10 @@ from .sql.sqlite_book_repository import SQLiteBookRepository
 
 
 __all__ = [
+    "AddressRepository",
+    "TravelRepository",
+    "WorkRepository",
+    "EmploymentRepository",
     "BookRepository",
     "SQLiteTravelRepository",
     "SQLiteEmploymentRepository",

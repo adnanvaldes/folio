@@ -2,7 +2,7 @@ import sqlite3
 import datetime as dt
 from typing import List
 
-from folio.repositories.base import TravelRepository
+from folio.repositories import TravelRepository
 from folio.models import Travel
 
 

@@ -2,12 +2,7 @@ import datetime as dt
 from typing import List
 from abc import ABC, abstractmethod
 
-from folio.models.address import Address
-from folio.models.timeline import TimelineDiff
-from folio.models.travel import Travel
-from folio.models.work import Work
-from folio.models.employment import Employment
-from folio.models.book import Book
+from folio.models import Address, TimelineDiff, Travel, Work, Employment, Book
 
 
 class AddressRepository(ABC):

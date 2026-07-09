@@ -1,7 +1,6 @@
 import pytest
-from folio.models.book import Book, FormatType
-from folio.models.work import Work
-from folio.services.book_service import BookService
+from folio.models import Book, FormatType, Work
+from folio.services import BookService
 
 
 A_WORK = Work(
