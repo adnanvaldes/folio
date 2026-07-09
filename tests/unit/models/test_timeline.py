@@ -299,3 +299,107 @@ class TestSplitCase:
         )
         with pytest.raises(ValueError, match="subsume"):
             calculate_new_timeline([existing], subsuming, replacing=[existing])
+
+
+# ---------------------------------------------------------------------------
+# Gap cases that the original nested-conditionals missed
+# ---------------------------------------------------------------------------
+
+
+class TestClosedIntervalSplit:
+    """Existing closed address fully contains new → SPLIT (two pieces)."""
+
+    def test_closed_split_produces_prior_and_continuation(self):
+        existing = make_address(
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2022, 12, 31),
+        )
+        new = make_address(
+            street="456 Elm St",
+            start=dt.date(2021, 1, 1),
+            end=dt.date(2021, 6, 30),
+        )
+        diff = calculate_new_timeline([existing], new, replacing=[existing])
+
+        assert existing in diff.to_remove
+        assert new in diff.to_add
+        assert len(diff.to_add) == 3
+
+        added = list(diff.to_add)
+        prior = next(
+            a
+            for a in added
+            if a.street == existing.street and a.start == existing.start
+        )
+        continuation = next(
+            a
+            for a in added
+            if a.street == existing.street and a.start == dt.date(2021, 7, 1)
+        )
+        assert prior.end == dt.date(2020, 12, 31)
+        assert prior.start == existing.start
+        assert continuation.end == existing.end
+        assert continuation.start == dt.date(2021, 7, 1)
+
+
+class TestClosedIntervalAbsorb:
+    """New fully contains existing closed address → ABSORB (remove existing)."""
+
+    def test_new_swallows_existing_from_left(self):
+        existing = make_address(
+            start=dt.date(2021, 1, 1),
+            end=dt.date(2021, 6, 30),
+        )
+        new = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 6, 1),
+            end=dt.date(2022, 1, 1),
+        )
+        diff = calculate_new_timeline([existing], new, replacing=[existing])
+
+        assert existing in diff.to_remove
+        assert new in diff.to_add
+        assert len(diff.to_add) == 1
+
+    def test_new_swallows_existing_same_start(self):
+        existing = make_address(
+            start=dt.date(2021, 1, 1),
+            end=dt.date(2021, 6, 30),
+        )
+        new = make_address(
+            street="456 Elm St",
+            start=dt.date(2021, 1, 1),
+            end=dt.date(2022, 1, 1),
+        )
+        diff = calculate_new_timeline([existing], new, replacing=[existing])
+
+        assert existing in diff.to_remove
+        assert new in diff.to_add
+        assert len(diff.to_add) == 1
+
+
+class TestClosedIntervalTruncateFront:
+    """New overlaps front of existing → TRUNCATE_FRONT (shift start forward)."""
+
+    def test_new_overlaps_front_same_start_preserves_tail(self):
+        """
+        When new starts at the same date as existing but ends earlier,
+        the existing's tail must be preserved (not silently removed).
+        """
+        existing = make_address(
+            start=dt.date(2021, 1, 1),
+            end=dt.date(2022, 12, 31),
+        )
+        new = make_address(
+            street="456 Elm St",
+            start=dt.date(2021, 1, 1),
+            end=dt.date(2021, 6, 30),
+        )
+        diff = calculate_new_timeline([existing], new, replacing=[existing])
+
+        assert len(diff.to_replace) == 1
+        old, replaced = diff.to_replace[0]
+        assert old == existing
+        assert replaced.start == dt.date(2021, 7, 1)
+        assert replaced.end == existing.end
+        assert not diff.to_remove
