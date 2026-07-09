@@ -1,11 +1,12 @@
 import datetime as dt
+from collections.abc import Callable
 
-from folio.models.employment import Employment
+from folio.models import Employment
 from folio.services import EmploymentService
 from folio.uow import EmploymentSQLiteUoW
 
+from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
-from .interactive import prompt_field, confirm, print_record
 
 
 def _interactive_replace(old):
@@ -60,7 +61,7 @@ def setup(parser):
     ap.add_argument("--address", required=True)
     ap.add_argument("--phone", required=True)
 
-    lp = parser.add_parser("list", help="List all employment records")
+    parser.add_parser("list", help="List all employment records")
 
     fp = parser.add_parser("find", help="Search employment records")
     fp.add_argument("--company", default=None)
@@ -73,6 +74,16 @@ def setup(parser):
     rmp = parser.add_parser("remove", help="Remove an employment record")
     rmp.add_argument("company")
     rmp.add_argument("start")
+
+    up = parser.add_parser(
+        "update", help="Update end date, supervisor, address, and/or phone"
+    )
+    up.add_argument("company")
+    up.add_argument("start", help="ISO-8601 date")
+    up.add_argument("--end", default=None, help="ISO-8601 date")
+    up.add_argument("--supervisor", default=None)
+    up.add_argument("--address", default=None)
+    up.add_argument("--phone", default=None)
 
     rep = parser.add_parser("replace", help="Replace an employment record")
     rep.add_argument("company")
@@ -98,7 +109,7 @@ def _find_one(service, **kwargs):
     return results[0]
 
 
-_HANDLERS = {}
+_HANDLERS: dict[str, Callable] = {}
 
 
 def handler(action):
@@ -159,13 +170,38 @@ def _remove(args):
     print_item(obj, args.json, label="Removed")
 
 
+@handler("update")
+def _update(args):
+    uow = EmploymentSQLiteUoW(args.db_path)
+    svc = EmploymentService(uow)
+    old = _find_one(svc, company=args.company, start=_parse_date(args.start))
+    kwargs = {}
+    if args.end is not None:
+        kwargs["end"] = _parse_date(args.end)
+    if args.supervisor is not None:
+        kwargs["supervisor"] = args.supervisor
+    if args.address is not None:
+        kwargs["address"] = args.address
+    if args.phone is not None:
+        kwargs["phone"] = args.phone
+    if not kwargs:
+        raise ValueError(
+            "No fields to update"
+            " (use --end, --supervisor, --address, and/or --phone)"
+        )
+    svc.update(old, **kwargs)
+    updated = _find_one(svc, company=args.company, start=_parse_date(args.start))
+    print_item(updated, args.json, label="Updated")
+
+
 @handler("replace")
 def _replace(args):
     uow = EmploymentSQLiteUoW(args.db_path)
     svc = EmploymentService(uow)
     old = _find_one(svc, company=args.company, start=_parse_date(args.start))
     has_new = any(
-        getattr(args, f"new_{f}", None) is not None for f in ("company", "start")
+        getattr(args, f, None) is not None
+        for f in ("new_company", "new_start", "end", "supervisor", "address", "phone")
     )
     if has_new:
         new = Employment(

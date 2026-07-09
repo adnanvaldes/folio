@@ -1,9 +1,11 @@
-from folio.models.work import Work
+from collections.abc import Callable
+
+from folio.models import Work
 from folio.services import WorkService
 from folio.uow import WorkSQLiteUoW
 
+from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
-from .interactive import prompt_field, confirm, print_record
 
 
 def _parse_bool(s):
@@ -56,7 +58,7 @@ def setup(parser):
     ap.add_argument("--genre", default=None)
     ap.add_argument("--is-read", default="no", dest="is_read")
 
-    lp = parser.add_parser("list", help="List all works")
+    parser.add_parser("list", help="List all works")
 
     fp = parser.add_parser("find", help="Search works")
     fp.add_argument("--author", default=None)
@@ -75,6 +77,13 @@ def setup(parser):
         default=False,
         help="Remove associated books too",
     )
+
+    up = parser.add_parser("update", help="Update genre and/or read status")
+    up.add_argument("author")
+    up.add_argument("title")
+    up.add_argument("--year", type=int, default=None)
+    up.add_argument("--genre", default=None)
+    up.add_argument("--is-read", default=None, dest="is_read")
 
     rep = parser.add_parser(
         "replace", help="Replace a work (change genre/is_read or identity)"
@@ -98,7 +107,7 @@ def _find_one(service, **kwargs):
     return results[0]
 
 
-_HANDLERS = {}
+_HANDLERS: dict[str, Callable] = {}
 
 
 def handler(action):
@@ -156,6 +165,23 @@ def _remove(args):
     obj = _find_one(svc, author=args.author, title=args.title, year=args.year)
     svc.remove(obj, force=args.force)
     print_item(obj, args.json, label="Removed")
+
+
+@handler("update")
+def _update(args):
+    uow = WorkSQLiteUoW(args.db_path)
+    svc = WorkService(uow)
+    old = _find_one(svc, author=args.author, title=args.title, year=args.year)
+    kwargs = {}
+    if args.genre is not None:
+        kwargs["genre"] = args.genre
+    if args.is_read is not None:
+        kwargs["is_read"] = _parse_bool(args.is_read)
+    if not kwargs:
+        raise ValueError("No fields to update (use --genre and/or --is-read)")
+    svc.update(old, **kwargs)
+    updated = _find_one(svc, author=args.author, title=args.title, year=args.year)
+    print_item(updated, args.json, label="Updated")
 
 
 @handler("replace")
