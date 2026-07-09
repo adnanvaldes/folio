@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import Optional, List
+from typing import List
 from abc import ABC, abstractmethod
 
 from folio.models.address import Address
