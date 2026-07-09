@@ -1,7 +1,7 @@
 import pytest
+
 from folio.models import Book, FormatType, Work
 from folio.services import BookService
-
 
 A_WORK = Work(
     author="Brandon Sanderson",

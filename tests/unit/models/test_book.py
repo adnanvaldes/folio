@@ -1,7 +1,8 @@
 import dataclasses
-import pytest
-from folio.models import Book, FormatType, Work
 
+import pytest
+
+from folio.models import Book, FormatType, Work
 
 A_WORK = Work(
     author="Brandon Sanderson",

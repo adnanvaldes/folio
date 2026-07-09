@@ -1,5 +1,7 @@
-import pytest
 import dataclasses
+
+import pytest
+
 from folio.models import Work
 
 

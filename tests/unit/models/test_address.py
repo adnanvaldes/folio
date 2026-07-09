@@ -1,6 +1,8 @@
-import datetime as dt
-import pytest
 import dataclasses
+import datetime as dt
+
+import pytest
+
 from folio.models import Address
 
 
@@ -163,7 +165,7 @@ class TestAddressIdentity:
 
     def test_not_equal_to_none(self):
         addr = make_address()
-        assert addr != None
+        assert addr is not None
 
     def test_usable_as_dict_key(self):
         addr = make_address()

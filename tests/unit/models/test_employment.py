@@ -1,6 +1,8 @@
-import datetime as dt
-import pytest
 import dataclasses
+import datetime as dt
+
+import pytest
+
 from folio.models import Employment
 
 

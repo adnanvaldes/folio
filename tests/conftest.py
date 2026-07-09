@@ -6,10 +6,10 @@ import pytest
 from folio.uow import UnitOfWork
 from tests.fake_repositories import (
     FakeAddressRepository,
+    FakeBookRepository,
+    FakeEmploymentRepository,
     FakeTravelRepository,
     FakeWorkRepository,
-    FakeEmploymentRepository,
-    FakeBookRepository,
 )
 
 

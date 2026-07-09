@@ -1,8 +1,8 @@
 import pytest
+
 from folio.models import Book, FormatType, Work
 from folio.services import BookService
 from folio.uow import BookSQLiteUoW
-
 
 A_WORK = Work(
     author="Brandon Sanderson",

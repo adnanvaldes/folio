@@ -1,8 +1,9 @@
-import pytest
 import sqlite3
+
+import pytest
+
 from folio.models import Book, FormatType, Work
 from folio.repositories import SQLiteBookRepository, SQLiteWorkRepository
-
 
 A_WORK = Work(
     author="Brandon Sanderson",

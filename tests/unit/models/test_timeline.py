@@ -1,8 +1,9 @@
-import datetime as dt
-import pytest
 import dataclasses
-from folio.models import Address, calculate_new_timeline, TimelineDiff
+import datetime as dt
 
+import pytest
+
+from folio.models import Address, TimelineDiff, calculate_new_timeline
 
 # ---------------------------------------------------------------------------
 # Helper — same pattern as test_address.py
