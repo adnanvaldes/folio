@@ -4,16 +4,56 @@ For some years I have been tracking data on a SQLite database, often manually wr
 
 The setup worked fine (in fact, it still does) because most of the values didn't change often. Book information was the most likely to change, and in any case I haven't been very good at keeping track of this (so far I use my bullet journal).
 
-This project's *raison d'etre* is primarily to practice implementing software development patterns and architectures, based largely on the Gang of Four [design patterns](https://refactoring.guru/design-patterns) and the architectural principles described in [Architecture Patterns with Python](https://https://www.cosmicpython.com/). More generally, it is an attempt to:
+This project's *raison d'etre* is primarily to practice implementing software development patterns and architectures, based largely on the Gang of Four [design patterns](https://refactoring.guru/design-patterns) and the architectural principles described in [Architecture Patterns with Python](https://www.cosmicpython.com/). More generally, it is an attempt to:
 
 1) apply SOLID principles
 2) use GoF design patterns
 3) practice architecture design
 4) create a usable CLI app for myself
+5) learn how to use LLMs and agents
 
 The expected result is an over-engineered but usable and extensible CLI app to do what I could do before with a simple script.
 
+## Installation
+
+### One-liner (requires [uv](https://docs.astral.sh/uv/))
+
+```bash
+uv tool install git+https://github.com/adnanvaldes/folio.git
+```
+
+### From source
+
+Requires Python 3.13+ and [uv](https://docs.astral.sh/uv/):
+
+```bash
+git clone https://github.com/adnanvaldes/folio.git
+cd folio
+uv sync
+source .venv/bin/activate
+```
+
+This installs the `folio` command and all dev dependencies into a local virtual environment.
+
+### Running directly (without install)
+
+```bash
+uv run folio <domain> <action> [args]
+```
+
 ## CLI usage
+
+```
+folio [--config <path>] [--db <path>] [--json] <domain> <action> [args]
+```
+
+Global flags:
+
+| Flag | Description |
+| ---- | ----------- |
+| `--config <path>` | Path to a YAML config file (overrides XDG default) |
+| `--db <path>` | Path to the SQLite database file (overrides XDG default) |
+| `--json` | Output results as JSON instead of a formatted table |
 
 ```
 folio <domain> <action> [args]
@@ -23,7 +63,7 @@ Domains: `travel`, `work`, `book`, `employment`, `address`.
 
 Actions: `add`, `list`, `find`, `remove`, `replace`.
 
-**Convention:** Identity fields are positional args; optional fields use `--flags`. `find` uses optional flags for all filters.
+Convention: Identity fields are positional args; optional fields use `--flags`. `find` uses optional flags for all filters.
 
 ```
 folio travel add MEX USA 2024-01-01 --notes "vacation"
