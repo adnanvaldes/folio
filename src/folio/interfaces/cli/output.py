@@ -1,0 +1,154 @@
+import datetime as dt
+import json
+from enum import Enum
+
+from folio.models.travel import Travel
+from folio.models.address import Address
+from folio.models.employment import Employment
+from folio.models.work import Work
+from folio.models.book import Book
+
+
+def _obj_to_dict(obj):
+    if isinstance(obj, dt.date):
+        return obj.isoformat()
+    if isinstance(obj, Enum):
+        return obj.value
+    if hasattr(obj, "__dataclass_fields__"):
+        d = {}
+        for field in obj.__dataclass_fields__:
+            val = getattr(obj, field)
+            if isinstance(val, dt.date):
+                d[field] = val.isoformat()
+            elif isinstance(val, Enum):
+                d[field] = val.value
+            elif hasattr(val, "__dataclass_fields__"):
+                d[field] = _obj_to_dict(val)
+            else:
+                d[field] = val
+        return d
+    return str(obj)
+
+
+def _travel_rows(travels):
+    rows = []
+    for t in travels:
+        rows.append([str(t.date), t.origin, t.destination, t.notes])
+    return ["Date", "Origin", "Destination", "Notes"], sorted(rows)
+
+
+def _address_rows(addresses):
+    rows = []
+    for a in addresses:
+        rows.append(
+            [
+                a.street,
+                a.city,
+                a.province or "",
+                a.country,
+                a.postal_code,
+                str(a.start),
+                str(a.end) if a.end else "Present",
+            ]
+        )
+    return [
+        "Street",
+        "City",
+        "Province",
+        "Country",
+        "Postal Code",
+        "Start",
+        "End",
+    ], sorted(rows)
+
+
+def _employment_rows(employments):
+    rows = []
+    for e in employments:
+        rows.append(
+            [
+                e.company,
+                str(e.start),
+                str(e.end) if e.end else "Present",
+                e.supervisor,
+                e.address,
+                e.phone,
+            ]
+        )
+    return ["Company", "Start", "End", "Supervisor", "Address", "Phone"], sorted(rows)
+
+
+def _work_rows(works):
+    rows = []
+    for w in works:
+        rows.append(
+            [
+                w.author,
+                w.title,
+                str(w.year) if w.year is not None else "",
+                w.genre or "",
+                "Yes" if w.is_read else "No",
+            ]
+        )
+    return ["Author", "Title", "Year", "Genre", "Read"], sorted(rows)
+
+
+def _book_rows(books):
+    rows = []
+    for b in books:
+        length = str(b.length) if b.length is not None else ""
+        rows.append(
+            [
+                b.work.author,
+                b.work.title,
+                str(b.work.year) if b.work.year is not None else "",
+                b.format_type.value,
+                b.isbn or "",
+                length,
+                b.narrator or "",
+            ]
+        )
+    return ["Author", "Title", "Year", "Format", "ISBN", "Length", "Narrator"], sorted(
+        rows
+    )
+
+
+_ROUTER = {
+    Travel: _travel_rows,
+    Address: _address_rows,
+    Employment: _employment_rows,
+    Work: _work_rows,
+    Book: _book_rows,
+}
+
+
+def print_list(items, json_output):
+    if not items:
+        return
+    cls = type(items[0])
+    if json_output:
+        print(json.dumps([_obj_to_dict(i) for i in items], indent=2, default=str))
+        return
+    headers, rows = _ROUTER[cls](items)
+    _print_table(headers, rows)
+
+
+def print_item(item, json_output, label="Added"):
+    if json_output:
+        print(json.dumps(_obj_to_dict(item), indent=2, default=str))
+    else:
+        print(f"{label}: {item}")
+
+
+def _print_table(headers, rows):
+    col_count = len(headers)
+    widths = [len(h) for h in headers]
+    for row in rows:
+        for i in range(col_count):
+            widths[i] = max(widths[i], len(str(row[i])))
+    sep = "  "
+    line = sep.join(h.ljust(w) for h, w in zip(headers, widths))
+    print(line)
+    print("-" * len(line))
+    for row in rows:
+        print(sep.join(str(c).ljust(w) for c, w in zip(row, widths)))
