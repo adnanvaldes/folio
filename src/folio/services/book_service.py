@@ -2,20 +2,21 @@ from typing import List
 
 from folio.models.book import Book
 from folio.uow import UnitOfWork
-from .work_service import WorkService
 
 
 class BookService:
-    def __init__(self, uow: UnitOfWork, work_service: WorkService):
+    def __init__(self, uow: UnitOfWork):
         self.uow = uow
-        self.work_service = work_service
 
     def add(self, book: Book) -> None:
-        try:
-            self.work_service.add(book.work)
-        except ValueError:
-            pass
         with self.uow:
+            work_repo = getattr(self.uow, "work", None)
+            if work_repo is not None and not work_repo.find(
+                author=book.work.author,
+                title=book.work.title,
+                year=book.work.year,
+            ):
+                work_repo.add(book.work)
             self.uow.book.add(book)
 
     def remove(self, book: Book) -> None:

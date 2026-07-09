@@ -57,4 +57,5 @@ class BookSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
         self.book = repo.SQLiteBookRepository(self.conn)
+        self.work = repo.SQLiteWorkRepository(self.conn)
         return self
