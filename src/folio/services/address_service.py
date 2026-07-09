@@ -1,3 +1,5 @@
+from typing import List
+
 from folio.models import Address, calculate_new_timeline
 from folio.uow import UnitOfWork
 
@@ -9,7 +11,7 @@ class AddressService:
     def add(
         self,
         address: Address,
-        replacing: list[Address] | None = None,
+        replacing: List[Address] | None = None,
     ) -> None:
         """
         Add a new address to the timeline.
@@ -88,7 +90,7 @@ class AddressService:
 
             self.uow.addresses.replace(old, new)
 
-    def find(self, **filters) -> list[Address]:
+    def find(self, **filters) -> List[Address]:
         """
         Query the timeline. Omit a field to not filter on it.
         Pass None for a field to match records where that field is NULL.
@@ -96,7 +98,7 @@ class AddressService:
         with self.uow:
             return self.uow.addresses.find(**filters)
 
-    def list(self) -> list[Address]:
+    def list(self) -> List[Address]:
         """Return the full timeline in chronological order."""
         with self.uow:
             return self.uow.addresses.list()

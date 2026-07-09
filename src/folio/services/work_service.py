@@ -1,3 +1,5 @@
+from typing import List
+
 from folio.models import Work
 from folio.uow import UnitOfWork
 
@@ -39,10 +41,10 @@ class WorkService:
         with self.uow:
             self.uow.work.update(work, genre=genre, is_read=is_read)
 
-    def find(self, **filters) -> list[Work]:
+    def find(self, **filters) -> List[Work]:
         with self.uow:
             return self.uow.work.find(**filters)
 
-    def list(self) -> list[Work]:
+    def list(self) -> List[Work]:
         with self.uow:
             return self.uow.work.list()

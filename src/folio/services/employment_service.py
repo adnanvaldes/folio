@@ -1,4 +1,5 @@
 import datetime as dt
+from typing import List
 
 from folio.models import Employment
 from folio.uow import UnitOfWork
@@ -34,10 +35,10 @@ class EmploymentService:
                 employment, end=end, supervisor=supervisor, address=address, phone=phone
             )
 
-    def find(self, **filters) -> list[Employment]:
+    def find(self, **filters) -> List[Employment]:
         with self.uow:
             return self.uow.employment.find(**filters)
 
-    def list(self) -> list[Employment]:
+    def list(self) -> List[Employment]:
         with self.uow:
             return self.uow.employment.list()
