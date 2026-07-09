@@ -13,6 +13,37 @@ This project's *raison d'etre* is primarily to practice implementing software de
 
 The expected result is an over-engineered but usable and extensible CLI app to do what I could do before with a simple script.
 
+## CLI usage
+
+```
+folio <domain> <action> [args]
+```
+
+Domains: `travel`, `work`, `book`, `employment`, `address`.
+
+Actions: `add`, `list`, `find`, `remove`, `replace`.
+
+**Convention:** Identity fields are positional args; optional fields use `--flags`. `find` uses optional flags for all filters.
+
+```
+folio travel add MEX USA 2024-01-01 --notes "vacation"
+folio work add "Tolkien" "The Hobbit" --year 1937 --genre fantasy
+folio book add "Tolkien" "The Hobbit" --format print --isbn 9780547928227
+folio address add "123 Main" Springfield US 12345 2020-01-01 --province IL
+folio employment add "Acme" 2023-01-01 --supervisor "Boss" --address "123 Main" --phone "555-0100"
+
+folio travel find --origin MEX
+folio work find --author "Tolkien"
+
+folio travel replace MEX USA 2024-01-01 --new-destination CAN
+folio work replace "Tolkien" "The Hobbit" --year 1937 --genre "Fantasy" --is-read yes
+
+folio travel list
+folio book list --json
+```
+
+Replace falls back to an interactive prompt when no change flags are given.
+
 ## On models
 
 ### Work and Book
