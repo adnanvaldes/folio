@@ -1,14 +1,16 @@
 import sqlite3
 
-from ..unit_of_work import UnitOfWork
-
 import folio.repositories as repo
+
+from folio.interfaces.cli.config import _default_db_path
+
+from ..unit_of_work import UnitOfWork
 
 
 class SQLiteUnitOfWork(UnitOfWork):
 
-    def __init__(self, db_path="folio.db"):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        self.db_path = db_path or _default_db_path()
 
     def _start(self):
         self.conn = sqlite3.connect(self.db_path)
@@ -50,6 +52,7 @@ class WorkSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
         self.work = repo.SQLiteWorkRepository(self.conn)
+        self.book = repo.SQLiteBookRepository(self.conn)
         return self
 
 

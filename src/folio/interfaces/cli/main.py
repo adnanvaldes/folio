@@ -2,9 +2,8 @@ import argparse
 import sys
 
 from ... import __version__
+from . import address, book, employment, travel, work
 from . import config as cfg
-from . import travel, address, employment, work, book
-
 
 DOMAINS = {
     "travel": travel,
@@ -20,6 +19,7 @@ def _build_parser():
         prog="folio",
         description="Personal record keeper",
     )
+    parser.add_argument("--version", action="version", version=f"folio {__version__}")
     parser.add_argument("--config", help="Config file path")
     parser.add_argument("--db", help="Database path (overrides config)")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
@@ -34,10 +34,6 @@ def _build_parser():
 
 
 def main():
-    if "--version" in sys.argv[1:]:
-        print(f"folio {__version__}")
-        sys.exit(0)
-
     parser = _build_parser()
     argv = [a for a in sys.argv[1:] if a]
     has_json = "--json" in argv
