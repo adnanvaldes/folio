@@ -1,6 +1,7 @@
 import argparse
 import sys
 
+from .. import __version__
 from . import config as cfg
 from . import travel, address, employment, work, book
 
@@ -33,6 +34,10 @@ def _build_parser():
 
 
 def main():
+    if "--version" in sys.argv[1:]:
+        print(f"folio {__version__}")
+        sys.exit(0)
+
     parser = _build_parser()
     argv = [a for a in sys.argv[1:] if a]
     has_json = "--json" in argv
