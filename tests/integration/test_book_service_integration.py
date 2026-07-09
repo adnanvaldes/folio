@@ -2,8 +2,7 @@ import pytest
 from folio.models.book import Book, FormatType
 from folio.models.work import Work
 from folio.services.book_service import BookService
-from folio.services.work_service import WorkService
-from folio.uow import BookSQLiteUoW, WorkSQLiteUoW
+from folio.uow import BookSQLiteUoW
 
 
 A_WORK = Work(
@@ -17,9 +16,7 @@ A_WORK = Work(
 
 @pytest.fixture
 def service(fake_db):
-    work_uow = WorkSQLiteUoW(fake_db)
-    book_uow = BookSQLiteUoW(fake_db)
-    return BookService(book_uow, WorkService(work_uow))
+    return BookService(BookSQLiteUoW(fake_db))
 
 
 def make_book(**overrides) -> Book:

@@ -2,7 +2,6 @@ import pytest
 from folio.models.book import Book, FormatType
 from folio.models.work import Work
 from folio.services.book_service import BookService
-from folio.services.work_service import WorkService
 
 
 A_WORK = Work(
@@ -26,7 +25,7 @@ def make_book(**overrides) -> Book:
 
 @pytest.fixture
 def service(fake_uow):
-    return BookService(fake_uow, WorkService(fake_uow))
+    return BookService(fake_uow)
 
 
 class TestAdd:
@@ -46,7 +45,7 @@ class TestAdd:
         with pytest.raises(ValueError, match="already exists"):
             service.add(book)
 
-    def test_add_auto_creates_work(self, service):
+    def test_add_auto_creates_work(self, service, fake_uow):
         new_work = Work(
             author="New Author",
             title="New Book",
@@ -56,13 +55,13 @@ class TestAdd:
         )
         book = make_book(work=new_work)
         service.add(book)
-        assert new_work in service.work_service.list()
+        assert new_work in fake_uow.work.list()
 
-    def test_add_reuses_existing_work(self, service):
-        service.work_service.add(A_WORK)
+    def test_add_reuses_existing_work(self, service, fake_uow):
+        fake_uow.work.add(A_WORK)
         book = make_book()
         service.add(book)
-        assert len(service.work_service.list()) == 1
+        assert len(fake_uow.work.list()) == 1
 
 
 class TestRemove:
