@@ -95,7 +95,7 @@ Each domain module in `interfaces/cli/` has:
 Identity fields are positional args; optional fields use `--flags`. `find` uses optional flags for all filters.
 
 Handler built-in helpers:
-- `_find_one(service, **kwargs)` — fetches exactly one record or raises ValueError
+- `_find_one(service, **kwargs)` — fetches exactly one record or raises ValueError (all domains including address)
 - `_interactive_replace(old)` — fallback when no `--new-*` flags provided
 - `_parse_date(s)` — `dt.date.fromisoformat()`
 
@@ -114,7 +114,7 @@ All services wrap operations in `with self.uow:` context manager:
 
 ---
 
-## Tests (433 total, ~0.3s runtime)
+## Tests (436 total, ~0.3s runtime)
 
 - **Unit tests** (`tests/unit/`): use `fake_uow` fixture (`FakeUnitOfWork` with in-memory fake repos)
 - **Integration tests** (`tests/integration/`): use `fake_db` fixture (temp SQLite file, cleaned on teardown)
@@ -139,27 +139,51 @@ All services wrap operations in `with self.uow:` context manager:
 ## Current Git State
 
 ```
-65fe2ac (HEAD -> main) chore: bump version to 1.0.1
-4343e1e refactor(services): use typing.List for consistency with repositories
-af04f01 refactor: use typing.List to avoid list() method name shadowing
-66148c6 chore(deps): update uv.lock
-270b411 docs: update README with installation instructions and CI workflow
-86da4d1 chore(tests): update imports and formatting
-ccdf7bd refactor: consolidate imports via __init__.py re-exports, add type annotations
-d0a62eb fix(timeline): validate open-ended addresses in split/truncate operations
-a0db51e feat(cli): add update action for employment and work
-e45f5d3 feat: add XDG config dir, --version flag, bump version to 1.0.0
+4d46139 (HEAD -> main) test(book): add ISBN-less exact-duplicate integration test
+5597fb6 refactor(repos): extract shared _work_identity_where helper
+1772ff6 fix(cli): use find-then-mutate for address remove/replace
+32e84f5 fix(timeline): narrow open-address overlap guard to ABSORB only
+7ccd741 fix(models): strip whitespace in Work.__post_init__
+e9c88f5 docs: add comprehensive AGENTS.md for project context
+6f54432 chore: bump version to 1.0.1
+5a47e42 refactor(services): use typing.List for consistency with repositories
+cbdc0d4 refactor: use typing.List to avoid list() method name shadowing
+bcfd2fd chore(deps): update uv.lock
 ```
 
-No tags. Branch `main`, up to date with `origin/main`.
+No tags. Branch `main` after history rewrite.
 
 ---
 
-## Future Goals / Possible Extensions
+## Next Steps / Roadmap
 
-- TUI (Textual) or web interface as additional `interfaces/` adapters
-- More output formats (CSV, YAML)
-- Import/export functionality
-- Statistics/reports (e.g., "countries visited per year")
-- Additional filter operators (before, after, contains)
-- Configurable ordering per domain
+### Immediate
+- **Release v1.0.1** — `git tag v1.0.1 && git push origin v1.0.1 && gh release create v1.0.1 --generate-notes`
+- **Add release workflow** — `.github/workflows/release.yml` to auto-build and publish on tag push
+
+### Features
+- **Additional filter operators** — `find` is exact-match only; add `--before`, `--after`, `--contains` for real-world search
+- **Import/export** — CSV and/or YAML import/export for bulk loading and migration
+- **Stats command** — e.g., `folio travel stats` with "countries visited per year", most-traveled routes, etc.
+- **Configurable ordering** — `--sort-by` flag or config option per domain
+
+### Architecture
+- **TUI with Textual** — second `interfaces/` adapter, reusing existing services/repos unchanged
+- **Web interface** — FastAPI or similar as another adapter
+
+### Polish
+- **Remove `# type: ignore[attr-defined]`** — ~32 annotations in UoW layer from dynamic repo attributes; refactor with `__getattr__` or generic parameter
+- **Specific exception types** — replace bare `ValueError` with domain-specific exceptions
+- **Better test coverage** — add CLI handler tests, edge cases in timeline/ISBN validation
+
+---
+
+## Recent Fixes
+
+| Fix | Files | Description |
+|---|---|---|
+| **Work field normalization** | `models/work.py` | `__post_init__` now strips author/title via `object.__setattr__`, matching Address/Employment/Travel. Prevents SQL lookup failures on whitespace-padded inputs. |
+| **Address CLI find-then-mutate** | `interfaces/cli/address.py` | `_remove` and `_replace` now use `_find_one()` to fetch the DB-hydrated record first, preventing race conditions between domain equality (case-insensitive) and SQLite DELETE/UPDATE (exact-case). |
+| **Open-address overlap guard** | `models/timeline.py` | Narrowed from broad `not existing.is_open or existing.start >= new.start` to `kind is _OverlapKind.ABSORB`. TRUNCATE_BACK now falls through to `needs_confirmation` as intended. |
+| **Identity logic consolidation** | `repositories/sql/sqlite_work_repository.py` + `sqlite_book_repository.py` | Extracted `_work_identity_where()` helper; both `SQLiteWorkRepository.find()` and `SQLiteBookRepository._lookup_work_id()` use it. |
+| **main() exception widening** | `interfaces/cli/main.py` | Now catches `TypeError` alongside `ValueError` for friendly error output.
