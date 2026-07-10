@@ -59,12 +59,10 @@ def calculate_new_timeline(
         if kind is _OverlapKind.NONE:
             continue
 
-        if new_address.is_open and (
-            not existing.is_open or existing.start >= new_address.start
-        ):
+        if new_address.is_open and kind is _OverlapKind.ABSORB:
             raise ValueError(
-                f"An open address would subsume {existing}. "
-                f"Close it explicitly first."
+                f"An open address would fully absorb {existing}. "
+                f"Close/remove it explicitly first."
             )
 
         if (

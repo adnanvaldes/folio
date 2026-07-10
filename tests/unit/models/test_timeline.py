@@ -265,22 +265,28 @@ class TestSplitCase:
         with pytest.raises(ValueError, match="requires confirmation"):
             calculate_new_timeline([existing], temporary)
 
-    def test_open_address_subsuming_existing_raises(self):
+    def test_open_address_truncates_closed(self):
         """
-        An open address that would subsume an existing closed one
-        should raise even with confirmation.
+        An open address overlapping the end of a closed one
+        should truncate the closed record (TRUNCATE_BACK),
+        not raise. The user confirms with replacing=.
         """
         existing = make_address(
             start=dt.date(2020, 1, 1),
             end=dt.date(2022, 12, 31),
         )
-        subsuming = make_address(
+        new = make_address(
             street="456 Elm St",
             start=dt.date(2021, 1, 1),
             end=None,
         )
-        with pytest.raises(ValueError, match="subsume"):
-            calculate_new_timeline([existing], subsuming, replacing=[existing])
+        diff = calculate_new_timeline([existing], new, replacing=[existing])
+        assert new in diff.to_add
+        assert len(diff.to_replace) == 1
+        old, replaced = diff.to_replace[0]
+        assert old == existing
+        assert replaced.end == dt.date(2020, 12, 31)
+        assert replaced.street == existing.street
 
     def test_open_address_subsuming_from_left_raises(self):
         """
@@ -297,7 +303,7 @@ class TestSplitCase:
             start=dt.date(2019, 1, 1),
             end=None,
         )
-        with pytest.raises(ValueError, match="subsume"):
+        with pytest.raises(ValueError, match="fully absorb"):
             calculate_new_timeline([existing], subsuming, replacing=[existing])
 
 
