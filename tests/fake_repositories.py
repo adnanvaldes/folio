@@ -41,9 +41,17 @@ class FakeAddressRepository(AddressRepository):
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
 
+        text_fields = {"street", "city", "province", "country", "postal_code"}
         results = set(self._data)
         for field, value in filters.items():
-            results = {a for a in results if getattr(a, field) == value}
+            if field in text_fields and value is not None:
+                results = {
+                    a
+                    for a in results
+                    if getattr(a, field).lower() == value.lower()
+                }
+            else:
+                results = {a for a in results if getattr(a, field) == value}
         return sorted(results)
 
 
@@ -111,9 +119,17 @@ class FakeWorkRepository(WorkRepository):
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
 
+        text_fields = {"author", "title"}
         results = set(self._data)
         for field, value in filters.items():
-            results = {w for w in results if getattr(w, field) == value}
+            if field in text_fields and value is not None:
+                results = {
+                    w
+                    for w in results
+                    if getattr(w, field).lower() == value.lower()
+                }
+            else:
+                results = {w for w in results if getattr(w, field) == value}
         return sorted(results)
 
     def update(
