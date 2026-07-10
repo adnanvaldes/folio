@@ -11,7 +11,7 @@ folio [--config <path>] [--db <path>] [--json] <domain> <action> [args]
 Domains: `travel`, `address`, `education`, `employment`, `work`, `book`
 Actions: `add`, `list`, `find`, `remove`, `replace` (+ `update` for work, employment)
 
-**Version:** 1.1.0 | **Python:** >=3.13 | **Deps:** pyyaml (config), black, mypy, pytest, ruff, pytest-cov (dev)
+**Version:** 1.1.0 | **Python:** >=3.13 | **Deps:** none (stdlib only) | **Dev:** black, mypy, pytest, ruff, pytest-cov
 
 ---
 
@@ -94,10 +94,10 @@ Each domain module in `interfaces/cli/` has:
 - `_HANDLERS: dict[str, Callable]` — maps action → handler function
 - `@handler("action")` decorator — registers into `_HANDLERS`
 
-Identity fields are positional args; optional fields use `--flags`. `find` uses optional flags for all filters.
+Identity fields are positional args; optional fields use `--flags`. `find` uses optional flags for all filters, plus `--before`, `--after`, `--contains` for operator-based search.
 
 Handler built-in helpers:
-- `_find_one(service, **kwargs)` — fetches exactly one record or raises ValueError (all domains including address)
+- `_find_one(service, **kwargs)` — fetches exactly one record or raises `FolioNotFoundError`/`FolioAmbiguousQueryError`
 - `_interactive_replace(old)` — fallback when no `--new-*` flags provided
 - `_parse_date(s)` — `dt.date.fromisoformat()`
 
@@ -117,7 +117,7 @@ All services wrap operations in `with self.uow:` context manager:
 
 ---
 
-## Tests (514 total, ~0.4s runtime)
+## Tests (533 total, ~0.4s runtime)
 
 - **Unit tests** (`tests/unit/`): use `fake_uow` fixture (`FakeUnitOfWork` with in-memory fake repos)
 - **Integration tests** (`tests/integration/`): use `fake_db` fixture (temp SQLite file, cleaned on teardown)
@@ -134,7 +134,7 @@ All services wrap operations in `with self.uow:` context manager:
 | `uv run pytest --cov=folio --cov-report=term-missing` | Coverage report |
 | `uv run black .` | Format code |
 | `uv run ruff check src/ tests/` | Lint (rules: E, F, W, I, UP, SIM, N) |
-| `uv run mypy src/` | Type-check (~37 expected `[attr-defined]` from UoW base class) |
+| `uv run mypy src/` | Type-check (0 errors across 41 source files) |
 | `uv run python -c "import folio; print(folio.__version__)"` | Check version |
 
 ---
@@ -142,16 +142,16 @@ All services wrap operations in `with self.uow:` context manager:
 ## Current Git State
 
 ```
-b193cef (HEAD -> main) chore: bump version to 1.1.0
-d39c19f refactor: rename list() → list_all() and drop typing.List
-a330316 docs: update AGENTS.md for current state
-4d46139 test(book): add ISBN-less exact-duplicate integration test
-5597fb6 refactor(repos): extract shared _work_identity_where helper
-1772ff6 fix(cli): use find-then-mutate for address remove/replace
-32e84f5 fix(timeline): narrow open-address overlap guard to ABSORB only
-7ccd741 fix(models): strip whitespace in Work.__post_init__
-e9c88f5 docs: add comprehensive AGENTS.md for project context
-6f54432 chore: bump version to 1.0.1
+1b17fa0 (HEAD -> main) feat: add filter operators to find across all domains
+db87299 refactor: replace bare ValueError with domain-specific exceptions
+166fa1c refactor(uow): declare repository properties on UnitOfWork ABC
+43f178a refactor(models): remove redundant .strip() in _identity_fields/_ordering_fields
+d0d541a fix(test): add case-insensitive matching to FakeAddressRepository and FakeWorkRepository find()
+39799f9 docs: update AGENTS.md for education domain
+a2ad07f test(education): add unit and integration tests
+10d47f1 feat(education): add full domain stack
+c020735 update config to use single quotes
+a09ea86 refactor: replace pyyaml with stdlib tomllib for zero runtime deps
 ```
 
 No tags. Branch `main` after history rewrite.
@@ -166,7 +166,6 @@ No tags. Branch `main` after history rewrite.
 
 ### Features
 - **ISBN-less multi-copy support** — deliberate design needed for books without ISBNs (currently `add()` raises on any duplicate)
-- **Additional filter operators** — `find` is exact-match only; add `--before`, `--after`, `--contains` for real-world search
 - **Import/export** — CSV and/or YAML import/export for bulk loading and migration
 - **Stats command** — e.g., `folio travel stats` with "countries visited per year", most-traveled routes, etc.
 - **Configurable ordering** — `--sort-by` flag or config option per domain
@@ -176,8 +175,6 @@ No tags. Branch `main` after history rewrite.
 - **Web interface** — FastAPI or similar as another adapter
 
 ### Polish
-- **Remove `# type: ignore[attr-defined]`** — ~32 annotations in UoW layer from dynamic repo attributes; refactor with `__getattr__` or generic parameter
-- **Specific exception types** — replace bare `ValueError` with domain-specific exceptions
 - **Better test coverage** — add CLI handler tests, edge cases in timeline/ISBN validation
 
 ---
@@ -186,9 +183,12 @@ No tags. Branch `main` after history rewrite.
 
 | Fix | Files | Description |
 |---|---|---|
+| **Filter operators on find** | `repositories/sql/_filters.py`, all 6 repos, all 6 CLI handlers | Added `__before`, `__after`, `__contains` operator suffixes in filter keys, backed by CLI flags `--before`, `--after`, `--contains` on all `find` subcommands. |
+| **Domain-specific exceptions** | `exceptions.py`, all models/repos/services/CLI | Replaced 99 bare `ValueError` raises with 10 typed exceptions under `FolioError` hierarchy. main.py catches `FolioError`. |
+| **mypy: UoW property declarations** | `uow/unit_of_work.py`, `uow/sqlite/sqlite_uow.py`, `tests/conftest.py` | Added 6 `@property` on UnitOfWork ABC; concrete UoW and FakeUnitOfWork use `self._attr` private attributes. mypy: 37 → 0 errors. |
 | **Work field normalization** | `models/work.py` | `__post_init__` now strips author/title via `object.__setattr__`, matching Address/Employment/Travel. Prevents SQL lookup failures on whitespace-padded inputs. |
 | **Address CLI find-then-mutate** | `interfaces/cli/address.py` | `_remove` and `_replace` now use `_find_one()` to fetch the DB-hydrated record first, preventing race conditions between domain equality (case-insensitive) and SQLite DELETE/UPDATE (exact-case). |
 | **Open-address overlap guard** | `models/timeline.py` | Narrowed from broad `not existing.is_open or existing.start >= new.start` to `kind is _OverlapKind.ABSORB`. TRUNCATE_BACK now falls through to `needs_confirmation` as intended. |
 | **Identity logic consolidation** | `repositories/sql/sqlite_work_repository.py` + `sqlite_book_repository.py` | Extracted `_work_identity_where()` helper; both `SQLiteWorkRepository.find()` and `SQLiteBookRepository._lookup_work_id()` use it. |
 | **list() → list_all() rename** | all repos, services, CLI handlers, tests | Renamed to eliminate method-name shadowing with builtin `list` type; dropped `typing.List` in favor of builtin `list[X]`, resolving 53 ruff violations. |
-| **main() exception widening** | `interfaces/cli/main.py` | Now catches `TypeError` alongside `ValueError` for friendly error output.
+| **main() exception widening** | `interfaces/cli/main.py` | Now catches `TypeError` alongside `ValueError` for friendly error output. |
