@@ -112,6 +112,15 @@ def _parse_date(s):
     return dt.date.fromisoformat(s)
 
 
+def _find_one(service, **kwargs):
+    results = service.find(**kwargs)
+    if not results:
+        raise ValueError("Address not found")
+    if len(results) > 1:
+        raise ValueError(f"Expected one address, found {len(results)}")
+    return results[0]
+
+
 def _make_addr(**kwargs):
     return Address(
         street=kwargs["street"],
@@ -181,7 +190,8 @@ def _find(args):
 def _remove(args):
     uow = AddressSQLiteUoW(args.db_path)
     svc = AddressService(uow)
-    obj = _make_addr(
+    obj = _find_one(
+        svc,
         street=args.street,
         city=args.city,
         country=args.country,
@@ -198,7 +208,8 @@ def _remove(args):
 def _replace(args):
     uow = AddressSQLiteUoW(args.db_path)
     svc = AddressService(uow)
-    old = _make_addr(
+    old = _find_one(
+        svc,
         street=args.street,
         city=args.city,
         country=args.country,
@@ -219,13 +230,13 @@ def _replace(args):
     has_new = any(getattr(args, f"new_{f}", None) is not None for f in new_fields)
     if has_new:
         new = _make_addr(
-            street=args.new_street if args.new_street is not None else args.street,
-            city=args.new_city if args.new_city is not None else args.city,
-            country=args.new_country if args.new_country is not None else args.country,
+            street=args.new_street if args.new_street is not None else old.street,
+            city=args.new_city if args.new_city is not None else old.city,
+            country=args.new_country if args.new_country is not None else old.country,
             postal_code=(
                 args.new_postal_code
                 if args.new_postal_code is not None
-                else args.postal_code
+                else old.postal_code
             ),
             start=(
                 _parse_date(args.new_start) if args.new_start is not None else old.start

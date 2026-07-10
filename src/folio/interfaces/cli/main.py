@@ -52,7 +52,7 @@ def main():
         sys.exit(1)
     try:
         handler(args)
-    except ValueError as e:
+    except (ValueError, TypeError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
