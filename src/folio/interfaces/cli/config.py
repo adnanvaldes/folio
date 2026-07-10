@@ -31,7 +31,7 @@ def load(custom_path=None):
         db_url = f"sqlite:///{_default_db_path()}"
         with open(path, "w") as f:
             f.write("[database]\n")
-            f.write(f'url = "{db_url}"\n')
+            f.write(f"url = '{db_url}'\n")
         return {"database": {"url": db_url}}
     with open(path, "rb") as f:
         return tomllib.load(f) or {}
