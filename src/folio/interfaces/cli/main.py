@@ -2,12 +2,13 @@ import argparse
 import sys
 
 from ... import __version__
-from . import address, book, employment, travel, work
+from . import address, book, education, employment, travel, work
 from . import config as cfg
 
 DOMAINS = {
     "travel": travel,
     "address": address,
+    "education": education,
     "employment": employment,
     "work": work,
     "book": book,

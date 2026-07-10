@@ -1,10 +1,11 @@
 import dataclasses
 import datetime as dt
 
-from folio.models import Address, Book, Employment, FormatType, Travel, Work
+from folio.models import Address, Book, Education, Employment, FormatType, Travel, Work
 from folio.repositories import (
     AddressRepository,
     BookRepository,
+    EducationRepository,
     EmploymentRepository,
     TravelRepository,
     WorkRepository,
@@ -250,4 +251,52 @@ class FakeBookRepository(BookRepository):
                     results = {b for b in results if getattr(b, field) is None}
                 else:
                     results = {b for b in results if getattr(b, field) == value}
+        return sorted(results)
+
+
+class FakeEducationRepository(EducationRepository):
+
+    def __init__(self):
+        self._data: set[Education] = set()
+
+    def list_all(self) -> list[Education]:
+        return sorted(self._data)
+
+    def add(self, education: Education) -> None:
+        if education in self._data:
+            raise ValueError(f"Education already exists: {education}")
+        self._data.add(education)
+
+    def remove(self, education: Education) -> None:
+        if education not in self._data:
+            raise ValueError(f"Education not found: {education}")
+        self._data.discard(education)
+
+    def replace(self, old: Education, new: Education) -> None:
+        if old not in self._data:
+            raise ValueError(f"Education not found: {old}")
+        self._data.discard(old)
+        self._data.add(new)
+
+    def find(self, **filters) -> list[Education]:
+        invalid = set(filters) - self.VALID_FIELDS
+        if invalid:
+            raise ValueError(f"Invalid filter fields: {invalid}")
+
+        results = set(self._data)
+        for field, value in filters.items():
+            if value is not None and field in (
+                "field",
+                "school",
+                "city",
+                "country",
+                "credential",
+            ):
+                results = {
+                    e
+                    for e in results
+                    if getattr(e, field).lower().strip() == value.lower().strip()
+                }
+            else:
+                results = {e for e in results if getattr(e, field) == value}
         return sorted(results)

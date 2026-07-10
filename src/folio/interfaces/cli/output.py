@@ -2,7 +2,7 @@ import datetime as dt
 import json
 from enum import Enum
 
-from folio.models import Address, Book, Employment, Travel, Work
+from folio.models import Address, Book, Education, Employment, Travel, Work
 
 
 def _obj_to_dict(obj):
@@ -74,6 +74,31 @@ def _employment_rows(employments):
     return ["Company", "Start", "End", "Supervisor", "Address", "Phone"], sorted(rows)
 
 
+def _education_rows(educations):
+    rows = []
+    for e in educations:
+        rows.append(
+            [
+                e.field,
+                str(e.start),
+                str(e.end),
+                e.school,
+                e.city,
+                e.country,
+                e.credential,
+            ]
+        )
+    return [
+        "Field",
+        "Start",
+        "End",
+        "School",
+        "City",
+        "Country",
+        "Credential",
+    ], sorted(rows)
+
+
 def _work_rows(works):
     rows = []
     for w in works:
@@ -112,6 +137,7 @@ def _book_rows(books):
 _ROUTER = {
     Travel: _travel_rows,
     Address: _address_rows,
+    Education: _education_rows,
     Employment: _employment_rows,
     Work: _work_rows,
     Book: _book_rows,

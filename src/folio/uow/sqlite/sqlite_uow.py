@@ -1,7 +1,6 @@
 import sqlite3
 
 import folio.repositories as repo
-
 from folio.interfaces.cli.config import _default_db_path
 
 from ..unit_of_work import UnitOfWork
@@ -38,6 +37,13 @@ class EmploymentSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
         self.employment = repo.SQLiteEmploymentRepository(self.conn)
+        return self
+
+
+class EducationSQLiteUoW(SQLiteUnitOfWork):
+    def _start(self):
+        super()._start()
+        self.education = repo.SQLiteEducationRepository(self.conn)
         return self
 
 

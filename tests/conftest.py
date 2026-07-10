@@ -7,6 +7,7 @@ from folio.uow import UnitOfWork
 from tests.fake_repositories import (
     FakeAddressRepository,
     FakeBookRepository,
+    FakeEducationRepository,
     FakeEmploymentRepository,
     FakeTravelRepository,
     FakeWorkRepository,
@@ -23,6 +24,7 @@ class FakeUnitOfWork(UnitOfWork):
         self.addresses = FakeAddressRepository()
         self.travel = FakeTravelRepository()
         self.work = FakeWorkRepository()
+        self.education = FakeEducationRepository()
         self.employment = FakeEmploymentRepository()
         self.book = FakeBookRepository()
         self.committed = False

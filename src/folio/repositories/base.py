@@ -1,7 +1,15 @@
 import datetime as dt
 from abc import ABC, abstractmethod
 
-from folio.models import Address, Book, Employment, TimelineDiff, Travel, Work
+from folio.models import (
+    Address,
+    Book,
+    Education,
+    Employment,
+    TimelineDiff,
+    Travel,
+    Work,
+)
 
 
 class AddressRepository(ABC):
@@ -219,6 +227,55 @@ class EmploymentRepository(ABC):
         Pass None to leave a field unchanged (to explicitly set a field
         to None, use replace() instead).
         Raises ValueError if employment not found or if no fields to update.
+        """
+        ...
+
+
+class EducationRepository(ABC):
+
+    VALID_FIELDS = {
+        "field",
+        "start",
+        "end",
+        "school",
+        "city",
+        "country",
+        "credential",
+    }
+
+    @abstractmethod
+    def list_all(self) -> list[Education]: ...
+
+    @abstractmethod
+    def add(self, education: Education) -> None:
+        """
+        Add a new education record.
+        Raises ValueError if it already exists (by identity).
+        """
+        ...
+
+    @abstractmethod
+    def remove(self, education: Education) -> None:
+        """
+        Remove an education record.
+        Raises ValueError if it does not exist.
+        """
+        ...
+
+    @abstractmethod
+    def replace(self, old: Education, new: Education) -> None:
+        """
+        Replace old with new. Raises ValueError if old does not exist.
+        """
+        ...
+
+    @abstractmethod
+    def find(self, **filters) -> list[Education]:
+        """
+        Return all education records matching the given filters.
+        Omitting a field means do not filter on that field.
+        Passing None for a field means matching on NULL.
+        Raises ValueError on unrecognized fields.
         """
         ...
 

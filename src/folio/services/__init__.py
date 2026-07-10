@@ -1,5 +1,6 @@
 from .address_service import AddressService
 from .book_service import BookService
+from .education_service import EducationService
 from .employment_service import EmploymentService
 from .travel_service import TravelService
 from .work_service import WorkService
@@ -7,6 +8,7 @@ from .work_service import WorkService
 __all__ = [
     "AddressService",
     "BookService",
+    "EducationService",
     "EmploymentService",
     "TravelService",
     "WorkService",

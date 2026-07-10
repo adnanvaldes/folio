@@ -1,5 +1,6 @@
 from .address import Address
 from .book import Book, FormatType
+from .education import Education
 from .employment import Employment
 from .timeline import TimelineDiff, calculate_new_timeline
 from .travel import Travel
@@ -11,6 +12,7 @@ __all__ = [
     "FormatType",
     "Travel",
     "Address",
+    "Education",
     "TimelineDiff",
     "calculate_new_timeline",
     "Employment",
