@@ -41,7 +41,7 @@ class Employment:
             )
 
     def _identity_fields(self) -> tuple:
-        return (self.company.lower().strip(), self.start)
+        return (self.company.lower(), self.start)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Employment):

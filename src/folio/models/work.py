@@ -22,8 +22,8 @@ class Work:
 
     def _identity_fields(self) -> tuple:
         return (
-            self.author.lower().strip(),
-            self.title.lower().strip(),
+            self.author.lower(),
+            self.title.lower(),
             (self.year is None, self.year),
         )
 
@@ -37,8 +37,8 @@ class Work:
 
     def _ordering_fields(self) -> tuple:
         return (
-            self.author.lower().strip(),
-            self.title.lower().strip(),
+            self.author.lower(),
+            self.title.lower(),
             (self.year is None, self.year),
         )
 
