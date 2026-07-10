@@ -88,6 +88,12 @@ class TestBookServiceIntegration:
 
         assert len(service.list()) == 1
 
+    def test_add_isbn_none_exact_duplicate_raises(self, service):
+        book = make_book(isbn=None, pages=200)
+        service.add(book)
+        with pytest.raises(ValueError, match="already exists"):
+            service.add(make_book(isbn=None, pages=200))
+
     def test_remove_persists(self, service):
         book = make_book()
         service.add(book)
