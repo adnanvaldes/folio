@@ -5,6 +5,31 @@ from folio.models import Work
 from folio.repositories import WorkRepository
 
 
+def _work_identity_where(
+    author: str, title: str, year: int | None
+) -> tuple[str, dict[str, str | int]]:
+    """Build WHERE clause and params for matching a Work by identity.
+
+    Returns (where_clause, params) where params contains lowered/stripped
+    values for author and title. Used by both SQLiteWorkRepository and
+    SQLiteBookRepository so identity logic stays in one place.
+    """
+    params: dict[str, str | int] = {
+        "author": author.lower().strip(),
+        "title": title.lower().strip(),
+    }
+    if year is None:
+        return (
+            "LOWER(author) = :author AND LOWER(title) = :title AND year IS NULL",
+            params,
+        )
+    params["year"] = year
+    return (
+        "LOWER(author) = :author AND LOWER(title) = :title AND year = :year",
+        params,
+    )
+
+
 class SQLiteWorkRepository(WorkRepository):
 
     def __init__(self, connection: sqlite3.Connection):
@@ -123,13 +148,32 @@ class SQLiteWorkRepository(WorkRepository):
             return self.list()
 
         conditions = []
-        params = {}
+        params: dict = {}
+
+        identity_keys = {"author", "title", "year"}
+        id_filters = {k: v for k, v in filters.items() if k in identity_keys}
+
+        # Use shared helper only when all three identity fields are present
+        if len(id_filters) == 3:
+            where, id_params = _work_identity_where(**id_filters)
+            conditions.append(where)
+            params.update(id_params)
+        else:
+            for field, value in id_filters.items():
+                if value is None:
+                    conditions.append(f"{field} IS NULL")
+                elif field in ("author", "title"):
+                    conditions.append(f"LOWER({field}) = :{field}")
+                    params[field] = value.lower().strip()
+                else:
+                    conditions.append(f"{field} = :{field}")
+                    params[field] = value
+
         for field, value in filters.items():
+            if field in identity_keys:
+                continue
             if value is None:
                 conditions.append(f"{field} IS NULL")
-            elif field in ("author", "title"):
-                conditions.append(f"LOWER({field}) = :{field}")
-                params[field] = value.lower().strip()
             else:
                 conditions.append(f"{field} = :{field}")
                 params[field] = value

@@ -3,6 +3,7 @@ from typing import List
 
 from folio.models import Book, FormatType, Work
 from folio.repositories import BookRepository
+from folio.repositories.sql.sqlite_work_repository import _work_identity_where
 
 
 class SQLiteBookRepository(BookRepository):
@@ -53,22 +54,8 @@ class SQLiteBookRepository(BookRepository):
         }
 
     def _lookup_work_id(self, work: Work) -> int:
-        if work.year is None:
-            row = self.conn.execute(
-                """
-                SELECT id FROM work
-                WHERE LOWER(author) = ? AND LOWER(title) = ? AND year IS NULL
-            """,
-                (work.author.lower().strip(), work.title.lower().strip()),
-            ).fetchone()
-        else:
-            row = self.conn.execute(
-                """
-                SELECT id FROM work
-                WHERE LOWER(author) = ? AND LOWER(title) = ? AND year = ?
-            """,
-                (work.author.lower().strip(), work.title.lower().strip(), work.year),
-            ).fetchone()
+        where, params = _work_identity_where(work.author, work.title, work.year)
+        row = self.conn.execute(f"SELECT id FROM work WHERE {where}", params).fetchone()
         if row is None:
             raise ValueError(f"Referenced work does not exist: {work}")
         return row["id"]
