@@ -1,5 +1,11 @@
 from collections.abc import Callable
 
+from folio.exceptions import (
+    FolioAmbiguousQueryError,
+    FolioCancelledError,
+    FolioNotFoundError,
+    FolioParseError,
+)
 from folio.models import Book, FormatType, Work
 from folio.services import BookService, WorkService
 from folio.uow import BookSQLiteUoW, WorkSQLiteUoW
@@ -13,7 +19,7 @@ def _parse_bool(s):
         return True
     if s.lower() in ("no", "false", "0", "n"):
         return False
-    raise ValueError(f"Invalid boolean: '{s}' (expected yes/no/true/false/1/0)")
+    raise FolioParseError(f"Invalid boolean: '{s}' (expected yes/no/true/false/1/0)")
 
 
 def _parse_format(s):
@@ -76,16 +82,16 @@ def _interactive_replace(old, work_svc):
         ]
     )
     if not confirm():
-        raise ValueError("Cancelled")
+        raise FolioCancelledError("Cancelled")
     return new
 
 
 def _find_one_work(service, **kwargs):
     results = service.find(**kwargs)
     if not results:
-        raise ValueError("Work not found")
+        raise FolioNotFoundError("Work not found")
     if len(results) > 1:
-        raise ValueError(f"Expected one work, found {len(results)}")
+        raise FolioAmbiguousQueryError(f"Expected one work, found {len(results)}")
     return results[0]
 
 
@@ -215,7 +221,7 @@ def _remove(args):
         isbn=isbn,
     )
     if not results:
-        raise ValueError("Book not found")
+        raise FolioNotFoundError("Book not found")
     obj = results[0]
     svc.remove(obj)
     print_item(obj, args.json, label="Removed")
@@ -238,7 +244,7 @@ def _replace(args):
         isbn=isbn,
     )
     if not results:
-        raise ValueError("Book not found")
+        raise FolioNotFoundError("Book not found")
     old = results[0]
     has_new = any(
         getattr(args, f"new_{f}", None) is not None

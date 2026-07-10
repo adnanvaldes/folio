@@ -1,5 +1,7 @@
 import dataclasses
 
+from folio.exceptions import FolioValidationError
+
 
 @dataclasses.dataclass(frozen=True, eq=False)
 class Work:
@@ -14,9 +16,9 @@ class Work:
         object.__setattr__(self, "title", self.title.strip())
 
         if not self.author:
-            raise ValueError("Author is required")
+            raise FolioValidationError("Author is required")
         if not self.title:
-            raise ValueError("Title is required")
+            raise FolioValidationError("Title is required")
         if self.year is not None and not isinstance(self.year, int):
             raise TypeError(f"year must be an int or None, got {type(self.year)}")
 

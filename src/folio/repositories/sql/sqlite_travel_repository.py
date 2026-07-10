@@ -1,6 +1,11 @@
 import datetime as dt
 import sqlite3
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+)
 from folio.models import Travel
 from folio.repositories import TravelRepository
 
@@ -62,7 +67,7 @@ class SQLiteTravelRepository(TravelRepository):
             date=travel.date,
         )
         if existing:
-            raise ValueError(f"Travel already exists: {travel}")
+            raise FolioDuplicateError(f"Travel already exists: {travel}")
         params = self._to_params(travel)
         try:
             self.conn.execute(
@@ -73,7 +78,7 @@ class SQLiteTravelRepository(TravelRepository):
                 params,
             )
         except sqlite3.IntegrityError:
-            raise ValueError(f"Travel already exists: {travel}")
+            raise FolioDuplicateError(f"Travel already exists: {travel}")
 
     def remove(self, travel: Travel) -> None:
         params = self._to_params(travel)
@@ -82,7 +87,7 @@ class SQLiteTravelRepository(TravelRepository):
             {k: v for k, v in params.items() if v is not None},
         )
         if cursor.rowcount == 0:
-            raise ValueError(f"Travel not found: {travel}")
+            raise FolioNotFoundError(f"Travel not found: {travel}")
 
     def replace(self, old: Travel, new: Travel) -> None:
         old_params = self._to_params(old)
@@ -111,12 +116,12 @@ class SQLiteTravelRepository(TravelRepository):
 
         cursor = self.conn.execute(sql, {**where_params, **set_params})
         if cursor.rowcount == 0:
-            raise ValueError(f"Travel not found: {old}")
+            raise FolioNotFoundError(f"Travel not found: {old}")
 
     def find(self, **filters) -> list[Travel]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
-            raise ValueError(f"Invalid filter fields: {invalid}")
+            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
 
         if not filters:
             return self.list_all()

@@ -1,5 +1,10 @@
 import sqlite3
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+)
 from folio.models import Book, FormatType, Work
 from folio.repositories import BookRepository
 from folio.repositories.sql.sqlite_work_repository import _work_identity_where
@@ -56,7 +61,7 @@ class SQLiteBookRepository(BookRepository):
         where, params = _work_identity_where(work.author, work.title, work.year)
         row = self.conn.execute(f"SELECT id FROM work WHERE {where}", params).fetchone()
         if row is None:
-            raise ValueError(f"Referenced work does not exist: {work}")
+            raise FolioNotFoundError(f"Referenced work does not exist: {work}")
         return row["id"]
 
     def _join_select(self) -> str:
@@ -85,7 +90,7 @@ class SQLiteBookRepository(BookRepository):
             isbn=book.isbn,
         )
         if existing:
-            raise ValueError(f"Book already exists: {book}")
+            raise FolioDuplicateError(f"Book already exists: {book}")
         params = self._to_params(book)
         try:
             self.conn.execute(
@@ -98,7 +103,7 @@ class SQLiteBookRepository(BookRepository):
                 params,
             )
         except sqlite3.IntegrityError:
-            raise ValueError(f"Book already exists: {book}")
+            raise FolioDuplicateError(f"Book already exists: {book}")
 
     def remove(self, book: Book) -> None:
         params = self._to_params(book)
@@ -112,7 +117,7 @@ class SQLiteBookRepository(BookRepository):
             params,
         )
         if cursor.rowcount == 0:
-            raise ValueError(f"Book not found: {book}")
+            raise FolioNotFoundError(f"Book not found: {book}")
 
     def replace(self, old: Book, new: Book) -> None:
         old_params = self._to_params(old)
@@ -146,12 +151,12 @@ class SQLiteBookRepository(BookRepository):
             },
         )
         if cursor.rowcount == 0:
-            raise ValueError(f"Book not found: {old}")
+            raise FolioNotFoundError(f"Book not found: {old}")
 
     def find(self, **filters) -> list[Book]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
-            raise ValueError(f"Invalid filter fields: {invalid}")
+            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
 
         if not filters:
             return self.list_all()

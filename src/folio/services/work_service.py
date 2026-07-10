@@ -1,3 +1,4 @@
+from folio.exceptions import FolioCascadeError
 from folio.models import Work
 from folio.uow import UnitOfWork
 
@@ -21,7 +22,7 @@ class WorkService:
                 )
                 if books:
                     if not force:
-                        raise ValueError(
+                        raise FolioCascadeError(
                             f"Cannot remove {work}: {len(books)} book(s) reference it. "
                             f"Use --force to remove them too."
                         )

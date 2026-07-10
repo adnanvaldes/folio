@@ -1,6 +1,8 @@
 import dataclasses
 import datetime as dt
 
+from folio.exceptions import FolioValidationError
+
 
 @dataclasses.dataclass(frozen=True, eq=False)
 class Travel:
@@ -16,16 +18,16 @@ class Travel:
         object.__setattr__(self, "note", self.note.strip())
 
         if not self.origin:
-            raise ValueError("Origin is required")
+            raise FolioValidationError("Origin is required")
         if not self.destination:
-            raise ValueError("Destination is required")
+            raise FolioValidationError("Destination is required")
 
         if len(self.origin) != 3:
-            raise ValueError(
+            raise FolioValidationError(
                 f"Origin country code must be 3 letters, got '{self.origin}'"
             )
         if len(self.destination) != 3:
-            raise ValueError(
+            raise FolioValidationError(
                 f"Destination country code must be 3 letters, got '{self.destination}'"
             )
 

@@ -1,6 +1,11 @@
 import datetime as dt
 from collections.abc import Callable
 
+from folio.exceptions import (
+    FolioAmbiguousQueryError,
+    FolioCancelledError,
+    FolioNotFoundError,
+)
 from folio.models import Address
 from folio.services import AddressService
 from folio.uow import AddressSQLiteUoW
@@ -52,7 +57,7 @@ def _interactive_replace(old):
         ]
     )
     if not confirm():
-        raise ValueError("Cancelled")
+        raise FolioCancelledError("Cancelled")
     return new
 
 
@@ -115,9 +120,9 @@ def _parse_date(s):
 def _find_one(service, **kwargs):
     results = service.find(**kwargs)
     if not results:
-        raise ValueError("Address not found")
+        raise FolioNotFoundError("Address not found")
     if len(results) > 1:
-        raise ValueError(f"Expected one address, found {len(results)}")
+        raise FolioAmbiguousQueryError(f"Expected one address, found {len(results)}")
     return results[0]
 
 

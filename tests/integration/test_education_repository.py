@@ -3,6 +3,11 @@ import sqlite3
 
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+)
 from folio.models import Education
 from folio.repositories import SQLiteEducationRepository
 
@@ -42,14 +47,14 @@ class TestSQLiteEducationRepositoryAdd:
     def test_add_duplicate_raises(self, repo):
         e = make_education()
         repo.add(e)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             repo.add(e)
 
     def test_add_duplicate_case_insensitive_raises(self, repo):
         e1 = make_education(field="Data Science")
         e2 = make_education(field="data science")
         repo.add(e1)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             repo.add(e2)
 
     def test_list_returns_chronological_order(self, repo):
@@ -95,7 +100,7 @@ class TestSQLiteEducationRepositoryRemove:
         assert repo.list_all() == []
 
     def test_remove_nonexistent_raises(self, repo):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.remove(make_education())
 
 
@@ -115,7 +120,7 @@ class TestSQLiteEducationRepositoryReplace:
     def test_replace_nonexistent_raises(self, repo):
         original = make_education()
         other = make_education(school="Other School")
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.replace(original, other)
 
 
@@ -177,5 +182,5 @@ class TestSQLiteEducationRepositoryFind:
         assert len(repo.find()) == 2
 
     def test_find_invalid_field_raises(self, repo):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             repo.find(invalid="x")

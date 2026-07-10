@@ -3,6 +3,12 @@ import sqlite3
 
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+    FolioValidationError,
+)
 from folio.models import Employment
 from folio.repositories import SQLiteEmploymentRepository
 
@@ -41,14 +47,14 @@ class TestSQLiteEmploymentRepositoryAdd:
     def test_add_duplicate_raises(self, repo):
         e = make_employment()
         repo.add(e)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             repo.add(e)
 
     def test_add_duplicate_case_insensitive_raises(self, repo):
         e1 = make_employment(company="Acme Corp")
         e2 = make_employment(company="acme corp")
         repo.add(e1)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             repo.add(e2)
 
     def test_list_returns_chronological_order(self, repo):
@@ -100,7 +106,7 @@ class TestSQLiteEmploymentRepositoryRemove:
         assert repo.list_all() == []
 
     def test_remove_nonexistent_raises(self, repo):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.remove(make_employment())
 
 
@@ -120,7 +126,7 @@ class TestSQLiteEmploymentRepositoryReplace:
     def test_replace_nonexistent_raises(self, repo):
         original = make_employment()
         other = make_employment(company="Other Corp")
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.replace(original, other)
 
 
@@ -159,7 +165,7 @@ class TestSQLiteEmploymentRepositoryFind:
         assert len(repo.find()) == 2
 
     def test_find_invalid_field_raises(self, repo):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             repo.find(invalid="x")
 
 
@@ -196,9 +202,9 @@ class TestSQLiteEmploymentRepositoryUpdate:
     def test_update_no_fields_raises(self, repo):
         e = make_employment()
         repo.add(e)
-        with pytest.raises(ValueError, match="No fields to update"):
+        with pytest.raises(FolioValidationError, match="No fields to update"):
             repo.update(e)
 
     def test_update_nonexistent_raises(self, repo):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.update(make_employment(), supervisor="New")

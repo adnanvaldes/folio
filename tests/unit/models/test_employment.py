@@ -3,6 +3,7 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import FolioValidationError
 from folio.models import Employment
 
 
@@ -50,19 +51,19 @@ class TestEmploymentConstruction:
         assert e.phone == "555-0100"
 
     def test_rejects_empty_company(self):
-        with pytest.raises(ValueError, match="Company is required"):
+        with pytest.raises(FolioValidationError, match="Company is required"):
             make_employment(company="")
 
     def test_rejects_empty_supervisor(self):
-        with pytest.raises(ValueError, match="Supervisor is required"):
+        with pytest.raises(FolioValidationError, match="Supervisor is required"):
             make_employment(supervisor="")
 
     def test_rejects_empty_address(self):
-        with pytest.raises(ValueError, match="Address is required"):
+        with pytest.raises(FolioValidationError, match="Address is required"):
             make_employment(address="")
 
     def test_rejects_empty_phone(self):
-        with pytest.raises(ValueError, match="Phone is required"):
+        with pytest.raises(FolioValidationError, match="Phone is required"):
             make_employment(phone="")
 
     def test_rejects_non_date_start(self):
@@ -74,7 +75,10 @@ class TestEmploymentConstruction:
             make_employment(end="2024-12-31")
 
     def test_rejects_end_before_start(self):
-        with pytest.raises(ValueError, match="end date cannot be before start date"):
+        with pytest.raises(
+            FolioValidationError,
+            match="end date cannot be before start date",
+        ):
             make_employment(
                 start=dt.date(2024, 6, 1),
                 end=dt.date(2024, 1, 1),

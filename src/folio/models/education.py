@@ -1,6 +1,8 @@
 import dataclasses
 import datetime as dt
 
+from folio.exceptions import FolioValidationError
+
 
 @dataclasses.dataclass(frozen=True, eq=False)
 class Education:
@@ -20,15 +22,15 @@ class Education:
         object.__setattr__(self, "credential", self.credential.strip())
 
         if not self.field:
-            raise ValueError("Field is required")
+            raise FolioValidationError("Field is required")
         if not self.school:
-            raise ValueError("School is required")
+            raise FolioValidationError("School is required")
         if not self.city:
-            raise ValueError("City is required")
+            raise FolioValidationError("City is required")
         if not self.country:
-            raise ValueError("Country is required")
+            raise FolioValidationError("Country is required")
         if not self.credential:
-            raise ValueError("Credential is required")
+            raise FolioValidationError("Credential is required")
 
         if not isinstance(self.start, dt.date):
             raise TypeError(f"start must be a datetime.date, got {type(self.start)}")
@@ -37,7 +39,7 @@ class Education:
             raise TypeError(f"end must be a datetime.date, got {type(self.end)}")
 
         if self.end < self.start:
-            raise ValueError(
+            raise FolioValidationError(
                 f"end date cannot be before start date, "
                 f"got: [start={self.start}, end={self.end}]"
             )

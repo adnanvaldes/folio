@@ -1,6 +1,8 @@
 import dataclasses
 import datetime as dt
 
+from folio.exceptions import FolioValidationError
+
 
 @dataclasses.dataclass(frozen=True, eq=False)
 class Employment:
@@ -18,13 +20,13 @@ class Employment:
         object.__setattr__(self, "phone", self.phone.strip())
 
         if not self.company:
-            raise ValueError("Company is required")
+            raise FolioValidationError("Company is required")
         if not self.supervisor:
-            raise ValueError("Supervisor is required")
+            raise FolioValidationError("Supervisor is required")
         if not self.address:
-            raise ValueError("Address is required")
+            raise FolioValidationError("Address is required")
         if not self.phone:
-            raise ValueError("Phone is required")
+            raise FolioValidationError("Phone is required")
 
         if not isinstance(self.start, dt.date):
             raise TypeError(f"start must be a datetime.date, got {type(self.start)}")
@@ -35,7 +37,7 @@ class Employment:
             )
 
         if self.end is not None and self.end < self.start:
-            raise ValueError(
+            raise FolioValidationError(
                 f"end date cannot be before start date, "
                 f"got: [start={self.start}, end={self.end}]"
             )
@@ -63,7 +65,7 @@ class Employment:
     def duration(self) -> dt.timedelta:
         end_date = self.end or dt.date.today()
         if end_date < self.start:
-            raise ValueError("End date cannot be before start date.")
+            raise FolioValidationError("End date cannot be before start date.")
         return end_date - self.start
 
     def __str__(self):

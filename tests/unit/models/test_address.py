@@ -3,6 +3,7 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import FolioStateConflictError, FolioValidationError
 from folio.models import Address
 
 
@@ -69,34 +70,38 @@ class TestAddressConstruction:
             make_address(end="2022-01-01")
 
     def test_rejects_empty_street(self):
-        with pytest.raises(ValueError, match="Street is required"):
+        with pytest.raises(FolioValidationError, match="Street is required"):
             make_address(street="")
 
     def test_rejects_whitespace_only_street(self):
-        with pytest.raises(ValueError, match="Street is required"):
+        with pytest.raises(FolioValidationError, match="Street is required"):
             make_address(street="   ")
 
     def test_rejects_empty_city(self):
-        with pytest.raises(ValueError, match="City is required"):
+        with pytest.raises(FolioValidationError, match="City is required"):
             make_address(city="")
 
     def test_rejects_empty_country(self):
-        with pytest.raises(ValueError, match="Country is required"):
+        with pytest.raises(FolioValidationError, match="Country is required"):
             make_address(country="")
 
     def test_rejects_empty_postal_code(self):
-        with pytest.raises(ValueError, match="Postal code is required"):
+        with pytest.raises(FolioValidationError, match="Postal code is required"):
             make_address(postal_code="")
 
     def test_rejects_end_before_start(self):
-        with pytest.raises(ValueError, match="end date must be after start date"):
+        with pytest.raises(
+            FolioValidationError, match="end date must be after start date"
+        ):
             make_address(
                 start=dt.date(2020, 1, 1),
                 end=dt.date(2019, 1, 1),
             )
 
     def test_rejects_end_equal_to_start(self):
-        with pytest.raises(ValueError, match="end date must be after start date"):
+        with pytest.raises(
+            FolioValidationError, match="end date must be after start date"
+        ):
             make_address(
                 start=dt.date(2020, 1, 1),
                 end=dt.date(2020, 1, 1),
@@ -288,17 +293,17 @@ class TestAddressBehaviour:
 
     def test_close_raises_if_already_closed(self):
         addr = make_address(end=dt.date(2022, 12, 31))
-        with pytest.raises(ValueError, match="already closed"):
+        with pytest.raises(FolioStateConflictError, match="already closed"):
             addr.close(end=dt.date(2023, 1, 1))
 
     def test_close_raises_if_end_before_start(self):
         addr = make_address(start=dt.date(2020, 1, 1), end=None)
-        with pytest.raises(ValueError):
+        with pytest.raises(FolioValidationError):
             addr.close(end=dt.date(2019, 1, 1))
 
     def test_close_raises_if_end_equal_to_start(self):
         addr = make_address(start=dt.date(2020, 1, 1), end=None)
-        with pytest.raises(ValueError):
+        with pytest.raises(FolioValidationError):
             addr.close(end=dt.date(2020, 1, 1))
 
     def test_reopen_returns_open_copy(self):
@@ -315,5 +320,5 @@ class TestAddressBehaviour:
 
     def test_reopen_raises_if_already_open(self):
         addr = make_address(end=None)
-        with pytest.raises(ValueError, match="already open"):
+        with pytest.raises(FolioStateConflictError, match="already open"):
             addr.reopen()

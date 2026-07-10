@@ -3,6 +3,11 @@ import sqlite3
 
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+)
 from folio.models import Travel
 from folio.repositories import SQLiteTravelRepository
 
@@ -39,7 +44,7 @@ class TestSQLiteTravelRepositoryAdd:
     def test_add_duplicate_raises(self, repo):
         t = make_travel()
         repo.add(t)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             repo.add(t)
 
     def test_list_returns_chronological_order(self, repo):
@@ -71,7 +76,7 @@ class TestSQLiteTravelRepositoryRemove:
         assert repo.list_all() == []
 
     def test_remove_nonexistent_raises(self, repo):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.remove(make_travel())
 
 
@@ -91,7 +96,7 @@ class TestSQLiteTravelRepositoryReplace:
     def test_replace_nonexistent_raises(self, repo):
         original = make_travel()
         other = make_travel(origin="MEX", destination="USA", date=dt.date(2024, 1, 1))
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.replace(original, other)
 
 
@@ -115,5 +120,5 @@ class TestSQLiteTravelRepositoryFind:
         assert len(repo.find()) == 2
 
     def test_find_invalid_field_raises(self, repo):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             repo.find(invalid="x")

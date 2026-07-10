@@ -2,6 +2,11 @@ import sqlite3
 
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+)
 from folio.models import Book, FormatType, Work
 from folio.repositories import SQLiteBookRepository, SQLiteWorkRepository
 
@@ -44,7 +49,7 @@ class TestSQLiteBookRepositoryAdd:
     def test_add_duplicate_raises(self, repo):
         book = make_book()
         repo.add(book)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             repo.add(book)
 
     def test_list_returns_ordered(self, repo):
@@ -144,7 +149,7 @@ class TestSQLiteBookRepositoryRemove:
 
     def test_remove_nonexistent_raises(self, repo):
         book = make_book()
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.remove(book)
 
     def test_remove_isbn_none_uses_is_null(self, repo):
@@ -170,7 +175,7 @@ class TestSQLiteBookRepositoryReplace:
     def test_replace_nonexistent_raises(self, repo):
         original = make_book()
         corrected = make_book(isbn="9780000000026")
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.replace(original, corrected)
 
     def test_replace_isbn_none_uses_is_null(self, repo):
@@ -226,7 +231,7 @@ class TestSQLiteBookRepositoryFind:
         assert results[0] == b1
 
     def test_find_invalid_field_raises(self, repo):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             repo.find(nonexistent="value")
 
     def test_find_empty_returns_all(self, repo):

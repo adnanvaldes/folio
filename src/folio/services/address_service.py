@@ -1,3 +1,4 @@
+from folio.exceptions import FolioNotFoundError, FolioTimelineError
 from folio.models import Address, calculate_new_timeline
 from folio.uow import UnitOfWork
 
@@ -42,7 +43,7 @@ class AddressService:
             current = self.uow.addresses.list_all()
 
             if address not in current:
-                raise ValueError(f"Address not found: {address}")
+                raise FolioNotFoundError(f"Address not found: {address}")
 
             if len(current) == 1:
                 self.uow.addresses.remove(address)
@@ -56,7 +57,7 @@ class AddressService:
                 self.uow.addresses.replace(previous, previous.reopen())
                 return
 
-            raise ValueError(
+            raise FolioTimelineError(
                 f"Cannot remove {address}: it would create a gap in the "
                 f"timeline. Use replace() to correct a record, or add() "
                 f"with replacing= to restructure the timeline around it."
@@ -77,11 +78,11 @@ class AddressService:
             current = self.uow.addresses.list_all()
 
             if old not in current:
-                raise ValueError(f"Address not found: {old}")
+                raise FolioNotFoundError(f"Address not found: {old}")
 
             conflicts = [a for a in current if a != old and a.overlaps(new)]
             if conflicts:
-                raise ValueError(
+                raise FolioTimelineError(
                     f"Replacement overlaps existing records: {conflicts}. "
                     f"Use add() with replacing= for complex insertions."
                 )

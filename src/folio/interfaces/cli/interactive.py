@@ -1,9 +1,12 @@
+from folio.exceptions import FolioCancelledError
+
+
 def prompt_field(label, current, parser=None):
     display = str(current) if current is not None else ""
     try:
         raw = input(f"  {label} [{display}]: ").strip()
     except EOFError:
-        raise ValueError("Cancelled (EOF)")
+        raise FolioCancelledError("Cancelled (EOF)")
     if not raw:
         return current
     if parser:

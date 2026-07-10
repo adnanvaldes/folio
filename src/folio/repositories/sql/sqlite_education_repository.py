@@ -1,6 +1,11 @@
 import datetime as dt
 import sqlite3
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+)
 from folio.models import Education
 from folio.repositories import EducationRepository
 
@@ -72,7 +77,7 @@ class SQLiteEducationRepository(EducationRepository):
             credential=education.credential,
         )
         if existing:
-            raise ValueError(f"Education already exists: {education}")
+            raise FolioDuplicateError(f"Education already exists: {education}")
         params = self._to_params(education)
         try:
             self.conn.execute(
@@ -85,7 +90,7 @@ class SQLiteEducationRepository(EducationRepository):
                 params,
             )
         except sqlite3.IntegrityError:
-            raise ValueError(f"Education already exists: {education}")
+            raise FolioDuplicateError(f"Education already exists: {education}")
 
     def remove(self, education: Education) -> None:
         params = self._to_params(education)
@@ -94,7 +99,7 @@ class SQLiteEducationRepository(EducationRepository):
             params,
         )
         if cursor.rowcount == 0:
-            raise ValueError(f"Education not found: {education}")
+            raise FolioNotFoundError(f"Education not found: {education}")
 
     def replace(self, old: Education, new: Education) -> None:
         old_params = self._to_params(old)
@@ -120,12 +125,12 @@ class SQLiteEducationRepository(EducationRepository):
 
         cursor = self.conn.execute(sql, {**where_params, **set_params})
         if cursor.rowcount == 0:
-            raise ValueError(f"Education not found: {old}")
+            raise FolioNotFoundError(f"Education not found: {old}")
 
     def find(self, **filters) -> list[Education]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
-            raise ValueError(f"Invalid filter fields: {invalid}")
+            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
 
         if not filters:
             return self.list_all()

@@ -2,6 +2,7 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import FolioDuplicateError
 from folio.models import Address
 from folio.services import AddressService
 from folio.uow import AddressSQLiteUoW
@@ -134,7 +135,7 @@ class TestAddressServiceIntegration:
         service.add(addr)
 
         # Adding a duplicate should fail and roll back
-        with pytest.raises(ValueError):
+        with pytest.raises(FolioDuplicateError):
             service.add(addr)
 
         # Timeline should be unchanged

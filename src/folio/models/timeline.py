@@ -2,6 +2,8 @@ import dataclasses
 import datetime as dt
 from enum import Enum, auto
 
+from folio.exceptions import FolioDuplicateError, FolioTimelineError
+
 from .address import Address
 
 
@@ -44,7 +46,7 @@ def calculate_new_timeline(
     replacing: list[Address] | None = None,
 ) -> TimelineDiff:
     if new_address in current_timeline:
-        raise ValueError(f"Address already exists: {new_address}")
+        raise FolioDuplicateError(f"Address already exists: {new_address}")
 
     to_add = [new_address]
     to_remove: list[Address] = []
@@ -60,7 +62,7 @@ def calculate_new_timeline(
             continue
 
         if new_address.is_open and kind is _OverlapKind.ABSORB:
-            raise ValueError(
+            raise FolioTimelineError(
                 f"An open address would fully absorb {existing}. "
                 f"Close/remove it explicitly first."
             )
@@ -89,7 +91,7 @@ def calculate_new_timeline(
                 parts.append(f"missing from declaration: {missing}")
             if extra:
                 parts.append(f"not found in timeline: {extra}")
-            raise ValueError(
+            raise FolioTimelineError(
                 "Inserting this address requires confirmation: " + ", ".join(parts)
             )
 
@@ -101,7 +103,7 @@ def calculate_new_timeline(
 
             elif kind is _OverlapKind.SPLIT:
                 if new_address.end is None:
-                    raise ValueError(
+                    raise FolioTimelineError(
                         "Cannot split timeline with an open-ended address"
                     )
                 closed_prior = (
@@ -119,7 +121,7 @@ def calculate_new_timeline(
 
             elif kind is _OverlapKind.TRUNCATE_FRONT:
                 if new_address.end is None:
-                    raise ValueError(
+                    raise FolioTimelineError(
                         "Cannot truncate front of timeline with an open-ended address"
                     )
                 to_replace.append(

@@ -1,6 +1,12 @@
 import datetime as dt
 from collections.abc import Callable
 
+from folio.exceptions import (
+    FolioAmbiguousQueryError,
+    FolioCancelledError,
+    FolioNotFoundError,
+    FolioValidationError,
+)
 from folio.models import Employment
 from folio.services import EmploymentService
 from folio.uow import EmploymentSQLiteUoW
@@ -48,7 +54,7 @@ def _interactive_replace(old):
         ]
     )
     if not confirm():
-        raise ValueError("Cancelled")
+        raise FolioCancelledError("Cancelled")
     return new
 
 
@@ -103,9 +109,9 @@ def _parse_date(s):
 def _find_one(service, **kwargs):
     results = service.find(**kwargs)
     if not results:
-        raise ValueError("Record not found")
+        raise FolioNotFoundError("Record not found")
     if len(results) > 1:
-        raise ValueError(f"Expected one record, found {len(results)}")
+        raise FolioAmbiguousQueryError(f"Expected one record, found {len(results)}")
     return results[0]
 
 
@@ -185,7 +191,7 @@ def _update(args):
     if args.phone is not None:
         kwargs["phone"] = args.phone
     if not kwargs:
-        raise ValueError(
+        raise FolioValidationError(
             "No fields to update"
             " (use --end, --supervisor, --address, and/or --phone)"
         )

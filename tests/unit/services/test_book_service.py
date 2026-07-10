@@ -1,5 +1,10 @@
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+)
 from folio.models import Book, FormatType, Work
 from folio.services import BookService
 
@@ -41,7 +46,7 @@ class TestAdd:
     def test_add_duplicate_raises(self, service):
         book = make_book()
         service.add(book)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             service.add(book)
 
     def test_add_auto_creates_work(self, service, fake_uow):
@@ -72,7 +77,7 @@ class TestRemove:
         assert service.list_all() == []
 
     def test_remove_nonexistent_raises(self, service):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.remove(make_book())
 
 
@@ -92,7 +97,7 @@ class TestReplace:
     def test_replace_nonexistent_raises(self, service):
         original = make_book()
         other = make_book(isbn="9780000000026")
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.replace(original, other)
 
 
@@ -175,7 +180,7 @@ class TestFind:
         assert results[0] == b1
 
     def test_find_invalid_field_raises(self, service):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             service.find(nonexistent_field="value")
 
 

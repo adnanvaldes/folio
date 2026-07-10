@@ -3,6 +3,7 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import FolioValidationError
 from folio.models import Travel
 
 
@@ -50,27 +51,27 @@ class TestTravelConstruction:
             make_travel(date="2024-07-20")
 
     def test_rejects_empty_origin(self):
-        with pytest.raises(ValueError, match="Origin is required"):
+        with pytest.raises(FolioValidationError, match="Origin is required"):
             make_travel(origin="")
 
     def test_rejects_empty_destination(self):
-        with pytest.raises(ValueError, match="Destination is required"):
+        with pytest.raises(FolioValidationError, match="Destination is required"):
             make_travel(destination="")
 
     def test_rejects_short_origin(self):
-        with pytest.raises(ValueError, match="must be 3 letters"):
+        with pytest.raises(FolioValidationError, match="must be 3 letters"):
             make_travel(origin="US")
 
     def test_rejects_long_origin(self):
-        with pytest.raises(ValueError, match="must be 3 letters"):
+        with pytest.raises(FolioValidationError, match="must be 3 letters"):
             make_travel(origin="USAA")
 
     def test_rejects_short_destination(self):
-        with pytest.raises(ValueError, match="must be 3 letters"):
+        with pytest.raises(FolioValidationError, match="must be 3 letters"):
             make_travel(destination="CA")
 
     def test_rejects_long_destination(self):
-        with pytest.raises(ValueError, match="must be 3 letters"):
+        with pytest.raises(FolioValidationError, match="must be 3 letters"):
             make_travel(destination="CANA")
 
 

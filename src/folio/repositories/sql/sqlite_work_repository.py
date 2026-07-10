@@ -1,5 +1,11 @@
 import sqlite3
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+    FolioValidationError,
+)
 from folio.models import Work
 from folio.repositories import WorkRepository
 
@@ -87,7 +93,7 @@ class SQLiteWorkRepository(WorkRepository):
             year=work.year,
         )
         if existing:
-            raise ValueError(f"Work already exists: {work}")
+            raise FolioDuplicateError(f"Work already exists: {work}")
         params = self._to_params(work)
         try:
             self.conn.execute(
@@ -98,7 +104,7 @@ class SQLiteWorkRepository(WorkRepository):
                 params,
             )
         except sqlite3.IntegrityError:
-            raise ValueError(f"Work already exists: {work}")
+            raise FolioDuplicateError(f"Work already exists: {work}")
 
     def remove(self, work: Work) -> None:
         params = self._to_params(work)
@@ -107,7 +113,7 @@ class SQLiteWorkRepository(WorkRepository):
             {k: v for k, v in params.items() if v is not None},
         )
         if cursor.rowcount == 0:
-            raise ValueError(f"Work not found: {work}")
+            raise FolioNotFoundError(f"Work not found: {work}")
 
     def replace(self, old: Work, new: Work) -> None:
         old_params = self._to_params(old)
@@ -136,12 +142,12 @@ class SQLiteWorkRepository(WorkRepository):
 
         cursor = self.conn.execute(sql, {**where_params, **set_params})
         if cursor.rowcount == 0:
-            raise ValueError(f"Work not found: {old}")
+            raise FolioNotFoundError(f"Work not found: {old}")
 
     def find(self, **filters) -> list[Work]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
-            raise ValueError(f"Invalid filter fields: {invalid}")
+            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
 
         if not filters:
             return self.list_all()
@@ -189,7 +195,7 @@ class SQLiteWorkRepository(WorkRepository):
         self, work: Work, *, genre: str | None = None, is_read: bool | None = None
     ) -> None:
         if genre is None and is_read is None:
-            raise ValueError("No fields to update")
+            raise FolioValidationError("No fields to update")
 
         updates: dict[str, str | int] = {}
         if genre is not None:
@@ -214,4 +220,4 @@ class SQLiteWorkRepository(WorkRepository):
 
         cursor = self.conn.execute(sql, {**where_params, **set_params})
         if cursor.rowcount == 0:
-            raise ValueError(f"Work not found: {work}")
+            raise FolioNotFoundError(f"Work not found: {work}")

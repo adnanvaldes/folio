@@ -2,6 +2,7 @@ import dataclasses
 
 import pytest
 
+from folio.exceptions import FolioValidationError
 from folio.models import Book, FormatType, Work
 
 A_WORK = Work(
@@ -58,12 +59,14 @@ class TestBookConstruction:
 
     def test_audio_book_requires_duration(self):
         with pytest.raises(
-            ValueError, match="duration_minutes is required for audio books"
+            FolioValidationError, match="duration_minutes is required for audio books"
         ):
             make_book(format_type=FormatType.AUDIO, pages=None, isbn="9780000000019")
 
     def test_text_book_requires_pages(self):
-        with pytest.raises(ValueError, match="pages is required for text books"):
+        with pytest.raises(
+            FolioValidationError, match="pages is required for text books"
+        ):
             make_book(pages=None)
 
     def test_strips_isbn_whitespace(self):

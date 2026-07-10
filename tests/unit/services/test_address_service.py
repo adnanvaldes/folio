@@ -2,6 +2,12 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+    FolioTimelineError,
+)
 from folio.models import Address
 from folio.services import AddressService
 
@@ -42,7 +48,7 @@ class TestAdd:
     def test_add_duplicate_raises(self, service):
         addr = make_address()
         service.add(addr)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             service.add(addr)
 
     def test_add_automatically_closes_open_address(self, service):
@@ -75,7 +81,7 @@ class TestAdd:
             start=dt.date(2021, 6, 1),
             end=dt.date(2023, 6, 1),
         )
-        with pytest.raises(ValueError, match="requires confirmation"):
+        with pytest.raises(FolioTimelineError, match="requires confirmation"):
             service.add(overlapping)
 
     def test_add_with_correct_replacing_succeeds(self, service):
@@ -108,7 +114,7 @@ class TestRemove:
         assert service.list_all() == []
 
     def test_remove_nonexistent_raises(self, service):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.remove(make_address())
 
     def test_remove_latest_open_reopens_previous(self, service):
@@ -150,7 +156,7 @@ class TestRemove:
         service.add(b)
         service.add(c)
 
-        with pytest.raises(ValueError, match="gap"):
+        with pytest.raises(FolioTimelineError, match="gap"):
             service.remove(b)
 
     def test_remove_closed_last_address_raises(self, service):
@@ -170,7 +176,7 @@ class TestRemove:
         service.add(a)
         service.add(b)
 
-        with pytest.raises(ValueError, match="gap"):
+        with pytest.raises(FolioTimelineError, match="gap"):
             service.remove(b)
 
 
@@ -196,7 +202,7 @@ class TestReplace:
         original = make_address()
         other = make_address(street="456 Elm St")
 
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.replace(original, other)
 
     def test_replace_raises_if_new_overlaps_other_records(self, service):
@@ -217,7 +223,7 @@ class TestReplace:
             start=dt.date(2018, 1, 1),
             end=dt.date(2021, 1, 1),
         )
-        with pytest.raises(ValueError, match="overlaps"):
+        with pytest.raises(FolioTimelineError, match="overlaps"):
             service.replace(a, extended_a)
 
 
@@ -258,5 +264,5 @@ class TestFind:
         assert results[0] == open_addr
 
     def test_find_invalid_field_raises(self, service):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             service.find(nonexistent_field="value")

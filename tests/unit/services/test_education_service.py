@@ -2,6 +2,11 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+)
 from folio.models import Education
 from folio.services import EducationService
 
@@ -38,7 +43,7 @@ class TestAdd:
     def test_add_duplicate_raises(self, service):
         e = make_education()
         service.add(e)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             service.add(e)
 
     def test_add_multiple(self, service):
@@ -62,7 +67,7 @@ class TestRemove:
         assert service.list_all() == []
 
     def test_remove_nonexistent_raises(self, service):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.remove(make_education())
 
 
@@ -82,7 +87,7 @@ class TestReplace:
     def test_replace_nonexistent_raises(self, service):
         original = make_education()
         other = make_education(school="Other School")
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.replace(original, other)
 
 
@@ -144,7 +149,7 @@ class TestFind:
         assert len(service.find()) == 2
 
     def test_find_invalid_field_raises(self, service):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             service.find(nonexistent=True)
 
 

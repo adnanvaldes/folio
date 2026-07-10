@@ -2,6 +2,7 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import FolioDuplicateError
 from folio.models import Travel
 from folio.services import TravelService
 from folio.uow import TravelSQLiteUoW
@@ -68,7 +69,7 @@ class TestTravelServiceIntegration:
     def test_transaction_rolls_back_on_failure(self, service):
         t = make_travel()
         service.add(t)
-        with pytest.raises(ValueError):
+        with pytest.raises(FolioDuplicateError):
             service.add(t)  # duplicate — should rollback
         # The first add should still be there
         assert len(service.list_all()) == 1

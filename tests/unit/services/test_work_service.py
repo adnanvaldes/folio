@@ -1,5 +1,11 @@
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+    FolioValidationError,
+)
 from folio.models import Work
 from folio.services import WorkService
 
@@ -34,7 +40,7 @@ class TestAdd:
     def test_add_duplicate_raises(self, service):
         w = make_work()
         service.add(w)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             service.add(w)
 
     def test_add_multiple(self, service):
@@ -54,7 +60,7 @@ class TestRemove:
         assert service.list_all() == []
 
     def test_remove_nonexistent_raises(self, service):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.remove(make_work())
 
 
@@ -74,7 +80,7 @@ class TestReplace:
     def test_replace_nonexistent_raises(self, service):
         w1 = make_work(author="A", title="B", year=2000)
         w2 = make_work(author="C", title="D", year=2001)
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.replace(w1, w2)
 
 
@@ -105,12 +111,12 @@ class TestUpdate:
     def test_update_no_fields_raises(self, service):
         w = make_work()
         service.add(w)
-        with pytest.raises(ValueError, match="No fields to update"):
+        with pytest.raises(FolioValidationError, match="No fields to update"):
             service.update(w)
 
     def test_update_nonexistent_raises(self, service):
         w = make_work()
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.update(w, genre="Sci-Fi")
 
     def test_update_preserves_identity(self, service):
@@ -182,7 +188,7 @@ class TestFind:
         assert len(results) == 1
 
     def test_find_invalid_field_raises(self, service):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             service.find(nonexistent=True)
 
     def test_list_returns_all(self, service):

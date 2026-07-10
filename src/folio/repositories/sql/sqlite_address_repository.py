@@ -1,6 +1,11 @@
 import datetime as dt
 import sqlite3
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+)
 from folio.models import Address
 from folio.repositories import AddressRepository
 
@@ -75,7 +80,7 @@ class SQLiteAddressRepository(AddressRepository):
             end=address.end,
         )
         if existing:
-            raise ValueError(f"Address already exists: {address}")
+            raise FolioDuplicateError(f"Address already exists: {address}")
         params = self._to_params(address)
         try:
             self.conn.execute(
@@ -88,7 +93,7 @@ class SQLiteAddressRepository(AddressRepository):
                 params,
             )
         except sqlite3.IntegrityError:
-            raise ValueError(f"Address already exists: {address}")
+            raise FolioDuplicateError(f"Address already exists: {address}")
 
     def remove(self, address: Address) -> None:
         params = self._to_params(address)
@@ -97,7 +102,7 @@ class SQLiteAddressRepository(AddressRepository):
             {k: v for k, v in params.items() if v is not None},
         )
         if cursor.rowcount == 0:
-            raise ValueError(f"Address not found: {address}")
+            raise FolioNotFoundError(f"Address not found: {address}")
 
     def replace(self, old: Address, new: Address) -> None:
         old_params = self._to_params(old)
@@ -126,12 +131,12 @@ class SQLiteAddressRepository(AddressRepository):
 
         cursor = self.conn.execute(sql, {**where_params, **set_params})
         if cursor.rowcount == 0:
-            raise ValueError(f"Address not found: {old}")
+            raise FolioNotFoundError(f"Address not found: {old}")
 
     def find(self, **filters) -> list[Address]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
-            raise ValueError(f"Invalid filter fields: {invalid}")
+            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
 
         if not filters:
             return self.list_all()

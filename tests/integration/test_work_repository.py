@@ -2,6 +2,12 @@ import sqlite3
 
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+    FolioValidationError,
+)
 from folio.models import Work
 from folio.repositories import SQLiteWorkRepository
 
@@ -39,14 +45,14 @@ class TestSQLiteWorkRepositoryAdd:
     def test_add_duplicate_raises(self, repo):
         w = make_work()
         repo.add(w)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             repo.add(w)
 
     def test_add_case_insensitive_duplicate_raises(self, repo):
         w1 = make_work(author="George Orwell", title="1984")
         w2 = make_work(author="george orwell", title="1984")
         repo.add(w1)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             repo.add(w2)
 
     def test_list_returns_sorted(self, repo):
@@ -90,7 +96,7 @@ class TestSQLiteWorkRepositoryRemove:
         assert repo.list_all() == []
 
     def test_remove_nonexistent_raises(self, repo):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.remove(make_work())
 
 
@@ -110,7 +116,7 @@ class TestSQLiteWorkRepositoryReplace:
     def test_replace_nonexistent_raises(self, repo):
         w1 = make_work(author="A", title="B", year=2000)
         w2 = make_work(author="C", title="D", year=2001)
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.replace(w1, w2)
 
 
@@ -141,12 +147,12 @@ class TestSQLiteWorkRepositoryUpdate:
     def test_update_no_fields_raises(self, repo):
         w = make_work()
         repo.add(w)
-        with pytest.raises(ValueError, match="No fields to update"):
+        with pytest.raises(FolioValidationError, match="No fields to update"):
             repo.update(w)
 
     def test_update_nonexistent_raises(self, repo):
         w = make_work()
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.update(w, genre="Sci-Fi")
 
     def test_update_preserves_identity(self, repo):
@@ -206,5 +212,5 @@ class TestSQLiteWorkRepositoryFind:
         assert results[0].year is None
 
     def test_find_invalid_field_raises(self, repo):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             repo.find(invalid="x")

@@ -2,6 +2,8 @@ import dataclasses
 import re
 from enum import Enum
 
+from folio.exceptions import FolioValidationError
+
 from .work import Work
 
 
@@ -14,7 +16,7 @@ def validate_isbn(isbn: str | None) -> str | None:
     converted = _convert_isbn_10_to_13(cleaned)
     if converted is not None:
         return converted
-    raise ValueError(f"Invalid ISBN: {isbn}")
+    raise FolioValidationError(f"Invalid ISBN: {isbn}")
 
 
 def _is_valid_isbn_10(isbn: str) -> bool:
@@ -89,10 +91,12 @@ class Book:
 
         if self.format_type == FormatType.AUDIO:
             if self.duration_minutes is None:
-                raise ValueError("duration_minutes is required for audio books")
+                raise FolioValidationError(
+                    "duration_minutes is required for audio books"
+                )
         else:
             if self.pages is None:
-                raise ValueError("pages is required for text books")
+                raise FolioValidationError("pages is required for text books")
 
     def _identity_fields(self) -> tuple:
         return (

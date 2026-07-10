@@ -2,6 +2,12 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+    FolioValidationError,
+)
 from folio.models import Employment
 from folio.services import EmploymentService
 
@@ -37,7 +43,7 @@ class TestAdd:
     def test_add_duplicate_raises(self, service):
         e = make_employment()
         service.add(e)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             service.add(e)
 
     def test_add_multiple(self, service):
@@ -57,7 +63,7 @@ class TestRemove:
         assert service.list_all() == []
 
     def test_remove_nonexistent_raises(self, service):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.remove(make_employment())
 
 
@@ -77,7 +83,7 @@ class TestReplace:
     def test_replace_nonexistent_raises(self, service):
         original = make_employment()
         other = make_employment(company="Other Corp")
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.replace(original, other)
 
 
@@ -114,11 +120,11 @@ class TestUpdate:
     def test_update_no_fields_raises(self, service):
         e = make_employment()
         service.add(e)
-        with pytest.raises(ValueError, match="No fields to update"):
+        with pytest.raises(FolioValidationError, match="No fields to update"):
             service.update(e)
 
     def test_update_nonexistent_raises(self, service):
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             service.update(make_employment(), supervisor="New")
 
 
@@ -157,7 +163,7 @@ class TestFind:
         assert len(service.find()) == 2
 
     def test_find_invalid_field_raises(self, service):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             service.find(nonexistent=True)
 
 

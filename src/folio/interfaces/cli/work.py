@@ -1,5 +1,12 @@
 from collections.abc import Callable
 
+from folio.exceptions import (
+    FolioAmbiguousQueryError,
+    FolioCancelledError,
+    FolioNotFoundError,
+    FolioParseError,
+    FolioValidationError,
+)
 from folio.models import Work
 from folio.services import WorkService
 from folio.uow import WorkSQLiteUoW
@@ -13,7 +20,7 @@ def _parse_bool(s):
         return True
     if s.lower() in ("no", "false", "0", "n"):
         return False
-    raise ValueError(f"Invalid boolean: '{s}' (expected yes/no/true/false/1/0)")
+    raise FolioParseError(f"Invalid boolean: '{s}' (expected yes/no/true/false/1/0)")
 
 
 def _interactive_replace(old):
@@ -46,7 +53,7 @@ def _interactive_replace(old):
         ]
     )
     if not confirm():
-        raise ValueError("Cancelled")
+        raise FolioCancelledError("Cancelled")
     return new
 
 
@@ -101,9 +108,9 @@ def setup(parser):
 def _find_one(service, **kwargs):
     results = service.find(**kwargs)
     if not results:
-        raise ValueError("Work not found")
+        raise FolioNotFoundError("Work not found")
     if len(results) > 1:
-        raise ValueError(f"Expected one work, found {len(results)}")
+        raise FolioAmbiguousQueryError(f"Expected one work, found {len(results)}")
     return results[0]
 
 
@@ -178,7 +185,7 @@ def _update(args):
     if args.is_read is not None:
         kwargs["is_read"] = _parse_bool(args.is_read)
     if not kwargs:
-        raise ValueError("No fields to update (use --genre and/or --is-read)")
+        raise FolioValidationError("No fields to update (use --genre and/or --is-read)")
     svc.update(old, **kwargs)
     updated = _find_one(svc, author=args.author, title=args.title, year=args.year)
     print_item(updated, args.json, label="Updated")

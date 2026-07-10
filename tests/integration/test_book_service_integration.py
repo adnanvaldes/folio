@@ -1,5 +1,6 @@
 import pytest
 
+from folio.exceptions import FolioDuplicateError
 from folio.models import Book, FormatType, Work
 from folio.services import BookService
 from folio.uow import BookSQLiteUoW
@@ -83,7 +84,7 @@ class TestBookServiceIntegration:
         book = make_book()
         service.add(book)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(FolioDuplicateError):
             service.add(book)
 
         assert len(service.list_all()) == 1
@@ -91,7 +92,7 @@ class TestBookServiceIntegration:
     def test_add_isbn_none_exact_duplicate_raises(self, service):
         book = make_book(isbn=None, pages=200)
         service.add(book)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             service.add(make_book(isbn=None, pages=200))
 
     def test_remove_persists(self, service):

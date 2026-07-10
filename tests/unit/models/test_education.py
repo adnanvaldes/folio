@@ -3,6 +3,7 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import FolioValidationError
 from folio.models import Education
 
 
@@ -52,23 +53,23 @@ class TestEducationConstruction:
         assert e.credential == "Certificate"
 
     def test_rejects_empty_field(self):
-        with pytest.raises(ValueError, match="Field is required"):
+        with pytest.raises(FolioValidationError, match="Field is required"):
             make_education(field="")
 
     def test_rejects_empty_school(self):
-        with pytest.raises(ValueError, match="School is required"):
+        with pytest.raises(FolioValidationError, match="School is required"):
             make_education(school="")
 
     def test_rejects_empty_city(self):
-        with pytest.raises(ValueError, match="City is required"):
+        with pytest.raises(FolioValidationError, match="City is required"):
             make_education(city="")
 
     def test_rejects_empty_country(self):
-        with pytest.raises(ValueError, match="Country is required"):
+        with pytest.raises(FolioValidationError, match="Country is required"):
             make_education(country="")
 
     def test_rejects_empty_credential(self):
-        with pytest.raises(ValueError, match="Credential is required"):
+        with pytest.raises(FolioValidationError, match="Credential is required"):
             make_education(credential="")
 
     def test_rejects_non_date_start(self):
@@ -80,7 +81,10 @@ class TestEducationConstruction:
             make_education(end="2020-12-01")
 
     def test_rejects_end_before_start(self):
-        with pytest.raises(ValueError, match="end date cannot be before start date"):
+        with pytest.raises(
+            FolioValidationError,
+            match="end date cannot be before start date",
+        ):
             make_education(
                 start=dt.date(2020, 12, 1),
                 end=dt.date(2020, 9, 1),

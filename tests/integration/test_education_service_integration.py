@@ -2,6 +2,7 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import FolioDuplicateError
 from folio.models import Education
 from folio.services import EducationService
 from folio.uow import EducationSQLiteUoW
@@ -83,7 +84,7 @@ class TestEducationServiceIntegration:
     def test_transaction_rolls_back_on_failure(self, service):
         e = make_education()
         service.add(e)
-        with pytest.raises(ValueError):
+        with pytest.raises(FolioDuplicateError):
             service.add(e)  # duplicate
         assert len(service.list_all()) == 1
 

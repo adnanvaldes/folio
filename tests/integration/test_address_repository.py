@@ -3,6 +3,11 @@ import sqlite3
 
 import pytest
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+)
 from folio.models import Address
 from folio.repositories import SQLiteAddressRepository
 
@@ -42,7 +47,7 @@ class TestSQLiteAddressRepositoryAdd:
     def test_add_duplicate_raises(self, repo):
         addr = make_address()
         repo.add(addr)
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             repo.add(addr)
 
     def test_list_returns_chronological_order(self, repo):
@@ -138,7 +143,7 @@ class TestSQLiteAddressRepositoryRemove:
 
     def test_remove_nonexistent_raises(self, repo):
         addr = make_address()
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.remove(addr)
 
     def test_remove_open_address_uses_is_null(self, repo):
@@ -168,7 +173,7 @@ class TestSQLiteAddressRepositoryReplace:
     def test_replace_nonexistent_raises(self, repo):
         original = make_address()
         corrected = make_address(street="456 Elm St")
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(FolioNotFoundError, match="not found"):
             repo.replace(original, corrected)
 
     def test_replace_open_address_uses_is_null(self, repo):
@@ -218,5 +223,5 @@ class TestSQLiteAddressRepositoryFind:
         assert results[0].province is None
 
     def test_find_invalid_field_raises(self, repo):
-        with pytest.raises(ValueError, match="Invalid filter fields"):
+        with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             repo.find(nonexistent="value")

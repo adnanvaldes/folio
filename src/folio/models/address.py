@@ -1,6 +1,8 @@
 import dataclasses
 import datetime as dt
 
+from folio.exceptions import FolioStateConflictError, FolioValidationError
+
 
 @dataclasses.dataclass(frozen=True, eq=False)
 class Address:
@@ -26,13 +28,13 @@ class Address:
         object.__setattr__(self, "province", prov or None)
 
         if not self.street:
-            raise ValueError("Street is required")
+            raise FolioValidationError("Street is required")
         if not self.city:
-            raise ValueError("City is required")
+            raise FolioValidationError("City is required")
         if not self.country:
-            raise ValueError("Country is required")
+            raise FolioValidationError("Country is required")
         if not self.postal_code:
-            raise ValueError("Postal code is required")
+            raise FolioValidationError("Postal code is required")
 
         if not isinstance(self.start, dt.date):
             raise TypeError(f"start must be a datetime.date, got {type(self.start)}")
@@ -43,7 +45,7 @@ class Address:
             )
 
         if self.end is not None and self.end <= self.start:
-            raise ValueError(
+            raise FolioValidationError(
                 f"end date must be after start date, "
                 f"got: [start={self.start}, end={self.end}]"
             )
@@ -114,9 +116,9 @@ class Address:
         Return a closed version of this Address
         """
         if not self.is_open:
-            raise ValueError(f"Address is already closed: {self}")
+            raise FolioStateConflictError(f"Address is already closed: {self}")
         if end <= self.start:
-            raise ValueError(
+            raise FolioValidationError(
                 f"Closing date must be after start date, "
                 f"got start={self.start}, end={end}"
             )
@@ -129,5 +131,5 @@ class Address:
         the previous one becomes current again.
         """
         if self.is_open:
-            raise ValueError(f"Address is already open: {self}")
+            raise FolioStateConflictError(f"Address is already open: {self}")
         return dataclasses.replace(self, end=None)

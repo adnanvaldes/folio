@@ -1,6 +1,12 @@
 import datetime as dt
 import sqlite3
 
+from folio.exceptions import (
+    FolioDuplicateError,
+    FolioInvalidFilterError,
+    FolioNotFoundError,
+    FolioValidationError,
+)
 from folio.models import Employment
 from folio.repositories import EmploymentRepository
 
@@ -65,7 +71,7 @@ class SQLiteEmploymentRepository(EmploymentRepository):
             start=employment.start,
         )
         if existing:
-            raise ValueError(f"Employment already exists: {employment}")
+            raise FolioDuplicateError(f"Employment already exists: {employment}")
         params = self._to_params(employment)
         try:
             self.conn.execute(
@@ -76,7 +82,7 @@ class SQLiteEmploymentRepository(EmploymentRepository):
                 params,
             )
         except sqlite3.IntegrityError:
-            raise ValueError(f"Employment already exists: {employment}")
+            raise FolioDuplicateError(f"Employment already exists: {employment}")
 
     def remove(self, employment: Employment) -> None:
         params = self._to_params(employment)
@@ -85,7 +91,7 @@ class SQLiteEmploymentRepository(EmploymentRepository):
             {k: v for k, v in params.items() if v is not None},
         )
         if cursor.rowcount == 0:
-            raise ValueError(f"Employment not found: {employment}")
+            raise FolioNotFoundError(f"Employment not found: {employment}")
 
     def replace(self, old: Employment, new: Employment) -> None:
         old_params = self._to_params(old)
@@ -114,12 +120,12 @@ class SQLiteEmploymentRepository(EmploymentRepository):
 
         cursor = self.conn.execute(sql, {**where_params, **set_params})
         if cursor.rowcount == 0:
-            raise ValueError(f"Employment not found: {old}")
+            raise FolioNotFoundError(f"Employment not found: {old}")
 
     def find(self, **filters) -> list[Employment]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
-            raise ValueError(f"Invalid filter fields: {invalid}")
+            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
 
         if not filters:
             return self.list_all()
@@ -156,7 +162,7 @@ class SQLiteEmploymentRepository(EmploymentRepository):
         phone: str | None = None,
     ) -> None:
         if end is None and supervisor is None and address is None and phone is None:
-            raise ValueError("No fields to update")
+            raise FolioValidationError("No fields to update")
 
         updates = {}
         if end is not None:
@@ -187,4 +193,4 @@ class SQLiteEmploymentRepository(EmploymentRepository):
 
         cursor = self.conn.execute(sql, {**where_params, **set_params})
         if cursor.rowcount == 0:
-            raise ValueError(f"Employment not found: {employment}")
+            raise FolioNotFoundError(f"Employment not found: {employment}")

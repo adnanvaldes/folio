@@ -2,6 +2,7 @@ import dataclasses
 
 import pytest
 
+from folio.exceptions import FolioValidationError
 from folio.models import Work
 
 
@@ -27,19 +28,19 @@ class TestWorkConstruction:
         assert w.is_read is True
 
     def test_empty_author_raises(self):
-        with pytest.raises(ValueError, match="Author is required"):
+        with pytest.raises(FolioValidationError, match="Author is required"):
             make_work(author="")
 
     def test_whitespace_author_raises(self):
-        with pytest.raises(ValueError, match="Author is required"):
+        with pytest.raises(FolioValidationError, match="Author is required"):
             make_work(author="   ")
 
     def test_empty_title_raises(self):
-        with pytest.raises(ValueError, match="Title is required"):
+        with pytest.raises(FolioValidationError, match="Title is required"):
             make_work(title="")
 
     def test_whitespace_title_raises(self):
-        with pytest.raises(ValueError, match="Title is required"):
+        with pytest.raises(FolioValidationError, match="Title is required"):
             make_work(title="   ")
 
     def test_year_none_allowed(self):

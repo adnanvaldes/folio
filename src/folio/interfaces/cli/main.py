@@ -1,6 +1,8 @@
 import argparse
 import sys
 
+from folio.exceptions import FolioError
+
 from ... import __version__
 from . import address, book, education, employment, travel, work
 from . import config as cfg
@@ -53,7 +55,7 @@ def main():
         sys.exit(1)
     try:
         handler(args)
-    except (ValueError, TypeError) as e:
+    except (FolioError, TypeError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 

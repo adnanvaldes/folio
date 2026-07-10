@@ -1,5 +1,6 @@
 import pytest
 
+from folio.exceptions import FolioDuplicateError
 from folio.models import Work
 from folio.services import WorkService
 from folio.uow import WorkSQLiteUoW
@@ -74,7 +75,7 @@ class TestWorkServiceIntegration:
     def test_transaction_rolls_back_on_failure(self, service):
         w = make_work()
         service.add(w)
-        with pytest.raises(ValueError):
+        with pytest.raises(FolioDuplicateError):
             service.add(w)  # duplicate — should rollback
         assert len(service.list_all()) == 1
 

@@ -3,6 +3,7 @@ import datetime as dt
 
 import pytest
 
+from folio.exceptions import FolioDuplicateError, FolioTimelineError
 from folio.models import Address, TimelineDiff, calculate_new_timeline
 
 # ---------------------------------------------------------------------------
@@ -90,7 +91,7 @@ class TestSimpleInsertion:
 
     def test_raises_on_exact_duplicate(self):
         addr = make_address()
-        with pytest.raises(ValueError, match="already exists"):
+        with pytest.raises(FolioDuplicateError, match="already exists"):
             calculate_new_timeline([addr], addr)
 
 
@@ -132,7 +133,7 @@ class TestAutomaticClose:
             start=dt.date(2023, 1, 1),
             end=dt.date(2024, 12, 31),
         )
-        with pytest.raises(ValueError, match="requires confirmation"):
+        with pytest.raises(FolioTimelineError, match="requires confirmation"):
             calculate_new_timeline([existing], new)
 
 
@@ -153,7 +154,7 @@ class TestConfirmationRequired:
             start=dt.date(2021, 6, 1),
             end=dt.date(2023, 6, 1),
         )
-        with pytest.raises(ValueError, match="requires confirmation"):
+        with pytest.raises(FolioTimelineError, match="requires confirmation"):
             calculate_new_timeline([existing], overlapping)
 
     def test_confirmation_with_correct_replacing_succeeds(self):
@@ -185,7 +186,7 @@ class TestConfirmationRequired:
             start=dt.date(2019, 6, 1),
             end=dt.date(2020, 6, 1),
         )
-        with pytest.raises(ValueError, match="missing from declaration"):
+        with pytest.raises(FolioTimelineError, match="missing from declaration"):
             # Only declares a, but b is also affected
             calculate_new_timeline([a, b], overlapping, replacing=[a])
 
@@ -204,7 +205,7 @@ class TestConfirmationRequired:
             start=dt.date(2021, 6, 1),
             end=dt.date(2023, 6, 1),
         )
-        with pytest.raises(ValueError, match="not found in timeline"):
+        with pytest.raises(FolioTimelineError, match="not found in timeline"):
             # Declares unrelated, which isn't actually affected
             calculate_new_timeline([existing], overlapping, replacing=[unrelated])
 
@@ -262,7 +263,7 @@ class TestSplitCase:
             start=dt.date(2022, 1, 1),
             end=dt.date(2022, 12, 31),
         )
-        with pytest.raises(ValueError, match="requires confirmation"):
+        with pytest.raises(FolioTimelineError, match="requires confirmation"):
             calculate_new_timeline([existing], temporary)
 
     def test_open_address_truncates_closed(self):
@@ -303,7 +304,7 @@ class TestSplitCase:
             start=dt.date(2019, 1, 1),
             end=None,
         )
-        with pytest.raises(ValueError, match="fully absorb"):
+        with pytest.raises(FolioTimelineError, match="fully absorb"):
             calculate_new_timeline([existing], subsuming, replacing=[existing])
 
 
