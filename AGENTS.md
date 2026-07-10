@@ -11,7 +11,7 @@ folio [--config <path>] [--db <path>] [--json] <domain> <action> [args]
 Domains: `travel`, `address`, `employment`, `work`, `book`
 Actions: `add`, `list`, `find`, `remove`, `replace` (+ `update` for work, employment)
 
-**Version:** 1.0.1 | **Python:** >=3.13 | **Deps:** pyyaml (config), black, mypy, pytest, ruff, pytest-cov (dev)
+**Version:** 1.1.0 | **Python:** >=3.13 | **Deps:** pyyaml (config), black, mypy, pytest, ruff, pytest-cov (dev)
 
 ---
 
@@ -139,7 +139,9 @@ All services wrap operations in `with self.uow:` context manager:
 ## Current Git State
 
 ```
-4d46139 (HEAD -> main) test(book): add ISBN-less exact-duplicate integration test
+d39c19f (HEAD -> main) refactor: rename list() → list_all() and drop typing.List
+a330316 docs: update AGENTS.md for current state
+4d46139 test(book): add ISBN-less exact-duplicate integration test
 5597fb6 refactor(repos): extract shared _work_identity_where helper
 1772ff6 fix(cli): use find-then-mutate for address remove/replace
 32e84f5 fix(timeline): narrow open-address overlap guard to ABSORB only
@@ -147,8 +149,6 @@ All services wrap operations in `with self.uow:` context manager:
 e9c88f5 docs: add comprehensive AGENTS.md for project context
 6f54432 chore: bump version to 1.0.1
 5a47e42 refactor(services): use typing.List for consistency with repositories
-cbdc0d4 refactor: use typing.List to avoid list() method name shadowing
-bcfd2fd chore(deps): update uv.lock
 ```
 
 No tags. Branch `main` after history rewrite.
@@ -158,10 +158,11 @@ No tags. Branch `main` after history rewrite.
 ## Next Steps / Roadmap
 
 ### Immediate
-- **Release v1.0.1** — `git tag v1.0.1 && git push origin v1.0.1 && gh release create v1.0.1 --generate-notes`
+- **Release v1.1.0** — `git tag v1.1.0 && git push origin v1.1.0 && gh release create v1.1.0 --generate-notes`
 - **Add release workflow** — `.github/workflows/release.yml` to auto-build and publish on tag push
 
 ### Features
+- **ISBN-less multi-copy support** — deliberate design needed for books without ISBNs (currently `add()` raises on any duplicate)
 - **Additional filter operators** — `find` is exact-match only; add `--before`, `--after`, `--contains` for real-world search
 - **Import/export** — CSV and/or YAML import/export for bulk loading and migration
 - **Stats command** — e.g., `folio travel stats` with "countries visited per year", most-traveled routes, etc.
@@ -186,4 +187,5 @@ No tags. Branch `main` after history rewrite.
 | **Address CLI find-then-mutate** | `interfaces/cli/address.py` | `_remove` and `_replace` now use `_find_one()` to fetch the DB-hydrated record first, preventing race conditions between domain equality (case-insensitive) and SQLite DELETE/UPDATE (exact-case). |
 | **Open-address overlap guard** | `models/timeline.py` | Narrowed from broad `not existing.is_open or existing.start >= new.start` to `kind is _OverlapKind.ABSORB`. TRUNCATE_BACK now falls through to `needs_confirmation` as intended. |
 | **Identity logic consolidation** | `repositories/sql/sqlite_work_repository.py` + `sqlite_book_repository.py` | Extracted `_work_identity_where()` helper; both `SQLiteWorkRepository.find()` and `SQLiteBookRepository._lookup_work_id()` use it. |
+| **list() → list_all() rename** | all repos, services, CLI handlers, tests | Renamed to eliminate method-name shadowing with builtin `list` type; dropped `typing.List` in favor of builtin `list[X]`, resolving 53 ruff violations. |
 | **main() exception widening** | `interfaces/cli/main.py` | Now catches `TypeError` alongside `ValueError` for friendly error output.
