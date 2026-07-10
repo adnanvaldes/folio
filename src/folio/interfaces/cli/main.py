@@ -55,7 +55,7 @@ def main():
         sys.exit(1)
     try:
         handler(args)
-    except (FolioError, TypeError) as e:
+    except (FolioError, TypeError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 

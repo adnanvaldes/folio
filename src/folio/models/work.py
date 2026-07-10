@@ -14,6 +14,8 @@ class Work:
     def __post_init__(self):
         object.__setattr__(self, "author", self.author.strip())
         object.__setattr__(self, "title", self.title.strip())
+        if self.genre is not None:
+            object.__setattr__(self, "genre", self.genre.strip())
 
         if not self.author:
             raise FolioValidationError("Author is required")

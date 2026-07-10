@@ -188,10 +188,12 @@ class SQLiteEmploymentRepository(EmploymentRepository):
         if phone is not None:
             updates["phone"] = phone.strip()
 
-        identity = self._to_params(employment)
+        identity_fields = {"company", "start"}
+        params = self._to_params(employment)
         where_conditions = []
         where_params = {}
-        for field, value in identity.items():
+        for field in identity_fields:
+            value = params[field]
             if value is None:
                 where_conditions.append(f"{field} IS NULL")
             else:

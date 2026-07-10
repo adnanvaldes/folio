@@ -121,6 +121,8 @@ class SQLiteTravelRepository(TravelRepository):
         if not filters:
             return self.list_all()
 
+        case_insensitive_fields = {"origin", "destination"}
+
         conditions = []
         params = {}
         for key, value in filters.items():
@@ -142,6 +144,9 @@ class SQLiteTravelRepository(TravelRepository):
                     params[key] = value
             elif value is None:
                 conditions.append(f"{field} IS NULL")
+            elif field in case_insensitive_fields:
+                conditions.append(f"LOWER({field}) = :{field}")
+                params[field] = value.lower().strip()
             elif field == "date":
                 params[field] = value.isoformat()
                 conditions.append(f"{field} = :{field}")

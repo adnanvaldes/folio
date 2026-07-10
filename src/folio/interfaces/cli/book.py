@@ -8,7 +8,7 @@ from folio.exceptions import (
 )
 from folio.models import Book, FormatType, Work
 from folio.services import BookService, WorkService
-from folio.uow import BookSQLiteUoW, WorkSQLiteUoW
+from folio.uow import BookSQLiteUoW
 
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
@@ -220,8 +220,9 @@ def _find(args):
 
 @handler("remove")
 def _remove(args):
-    work_svc = WorkService(WorkSQLiteUoW(args.db_path))
-    svc = BookService(BookSQLiteUoW(args.db_path))
+    uow = BookSQLiteUoW(args.db_path)
+    work_svc = WorkService(uow)
+    svc = BookService(uow)
     work = _find_one_work(
         work_svc, author=args.author, title=args.title, year=args.year
     )
@@ -243,8 +244,9 @@ def _remove(args):
 
 @handler("replace")
 def _replace(args):
-    work_svc = WorkService(WorkSQLiteUoW(args.db_path))
-    svc = BookService(BookSQLiteUoW(args.db_path))
+    uow = BookSQLiteUoW(args.db_path)
+    work_svc = WorkService(uow)
+    svc = BookService(uow)
     work = _find_one_work(
         work_svc, author=args.author, title=args.title, year=args.year
     )

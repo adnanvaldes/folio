@@ -178,9 +178,7 @@ class SQLiteWorkRepository(WorkRepository):
             return (f"{field} = :{field}", {field: value})
 
         id_filters = {
-            k: v
-            for k, v in filters.items()
-            if parse_filter_key(k)[0] in identity_keys
+            k: v for k, v in filters.items() if parse_filter_key(k)[0] in identity_keys
         }
         non_id_filters = {
             k: v
@@ -224,10 +222,12 @@ class SQLiteWorkRepository(WorkRepository):
         if is_read is not None:
             updates["is_read"] = int(is_read)
 
-        identity = self._to_params(work)
+        identity_fields = {"author", "title", "year"}
+        params = self._to_params(work)
         where_conditions = []
         where_params = {}
-        for field, value in identity.items():
+        for field in identity_fields:
+            value = params[field]
             if value is None:
                 where_conditions.append(f"{field} IS NULL")
             else:

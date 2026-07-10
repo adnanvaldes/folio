@@ -70,4 +70,8 @@ class Employment:
 
     def __str__(self):
         end = self.end or "Present"
-        return f"{self.company} ({self.start} -> {end} [{self.duration}])"
+        try:
+            dur = self.duration
+        except FolioValidationError:
+            dur = "N/A"
+        return f"{self.company} ({self.start} -> {end} [{dur}])"
