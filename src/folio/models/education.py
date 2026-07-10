@@ -66,7 +66,7 @@ class Education:
     def _ordering_fields(self) -> tuple:
         return (self.start,)
 
-    def __lt__(self, other: "Education") -> bool:
+    def __lt__(self, other: Education) -> bool:
         if not isinstance(other, Education):
             return NotImplemented
         return self._ordering_fields() < other._ordering_fields()

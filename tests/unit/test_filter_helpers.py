@@ -43,15 +43,11 @@ class TestValidateFilterFields:
 
     def test_invalid_field(self):
         with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
-            validate_filter_fields(
-                {"bogus": "value"}, {"author", "title"}
-            )
+            validate_filter_fields({"bogus": "value"}, {"author", "title"})
 
     def test_invalid_field_with_operator(self):
         with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
-            validate_filter_fields(
-                {"bogus__contains": "val"}, {"author", "title"}
-            )
+            validate_filter_fields({"bogus__contains": "val"}, {"author", "title"})
 
     def test_empty_filters(self):
         validate_filter_fields({}, {"author", "title"})

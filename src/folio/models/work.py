@@ -44,7 +44,7 @@ class Work:
             (self.year is None, self.year),
         )
 
-    def __lt__(self, other: "Work") -> bool:
+    def __lt__(self, other: Work) -> bool:
         if not isinstance(other, Work):
             return NotImplemented
         return self._ordering_fields() < other._ordering_fields()

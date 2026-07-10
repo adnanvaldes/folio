@@ -120,7 +120,7 @@ class Book:
             (self.isbn or "").lower().strip(),
         )
 
-    def __lt__(self, other: "Book") -> bool:
+    def __lt__(self, other: Book) -> bool:
         if not isinstance(other, Book):
             return NotImplemented
         return self._ordering_fields() < other._ordering_fields()

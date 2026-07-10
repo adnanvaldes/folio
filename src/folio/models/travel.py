@@ -48,7 +48,7 @@ class Travel:
     def _ordering_fields(self) -> tuple:
         return (self.date,)
 
-    def __lt__(self, other: "Travel") -> bool:
+    def __lt__(self, other: Travel) -> bool:
         if not isinstance(other, Travel):
             return NotImplemented
         return self._ordering_fields() < other._ordering_fields()

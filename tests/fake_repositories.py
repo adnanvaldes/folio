@@ -295,7 +295,5 @@ class FakeEducationRepository(EducationRepository):
         results = set(self._data)
         for key, value in filters.items():
             field, op_name = parse_filter_key(key)
-            results = {
-                e for e in results if _match_field(e, field, value, op_name)
-            }
+            results = {e for e in results if _match_field(e, field, value, op_name)}
         return sorted(results)

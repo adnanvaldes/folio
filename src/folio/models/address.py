@@ -75,7 +75,7 @@ class Address:
     def _ordering_fields(self) -> tuple:
         return (self.start,)
 
-    def __lt__(self, other: "Address") -> bool:
+    def __lt__(self, other: Address) -> bool:
         if not isinstance(other, Address):
             return NotImplemented
         return self._ordering_fields() < other._ordering_fields()
@@ -101,7 +101,7 @@ class Address:
         """
         return (self.end or dt.date.today()) - self.start
 
-    def overlaps(self, other: "Address") -> bool:
+    def overlaps(self, other: Address) -> bool:
         """
         Returns True if this address's period overlaps with another's.
         end is inclusive: address ending in 2020-12-31 does not overlap
@@ -111,7 +111,7 @@ class Address:
         other_end = other.end or dt.date.max
         return self.start <= other_end and other.start <= self_end
 
-    def close(self, end: dt.date) -> "Address":
+    def close(self, end: dt.date) -> Address:
         """
         Return a closed version of this Address
         """
@@ -124,7 +124,7 @@ class Address:
             )
         return dataclasses.replace(self, end=end)
 
-    def reopen(self) -> "Address":
+    def reopen(self) -> Address:
         """
         Return an open version of this address.
         Used in the case where the latest open address is removed and

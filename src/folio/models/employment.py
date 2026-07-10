@@ -56,7 +56,7 @@ class Employment:
     def _ordering_fields(self) -> tuple:
         return (self.start,)
 
-    def __lt__(self, other: "Employment") -> bool:
+    def __lt__(self, other: Employment) -> bool:
         if not isinstance(other, Employment):
             return NotImplemented
         return self._ordering_fields() < other._ordering_fields()
