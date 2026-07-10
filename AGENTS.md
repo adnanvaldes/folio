@@ -139,7 +139,8 @@ All services wrap operations in `with self.uow:` context manager:
 ## Current Git State
 
 ```
-d39c19f (HEAD -> main) refactor: rename list() → list_all() and drop typing.List
+b193cef (HEAD -> main) chore: bump version to 1.1.0
+d39c19f refactor: rename list() → list_all() and drop typing.List
 a330316 docs: update AGENTS.md for current state
 4d46139 test(book): add ISBN-less exact-duplicate integration test
 5597fb6 refactor(repos): extract shared _work_identity_where helper
@@ -148,7 +149,6 @@ a330316 docs: update AGENTS.md for current state
 7ccd741 fix(models): strip whitespace in Work.__post_init__
 e9c88f5 docs: add comprehensive AGENTS.md for project context
 6f54432 chore: bump version to 1.0.1
-5a47e42 refactor(services): use typing.List for consistency with repositories
 ```
 
 No tags. Branch `main` after history rewrite.
