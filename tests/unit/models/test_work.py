@@ -148,6 +148,14 @@ class TestWorkIdentity:
         assert w1 == w2
         assert hash(w1) == hash(w2)
 
+    def test_strips_whitespace_from_author(self):
+        w = make_work(author="  George Orwell  ")
+        assert w.author == "George Orwell"
+
+    def test_strips_whitespace_from_title(self):
+        w = make_work(title="  1984  ")
+        assert w.title == "1984"
+
     def test_original_casing_preserved(self):
         w = make_work(author="george orwell")
         assert w.author == "george orwell"

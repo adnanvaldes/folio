@@ -10,9 +10,12 @@ class Work:
     is_read: bool
 
     def __post_init__(self):
-        if not self.author.strip():
+        object.__setattr__(self, "author", self.author.strip())
+        object.__setattr__(self, "title", self.title.strip())
+
+        if not self.author:
             raise ValueError("Author is required")
-        if not self.title.strip():
+        if not self.title:
             raise ValueError("Title is required")
         if self.year is not None and not isinstance(self.year, int):
             raise TypeError(f"year must be an int or None, got {type(self.year)}")
