@@ -1,12 +1,9 @@
 import sqlite3
 
-from folio.exceptions import (
-    FolioDuplicateError,
-    FolioInvalidFilterError,
-    FolioNotFoundError,
-)
+from folio.exceptions import FolioDuplicateError, FolioNotFoundError
 from folio.models import Book, FormatType, Work
 from folio.repositories import BookRepository
+from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
 from folio.repositories.sql.sqlite_work_repository import _work_identity_where
 
 
@@ -154,32 +151,37 @@ class SQLiteBookRepository(BookRepository):
             raise FolioNotFoundError(f"Book not found: {old}")
 
     def find(self, **filters) -> list[Book]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
+        validate_filter_fields(filters, self.VALID_FIELDS)
 
         if not filters:
             return self.list_all()
 
+        work_fields = {"author", "title", "year"}
         conditions = []
         params = {}
-        for field, value in filters.items():
-            if value is None:
-                if field in ("author", "title", "year"):
-                    conditions.append(f"w.{field} IS NULL")
-                else:
-                    conditions.append(f"b.{field} IS NULL")
+        for key, value in filters.items():
+            field, op = parse_filter_key(key)
+            prefix = "w." if field in work_fields else "b."
+            if op == "contains":
+                conditions.append(f"LOWER({prefix}{field}) LIKE :{key}")
+                params[key] = f"%{value.lower().strip()}%"
+            elif op in ("before", "after"):
+                sym = "<" if op == "before" else ">"
+                conditions.append(f"{prefix}{field} {sym} :{key}")
+                params[key] = value
+            elif value is None:
+                conditions.append(f"{prefix}{field} IS NULL")
             elif field in ("author", "title"):
-                conditions.append(f"LOWER(w.{field}) = :{field}")
+                conditions.append(f"LOWER({prefix}{field}) = :{field}")
                 params[field] = value.lower().strip()
             elif field == "year":
-                conditions.append(f"w.{field} = :{field}")
+                conditions.append(f"{prefix}{field} = :{field}")
                 params[field] = value
             elif field == "format_type":
-                conditions.append(f"b.{field} = :{field}")
+                conditions.append(f"{prefix}{field} = :{field}")
                 params[field] = value.value if isinstance(value, FormatType) else value
             else:
-                conditions.append(f"b.{field} = :{field}")
+                conditions.append(f"{prefix}{field} = :{field}")
                 params[field] = value
 
         sql = (

@@ -225,3 +225,47 @@ class TestSQLiteAddressRepositoryFind:
     def test_find_invalid_field_raises(self, repo):
         with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             repo.find(nonexistent="value")
+
+    def test_find_before_date(self, repo):
+        a = make_address(start=dt.date(2020, 1, 1), end=dt.date(2021, 12, 31))
+        b = make_address(
+            street="456 Elm St",
+            start=dt.date(2023, 1, 1),
+            end=None,
+        )
+        repo.add(a)
+        repo.add(b)
+        results = repo.find(start__before=dt.date(2022, 1, 1))
+        assert len(results) == 1
+        assert results[0].street == "123 Main St"
+
+    def test_find_after_date(self, repo):
+        a = make_address(start=dt.date(2020, 1, 1), end=dt.date(2021, 12, 31))
+        b = make_address(
+            street="456 Elm St",
+            start=dt.date(2023, 1, 1),
+            end=None,
+        )
+        repo.add(a)
+        repo.add(b)
+        results = repo.find(start__after=dt.date(2022, 1, 1))
+        assert len(results) == 1
+        assert results[0].street == "456 Elm St"
+
+    def test_find_contains_text(self, repo):
+        a = make_address(street="123 Main St")
+        b = make_address(
+            street="456 Oak Avenue",
+            start=dt.date(2023, 1, 1),
+            end=None,
+        )
+        repo.add(a)
+        repo.add(b)
+        results = repo.find(street__contains="oak")
+        assert len(results) == 1
+        assert results[0].street == "456 Oak Avenue"
+
+    def test_find_contains_is_case_insensitive(self, repo):
+        repo.add(make_address(street="123 Main St"))
+        results = repo.find(street__contains="MAIN")
+        assert len(results) == 1

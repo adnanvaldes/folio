@@ -2,12 +2,12 @@ import sqlite3
 
 from folio.exceptions import (
     FolioDuplicateError,
-    FolioInvalidFilterError,
     FolioNotFoundError,
     FolioValidationError,
 )
 from folio.models import Work
 from folio.repositories import WorkRepository
+from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
 
 
 def _work_identity_where(
@@ -145,9 +145,7 @@ class SQLiteWorkRepository(WorkRepository):
             raise FolioNotFoundError(f"Work not found: {old}")
 
     def find(self, **filters) -> list[Work]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
+        validate_filter_fields(filters, self.VALID_FIELDS)
 
         if not filters:
             return self.list_all()
@@ -156,32 +154,55 @@ class SQLiteWorkRepository(WorkRepository):
         params: dict = {}
 
         identity_keys = {"author", "title", "year"}
-        id_filters = {k: v for k, v in filters.items() if k in identity_keys}
 
-        # Use shared helper only when all three identity fields are present
-        if len(id_filters) == 3:
+        def _build_condition(key: str, value) -> tuple[str, dict]:
+            field, op = parse_filter_key(key)
+            if op == "contains":
+                return (
+                    f"LOWER({field}) LIKE :{key}",
+                    {key: f"%{value.lower().strip()}%"},
+                )
+            if op in ("before", "after"):
+                sym = "<" if op == "before" else ">"
+                return (
+                    f"{field} {sym} :{key}",
+                    {key: value},
+                )
+            if value is None:
+                return (f"{field} IS NULL", {})
+            if field in ("author", "title"):
+                return (
+                    f"LOWER({field}) = :{field}",
+                    {field: value.lower().strip()},
+                )
+            return (f"{field} = :{field}", {field: value})
+
+        id_filters = {
+            k: v
+            for k, v in filters.items()
+            if parse_filter_key(k)[0] in identity_keys
+        }
+        non_id_filters = {
+            k: v
+            for k, v in filters.items()
+            if parse_filter_key(k)[0] not in identity_keys
+        }
+
+        all_id_exact = all(parse_filter_key(k)[1] is None for k in id_filters)
+        if len(id_filters) == 3 and all_id_exact:
             where, id_params = _work_identity_where(**id_filters)
             conditions.append(where)
             params.update(id_params)
         else:
-            for field, value in id_filters.items():
-                if value is None:
-                    conditions.append(f"{field} IS NULL")
-                elif field in ("author", "title"):
-                    conditions.append(f"LOWER({field}) = :{field}")
-                    params[field] = value.lower().strip()
-                else:
-                    conditions.append(f"{field} = :{field}")
-                    params[field] = value
+            for key, value in id_filters.items():
+                cond, p = _build_condition(key, value)
+                conditions.append(cond)
+                params.update(p)
 
-        for field, value in filters.items():
-            if field in identity_keys:
-                continue
-            if value is None:
-                conditions.append(f"{field} IS NULL")
-            else:
-                conditions.append(f"{field} = :{field}")
-                params[field] = value
+        for key, value in non_id_filters.items():
+            cond, p = _build_condition(key, value)
+            conditions.append(cond)
+            params.update(p)
 
         sql = (
             f"SELECT author, title, year, genre, is_read "

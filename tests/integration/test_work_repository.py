@@ -214,3 +214,39 @@ class TestSQLiteWorkRepositoryFind:
     def test_find_invalid_field_raises(self, repo):
         with pytest.raises(FolioInvalidFilterError, match="Invalid filter fields"):
             repo.find(invalid="x")
+
+    def test_find_year_before(self, repo):
+        w1 = make_work(author="A", title="Old", year=1950)
+        w2 = make_work(author="B", title="New", year=2020)
+        repo.add(w1)
+        repo.add(w2)
+        results = repo.find(year__before=2000)
+        assert len(results) == 1
+        assert results[0].title == "Old"
+
+    def test_find_year_after(self, repo):
+        w1 = make_work(author="A", title="Old", year=1950)
+        w2 = make_work(author="B", title="New", year=2020)
+        repo.add(w1)
+        repo.add(w2)
+        results = repo.find(year__after=2000)
+        assert len(results) == 1
+        assert results[0].title == "New"
+
+    def test_find_author_contains(self, repo):
+        w1 = make_work(author="George Orwell", title="1984")
+        w2 = make_work(author="Aldous Huxley", title="Brave New World", year=1932)
+        repo.add(w1)
+        repo.add(w2)
+        results = repo.find(author__contains="orwell")
+        assert len(results) == 1
+        assert results[0].author == "George Orwell"
+
+    def test_find_title_contains(self, repo):
+        w1 = make_work(author="A", title="Python Cookbook")
+        w2 = make_work(author="B", title="Java Guide", year=2000)
+        repo.add(w1)
+        repo.add(w2)
+        results = repo.find(title__contains="python")
+        assert len(results) == 1
+        assert results[0].title == "Python Cookbook"

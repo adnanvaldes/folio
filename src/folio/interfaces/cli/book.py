@@ -118,6 +118,13 @@ def setup(parser):
     fp.add_argument("--format", default=None)
     fp.add_argument("--isbn", default=None)
     fp.add_argument("--narrator", default=None)
+    fp.add_argument(
+        "--before", type=int, default=None, metavar="YEAR", help="Year before"
+    )
+    fp.add_argument(
+        "--after", type=int, default=None, metavar="YEAR", help="Year after"
+    )
+    fp.add_argument("--contains", default=None, metavar="TEXT", help="Substring match")
 
     rmp = parser.add_parser("remove", help="Remove a book")
     rmp.add_argument("author")
@@ -200,6 +207,13 @@ def _find(args):
         filters["isbn"] = args.isbn
     if args.narrator is not None:
         filters["narrator"] = args.narrator
+    if args.before is not None:
+        filters["year__before"] = args.before
+    if args.after is not None:
+        filters["year__after"] = args.after
+    if args.contains is not None:
+        for field in ("author", "title", "isbn", "narrator"):
+            filters[f"{field}__contains"] = args.contains
     items = svc.find(**filters)
     print_list(items, args.json)
 

@@ -76,6 +76,9 @@ def setup(parser):
     fp.add_argument("--supervisor", default=None)
     fp.add_argument("--address", default=None)
     fp.add_argument("--phone", default=None)
+    fp.add_argument("--before", default=None, metavar="DATE", help="Start before date")
+    fp.add_argument("--after", default=None, metavar="DATE", help="Start after date")
+    fp.add_argument("--contains", default=None, metavar="TEXT", help="Substring match")
 
     rmp = parser.add_parser("remove", help="Remove an employment record")
     rmp.add_argument("company")
@@ -163,6 +166,13 @@ def _find(args):
         val = getattr(args, key)
         if val is not None:
             filters[key] = _parse_date(val)
+    if args.before is not None:
+        filters["start__before"] = _parse_date(args.before)
+    if args.after is not None:
+        filters["start__after"] = _parse_date(args.after)
+    if args.contains is not None:
+        for field in ("company", "supervisor", "address", "phone"):
+            filters[f"{field}__contains"] = args.contains
     items = svc.find(**filters)
     print_list(items, args.json)
 

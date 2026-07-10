@@ -58,6 +58,9 @@ def setup(parser):
     fp.add_argument("--destination", default=None)
     fp.add_argument("--date", default=None)
     fp.add_argument("--note", default=None)
+    fp.add_argument("--before", default=None, metavar="DATE", help="Date before")
+    fp.add_argument("--after", default=None, metavar="DATE", help="Date after")
+    fp.add_argument("--contains", default=None, metavar="TEXT", help="Substring match")
 
     rmp = parser.add_parser("remove", help="Remove a travel record")
     rmp.add_argument("origin")
@@ -129,6 +132,13 @@ def _find(args):
         val = getattr(args, key)
         if val is not None:
             filters[key] = _parse_date(val) if key == "date" else val
+    if args.before is not None:
+        filters["date__before"] = _parse_date(args.before)
+    if args.after is not None:
+        filters["date__after"] = _parse_date(args.after)
+    if args.contains is not None:
+        for field in ("origin", "destination", "note"):
+            filters[f"{field}__contains"] = args.contains
     items = svc.find(**filters)
     print_list(items, args.json)
 

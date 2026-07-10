@@ -1,13 +1,10 @@
 import datetime as dt
 import sqlite3
 
-from folio.exceptions import (
-    FolioDuplicateError,
-    FolioInvalidFilterError,
-    FolioNotFoundError,
-)
+from folio.exceptions import FolioDuplicateError, FolioNotFoundError
 from folio.models import Education
 from folio.repositories import EducationRepository
+from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
 
 
 class SQLiteEducationRepository(EducationRepository):
@@ -128,17 +125,35 @@ class SQLiteEducationRepository(EducationRepository):
             raise FolioNotFoundError(f"Education not found: {old}")
 
     def find(self, **filters) -> list[Education]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
+        validate_filter_fields(filters, self.VALID_FIELDS)
 
         if not filters:
             return self.list_all()
 
+        case_insensitive_fields = {"field", "school", "city", "country", "credential"}
+
         conditions = []
         params = {}
-        for field, value in filters.items():
-            if field in ("field", "school", "city", "country", "credential"):
+        for key, value in filters.items():
+            field, op = parse_filter_key(key)
+            if op == "contains":
+                conditions.append(f"LOWER({field}) LIKE :{key}")
+                params[key] = f"%{value.lower().strip()}%"
+            elif op == "before":
+                conditions.append(f"{field} < :{key}")
+                if hasattr(value, "isoformat"):
+                    params[key] = value.isoformat()
+                else:
+                    params[key] = value
+            elif op == "after":
+                conditions.append(f"{field} > :{key}")
+                if hasattr(value, "isoformat"):
+                    params[key] = value.isoformat()
+                else:
+                    params[key] = value
+            elif value is None:
+                conditions.append(f"{field} IS NULL")
+            elif field in case_insensitive_fields:
                 conditions.append(f"LOWER({field}) = :{field}")
                 params[field] = value.lower().strip()
             elif field in ("start", "end"):

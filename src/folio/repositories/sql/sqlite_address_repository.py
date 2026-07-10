@@ -1,13 +1,10 @@
 import datetime as dt
 import sqlite3
 
-from folio.exceptions import (
-    FolioDuplicateError,
-    FolioInvalidFilterError,
-    FolioNotFoundError,
-)
+from folio.exceptions import FolioDuplicateError, FolioNotFoundError
 from folio.models import Address
 from folio.repositories import AddressRepository
+from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
 
 
 class SQLiteAddressRepository(AddressRepository):
@@ -134,9 +131,7 @@ class SQLiteAddressRepository(AddressRepository):
             raise FolioNotFoundError(f"Address not found: {old}")
 
     def find(self, **filters) -> list[Address]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
+        validate_filter_fields(filters, self.VALID_FIELDS)
 
         if not filters:
             return self.list_all()
@@ -151,8 +146,24 @@ class SQLiteAddressRepository(AddressRepository):
 
         conditions = []
         params = {}
-        for field, value in filters.items():
-            if value is None:
+        for key, value in filters.items():
+            field, op = parse_filter_key(key)
+            if op == "contains":
+                conditions.append(f"LOWER({field}) LIKE :{key}")
+                params[key] = f"%{value.lower().strip()}%"
+            elif op == "before":
+                conditions.append(f"{field} < :{key}")
+                if hasattr(value, "isoformat"):
+                    params[key] = value.isoformat()
+                else:
+                    params[key] = value
+            elif op == "after":
+                conditions.append(f"{field} > :{key}")
+                if hasattr(value, "isoformat"):
+                    params[key] = value.isoformat()
+                else:
+                    params[key] = value
+            elif value is None:
                 conditions.append(f"{field} IS NULL")
             elif field in ("start", "end"):
                 params[field] = value.isoformat()

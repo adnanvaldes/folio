@@ -62,7 +62,13 @@ class AddressRepository(ABC):
         Return all addresses matching the given filters.
         Omitting a field means do not filter on that field.
         Passing None for a field means matching on NULL.
-        Raises ValueError on unrecognized fields.
+
+        Operator suffixes:
+            field__before  — date/year fields: less than
+            field__after   — date/year fields: greater than
+            field__contains — text fields: case-insensitive substring match
+
+        Raises ValueError on unrecognized fields or operators.
         """
         ...
 
@@ -114,7 +120,13 @@ class TravelRepository(ABC):
         Return all travel records matching the given filters.
         Omitting a field means do not filter on that field.
         Passing None for a field means matching on NULL.
-        Raises ValueError on unrecognized fields.
+
+        Operator suffixes:
+            field__before   — date fields: less than
+            field__after    — date fields: greater than
+            field__contains — text fields: case-insensitive substring match
+
+        Raises ValueError on unrecognized fields or operators.
         """
         ...
 
@@ -155,7 +167,13 @@ class WorkRepository(ABC):
         Return all works matching the given filters.
         Omitting a field means do not filter on that field.
         Passing None for a field means matching on NULL.
-        Raises ValueError on unrecognized fields.
+
+        Operator suffixes:
+            field__before   — year field: less than
+            field__after    — year field: greater than
+            field__contains — text fields: case-insensitive substring match
+
+        Raises ValueError on unrecognized fields or operators.
         """
         ...
 
@@ -207,7 +225,13 @@ class EmploymentRepository(ABC):
         Return all employment records matching the given filters.
         Omitting a field means do not filter on that field.
         Passing None for a field means matching on NULL.
-        Raises ValueError on unrecognized fields.
+
+        Operator suffixes:
+            field__before   — date fields: less than
+            field__after    — date fields: greater than
+            field__contains — text fields: case-insensitive substring match
+
+        Raises ValueError on unrecognized fields or operators.
         """
         ...
 
@@ -275,7 +299,13 @@ class EducationRepository(ABC):
         Return all education records matching the given filters.
         Omitting a field means do not filter on that field.
         Passing None for a field means matching on NULL.
-        Raises ValueError on unrecognized fields.
+
+        Operator suffixes:
+            field__before   — date fields: less than
+            field__after    — date fields: greater than
+            field__contains — text fields: case-insensitive substring match
+
+        Raises ValueError on unrecognized fields or operators.
         """
         ...
 
@@ -325,6 +355,12 @@ class BookRepository(ABC):
         Return all books matching the given filters.
         Omitting a field means do not filter on that field.
         Passing None for a field means matching on NULL.
-        Raises ValueError on unrecognized fields.
+
+        Operator suffixes:
+            field__before   — year field: less than
+            field__after    — year field: greater than
+            field__contains — text fields: case-insensitive substring match
+
+        Raises ValueError on unrecognized fields or operators.
         """
         ...

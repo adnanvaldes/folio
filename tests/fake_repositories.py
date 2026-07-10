@@ -1,9 +1,9 @@
 import dataclasses
 import datetime as dt
+import operator as op
 
 from folio.exceptions import (
     FolioDuplicateError,
-    FolioInvalidFilterError,
     FolioNotFoundError,
     FolioValidationError,
 )
@@ -16,6 +16,25 @@ from folio.repositories import (
     TravelRepository,
     WorkRepository,
 )
+from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
+
+_CMP = {"before": op.lt, "after": op.gt}
+
+
+def _match_field(obj, field: str, value, op_name: str | None = None) -> bool:
+    """Check if obj.field matches value, with optional operator."""
+    actual = getattr(obj, field)
+    if op_name == "contains":
+        return actual is not None and value.lower() in actual.lower()
+    if op_name in _CMP:
+        return _CMP[op_name](actual, value)
+    if actual is None and value is None:
+        return True
+    if actual is None or value is None:
+        return False
+    if isinstance(actual, str):
+        return actual.lower().strip() == value.lower().strip()
+    return actual == value
 
 
 class FakeAddressRepository(AddressRepository):
@@ -43,21 +62,11 @@ class FakeAddressRepository(AddressRepository):
         self._data.add(new)
 
     def find(self, **filters) -> list[Address]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
-
-        text_fields = {"street", "city", "province", "country", "postal_code"}
+        validate_filter_fields(filters, self.VALID_FIELDS)
         results = set(self._data)
-        for field, value in filters.items():
-            if field in text_fields and value is not None:
-                results = {
-                    a
-                    for a in results
-                    if getattr(a, field).lower() == value.lower()
-                }
-            else:
-                results = {a for a in results if getattr(a, field) == value}
+        for key, value in filters.items():
+            field, op_name = parse_filter_key(key)
+            results = {a for a in results if _match_field(a, field, value, op_name)}
         return sorted(results)
 
 
@@ -86,13 +95,11 @@ class FakeTravelRepository(TravelRepository):
         self._data.add(new)
 
     def find(self, **filters) -> list[Travel]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
-
+        validate_filter_fields(filters, self.VALID_FIELDS)
         results = set(self._data)
-        for field, value in filters.items():
-            results = {t for t in results if getattr(t, field) == value}
+        for key, value in filters.items():
+            field, op_name = parse_filter_key(key)
+            results = {t for t in results if _match_field(t, field, value, op_name)}
         return sorted(results)
 
 
@@ -121,21 +128,11 @@ class FakeWorkRepository(WorkRepository):
         self._data.add(new)
 
     def find(self, **filters) -> list[Work]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
-
-        text_fields = {"author", "title"}
+        validate_filter_fields(filters, self.VALID_FIELDS)
         results = set(self._data)
-        for field, value in filters.items():
-            if field in text_fields and value is not None:
-                results = {
-                    w
-                    for w in results
-                    if getattr(w, field).lower() == value.lower()
-                }
-            else:
-                results = {w for w in results if getattr(w, field) == value}
+        for key, value in filters.items():
+            field, op_name = parse_filter_key(key)
+            results = {w for w in results if _match_field(w, field, value, op_name)}
         return sorted(results)
 
     def update(
@@ -179,20 +176,11 @@ class FakeEmploymentRepository(EmploymentRepository):
         self._data.add(new)
 
     def find(self, **filters) -> list[Employment]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
-
+        validate_filter_fields(filters, self.VALID_FIELDS)
         results = set(self._data)
-        for field, value in filters.items():
-            if field == "company" and value is not None:
-                results = {
-                    e
-                    for e in results
-                    if e.company.lower().strip() == value.lower().strip()
-                }
-            else:
-                results = {e for e in results if getattr(e, field) == value}
+        for key, value in filters.items():
+            field, op_name = parse_filter_key(key)
+            results = {e for e in results if _match_field(e, field, value, op_name)}
         return sorted(results)
 
     def update(
@@ -247,32 +235,34 @@ class FakeBookRepository(BookRepository):
         self._data.add(new)
 
     def find(self, **filters) -> list[Book]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
-
+        validate_filter_fields(filters, self.VALID_FIELDS)
         results = set(self._data)
-        for field, value in filters.items():
-            if field in ("author", "title", "year"):
-                if value is None:
-                    results = {b for b in results if getattr(b.work, field) is None}
-                elif field == "year":
-                    results = {b for b in results if b.work.year == value}
+        for key, value in filters.items():
+            field, op_name = parse_filter_key(key)
+
+            def _book_match(book: Book) -> bool:
+                if field in ("author", "title", "year"):
+                    actual = getattr(book.work, field)
+                elif field == "format_type":
+                    actual = book.format_type.value
                 else:
-                    results = {
-                        b
-                        for b in results
-                        if getattr(b.work, field).lower().strip()
-                        == value.lower().strip()
-                    }
-            elif field == "format_type":
-                ft = value if isinstance(value, FormatType) else FormatType(value)
-                results = {b for b in results if b.format_type == ft}
-            else:
-                if value is None:
-                    results = {b for b in results if getattr(b, field) is None}
-                else:
-                    results = {b for b in results if getattr(b, field) == value}
+                    actual = getattr(book, field)
+                if op_name == "contains":
+                    return actual is not None and value.lower() in actual.lower()
+                if op_name in _CMP:
+                    return _CMP[op_name](actual, value)
+                if actual is None and value is None:
+                    return True
+                if actual is None or value is None:
+                    return False
+                if field == "format_type":
+                    ft = value if isinstance(value, FormatType) else FormatType(value)
+                    return book.format_type == ft
+                if isinstance(actual, str):
+                    return actual.lower().strip() == value.lower().strip()
+                return actual == value
+
+            results = {b for b in results if _book_match(b)}
         return sorted(results)
 
 
@@ -301,24 +291,11 @@ class FakeEducationRepository(EducationRepository):
         self._data.add(new)
 
     def find(self, **filters) -> list[Education]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
-
+        validate_filter_fields(filters, self.VALID_FIELDS)
         results = set(self._data)
-        for field, value in filters.items():
-            if value is not None and field in (
-                "field",
-                "school",
-                "city",
-                "country",
-                "credential",
-            ):
-                results = {
-                    e
-                    for e in results
-                    if getattr(e, field).lower().strip() == value.lower().strip()
-                }
-            else:
-                results = {e for e in results if getattr(e, field) == value}
+        for key, value in filters.items():
+            field, op_name = parse_filter_key(key)
+            results = {
+                e for e in results if _match_field(e, field, value, op_name)
+            }
         return sorted(results)

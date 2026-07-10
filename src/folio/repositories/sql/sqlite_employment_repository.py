@@ -3,12 +3,12 @@ import sqlite3
 
 from folio.exceptions import (
     FolioDuplicateError,
-    FolioInvalidFilterError,
     FolioNotFoundError,
     FolioValidationError,
 )
 from folio.models import Employment
 from folio.repositories import EmploymentRepository
+from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
 
 
 class SQLiteEmploymentRepository(EmploymentRepository):
@@ -123,17 +123,31 @@ class SQLiteEmploymentRepository(EmploymentRepository):
             raise FolioNotFoundError(f"Employment not found: {old}")
 
     def find(self, **filters) -> list[Employment]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
+        validate_filter_fields(filters, self.VALID_FIELDS)
 
         if not filters:
             return self.list_all()
 
         conditions = []
         params = {}
-        for field, value in filters.items():
-            if value is None:
+        for key, value in filters.items():
+            field, op = parse_filter_key(key)
+            if op == "contains":
+                conditions.append(f"LOWER({field}) LIKE :{key}")
+                params[key] = f"%{value.lower().strip()}%"
+            elif op == "before":
+                conditions.append(f"{field} < :{key}")
+                if hasattr(value, "isoformat"):
+                    params[key] = value.isoformat()
+                else:
+                    params[key] = value
+            elif op == "after":
+                conditions.append(f"{field} > :{key}")
+                if hasattr(value, "isoformat"):
+                    params[key] = value.isoformat()
+                else:
+                    params[key] = value
+            elif value is None:
                 conditions.append(f"{field} IS NULL")
             elif field == "company":
                 conditions.append(f"LOWER({field}) = :{field}")

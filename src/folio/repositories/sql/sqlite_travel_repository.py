@@ -1,13 +1,10 @@
 import datetime as dt
 import sqlite3
 
-from folio.exceptions import (
-    FolioDuplicateError,
-    FolioInvalidFilterError,
-    FolioNotFoundError,
-)
+from folio.exceptions import FolioDuplicateError, FolioNotFoundError
 from folio.models import Travel
 from folio.repositories import TravelRepository
+from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
 
 
 class SQLiteTravelRepository(TravelRepository):
@@ -119,23 +116,42 @@ class SQLiteTravelRepository(TravelRepository):
             raise FolioNotFoundError(f"Travel not found: {old}")
 
     def find(self, **filters) -> list[Travel]:
-        invalid = set(filters) - self.VALID_FIELDS
-        if invalid:
-            raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
+        validate_filter_fields(filters, self.VALID_FIELDS)
 
         if not filters:
             return self.list_all()
 
+        conditions = []
         params = {}
-        for field, value in filters.items():
-            if field == "date" and value is not None:
+        for key, value in filters.items():
+            field, op = parse_filter_key(key)
+            if op == "contains":
+                conditions.append(f"LOWER({field}) LIKE :{key}")
+                params[key] = f"%{value.lower().strip()}%"
+            elif op == "before":
+                conditions.append(f"{field} < :{key}")
+                if hasattr(value, "isoformat"):
+                    params[key] = value.isoformat()
+                else:
+                    params[key] = value
+            elif op == "after":
+                conditions.append(f"{field} > :{key}")
+                if hasattr(value, "isoformat"):
+                    params[key] = value.isoformat()
+                else:
+                    params[key] = value
+            elif value is None:
+                conditions.append(f"{field} IS NULL")
+            elif field == "date":
                 params[field] = value.isoformat()
+                conditions.append(f"{field} = :{field}")
             else:
                 params[field] = value
+                conditions.append(f"{field} = :{field}")
 
         sql = (
             f"SELECT origin, destination, date, note "
-            f"FROM travel WHERE {self._where_clause(params)} ORDER BY date"
+            f"FROM travel WHERE {' AND '.join(conditions)} ORDER BY date"
         )
         rows = self.conn.execute(sql, params).fetchall()
         return [self._map_row(row) for row in rows]
