@@ -1,6 +1,5 @@
 import os
-
-import yaml
+import tomllib
 
 
 def _data_dir():
@@ -22,19 +21,20 @@ def _config_dir():
 def _config_path(custom=None):
     if custom:
         return custom
-    return os.path.join(_config_dir(), "config.yaml")
+    return os.path.join(_config_dir(), "config.toml")
 
 
 def load(custom_path=None):
     path = _config_path(custom_path)
     if not os.path.exists(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        config = {"database": {"url": f"sqlite:///{_default_db_path()}"}}
+        db_url = f"sqlite:///{_default_db_path()}"
         with open(path, "w") as f:
-            yaml.dump(config, f, default_flow_style=False)
-        return config
-    with open(path) as f:
-        return yaml.safe_load(f) or {}
+            f.write("[database]\n")
+            f.write(f'url = "{db_url}"\n')
+        return {"database": {"url": db_url}}
+    with open(path, "rb") as f:
+        return tomllib.load(f) or {}
 
 
 def db_path(config, cli_db=None):
