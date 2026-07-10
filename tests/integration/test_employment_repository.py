@@ -34,7 +34,7 @@ class TestSQLiteEmploymentRepositoryAdd:
     def test_add_and_list(self, repo):
         e = make_employment()
         repo.add(e)
-        result = repo.list()
+        result = repo.list_all()
         assert len(result) == 1
         assert result[0] == e
 
@@ -58,14 +58,14 @@ class TestSQLiteEmploymentRepositoryAdd:
         repo.add(e1)
         repo.add(e2)
         repo.add(e3)
-        assert repo.list() == [e2, e3, e1]
+        assert repo.list_all() == [e2, e3, e1]
 
     def test_same_company_different_start_allowed(self, repo):
         e1 = make_employment(start=dt.date(2024, 1, 1))
         e2 = make_employment(start=dt.date(2025, 1, 1))
         repo.add(e1)
         repo.add(e2)
-        assert len(repo.list()) == 2
+        assert len(repo.list_all()) == 2
 
 
 class TestSQLiteEmploymentRepositoryDates:
@@ -73,21 +73,21 @@ class TestSQLiteEmploymentRepositoryDates:
     def test_date_round_trips_as_date_object(self, repo):
         e = make_employment()
         repo.add(e)
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert isinstance(result.start, dt.date)
         assert result.start == dt.date(2024, 1, 1)
 
     def test_end_date_round_trips(self, repo):
         e = make_employment(end=dt.date(2024, 12, 31))
         repo.add(e)
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert isinstance(result.end, dt.date)
         assert result.end == dt.date(2024, 12, 31)
 
     def test_none_end_round_trips(self, repo):
         e = make_employment(end=None)
         repo.add(e)
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert result.end is None
 
 
@@ -97,7 +97,7 @@ class TestSQLiteEmploymentRepositoryRemove:
         e = make_employment()
         repo.add(e)
         repo.remove(e)
-        assert repo.list() == []
+        assert repo.list_all() == []
 
     def test_remove_nonexistent_raises(self, repo):
         with pytest.raises(ValueError, match="not found"):
@@ -113,7 +113,7 @@ class TestSQLiteEmploymentRepositoryReplace:
         corrected = make_employment(supervisor="Corrected")
         repo.replace(original, corrected)
 
-        result = repo.list()
+        result = repo.list_all()
         assert len(result) == 1
         assert result[0].supervisor == "Corrected"
 
@@ -169,28 +169,28 @@ class TestSQLiteEmploymentRepositoryUpdate:
         e = make_employment()
         repo.add(e)
         repo.update(e, supervisor="New Sup")
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert result.supervisor == "New Sup"
 
     def test_update_end(self, repo):
         e = make_employment()
         repo.add(e)
         repo.update(e, end=dt.date(2024, 12, 31))
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert result.end == dt.date(2024, 12, 31)
 
     def test_update_address(self, repo):
         e = make_employment()
         repo.add(e)
         repo.update(e, address="456 Oak")
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert result.address == "456 Oak"
 
     def test_update_phone(self, repo):
         e = make_employment()
         repo.add(e)
         repo.update(e, phone="555-9999")
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert result.phone == "555-9999"
 
     def test_update_no_fields_raises(self, repo):

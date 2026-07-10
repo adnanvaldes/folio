@@ -1,6 +1,5 @@
 import datetime as dt
 import sqlite3
-from typing import List
 
 from folio.models import Travel
 from folio.repositories import TravelRepository
@@ -48,7 +47,7 @@ class SQLiteTravelRepository(TravelRepository):
                 parts.append(f"{field} = :{field}")
         return " AND ".join(parts)
 
-    def list(self) -> List[Travel]:
+    def list_all(self) -> list[Travel]:
         rows = self.conn.execute("""
             SELECT origin, destination, date, note
             FROM travel
@@ -114,13 +113,13 @@ class SQLiteTravelRepository(TravelRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Travel not found: {old}")
 
-    def find(self, **filters) -> List[Travel]:
+    def find(self, **filters) -> list[Travel]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
 
         if not filters:
-            return self.list()
+            return self.list_all()
 
         params = {}
         for field, value in filters.items():

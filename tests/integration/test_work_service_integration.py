@@ -27,7 +27,7 @@ class TestWorkServiceIntegration:
     def test_add_and_list(self, service):
         w = make_work()
         service.add(w)
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 1
         assert result[0] == w
 
@@ -35,7 +35,7 @@ class TestWorkServiceIntegration:
         w = make_work()
         service.add(w)
         service.remove(w)
-        assert service.list() == []
+        assert service.list_all() == []
 
     def test_replace_persists_correctly(self, service):
         original = make_work(genre="Old genre")
@@ -44,7 +44,7 @@ class TestWorkServiceIntegration:
         corrected = make_work(genre="New genre")
         service.replace(original, corrected)
 
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 1
         assert result[0].genre == "New genre"
 
@@ -52,14 +52,14 @@ class TestWorkServiceIntegration:
         w = make_work()
         service.add(w)
         service.update(w, genre="Updated genre")
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.genre == "Updated genre"
 
     def test_update_is_read_persists(self, service):
         w = make_work(is_read=False)
         service.add(w)
         service.update(w, is_read=True)
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.is_read is True
 
     def test_find_by_author(self, service):
@@ -76,7 +76,7 @@ class TestWorkServiceIntegration:
         service.add(w)
         with pytest.raises(ValueError):
             service.add(w)  # duplicate — should rollback
-        assert len(service.list()) == 1
+        assert len(service.list_all()) == 1
 
     def test_add_multiple_orders_correctly(self, service):
         w1 = make_work(author="Z", title="A", year=2000)
@@ -85,12 +85,12 @@ class TestWorkServiceIntegration:
         service.add(w1)
         service.add(w2)
         service.add(w3)
-        authors = [w.author for w in service.list()]
+        authors = [w.author for w in service.list_all()]
         assert authors == ["A", "A", "Z"]
 
     def test_bool_round_trips_correctly(self, service):
         w = make_work(is_read=False)
         service.add(w)
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.is_read is False
         assert isinstance(result.is_read, bool)

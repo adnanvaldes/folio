@@ -1,5 +1,3 @@
-from typing import List
-
 from folio.models import Address, calculate_new_timeline
 from folio.uow import UnitOfWork
 
@@ -11,7 +9,7 @@ class AddressService:
     def add(
         self,
         address: Address,
-        replacing: List[Address] | None = None,
+        replacing: list[Address] | None = None,
     ) -> None:
         """
         Add a new address to the timeline.
@@ -24,7 +22,7 @@ class AddressService:
         records explicitly via `replacing`.
         """
         with self.uow:
-            current = self.uow.addresses.list()
+            current = self.uow.addresses.list_all()
             diff = calculate_new_timeline(current, address, replacing)
             self.uow.addresses.apply_diff(diff)
 
@@ -41,7 +39,7 @@ class AddressService:
         replacing= to restructure the timeline.
         """
         with self.uow:
-            current = self.uow.addresses.list()
+            current = self.uow.addresses.list_all()
 
             if address not in current:
                 raise ValueError(f"Address not found: {address}")
@@ -76,7 +74,7 @@ class AddressService:
         replacing= instead.
         """
         with self.uow:
-            current = self.uow.addresses.list()
+            current = self.uow.addresses.list_all()
 
             if old not in current:
                 raise ValueError(f"Address not found: {old}")
@@ -90,7 +88,7 @@ class AddressService:
 
             self.uow.addresses.replace(old, new)
 
-    def find(self, **filters) -> List[Address]:
+    def find(self, **filters) -> list[Address]:
         """
         Query the timeline. Omit a field to not filter on it.
         Pass None for a field to match records where that field is NULL.
@@ -98,7 +96,7 @@ class AddressService:
         with self.uow:
             return self.uow.addresses.find(**filters)
 
-    def list(self) -> List[Address]:
+    def list_all(self) -> list[Address]:
         """Return the full timeline in chronological order."""
         with self.uow:
-            return self.uow.addresses.list()
+            return self.uow.addresses.list_all()

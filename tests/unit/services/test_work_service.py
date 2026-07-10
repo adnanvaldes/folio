@@ -25,7 +25,7 @@ class TestAdd:
     def test_add_single_work(self, service):
         w = make_work()
         service.add(w)
-        assert w in service.list()
+        assert w in service.list_all()
 
     def test_add_commits_transaction(self, service, fake_uow):
         service.add(make_work())
@@ -42,7 +42,7 @@ class TestAdd:
         w2 = make_work(author="George Orwell", title="Animal Farm", year=1945)
         service.add(w1)
         service.add(w2)
-        assert len(service.list()) == 2
+        assert len(service.list_all()) == 2
 
 
 class TestRemove:
@@ -51,7 +51,7 @@ class TestRemove:
         w = make_work()
         service.add(w)
         service.remove(w)
-        assert service.list() == []
+        assert service.list_all() == []
 
     def test_remove_nonexistent_raises(self, service):
         with pytest.raises(ValueError, match="not found"):
@@ -67,7 +67,7 @@ class TestReplace:
         corrected = make_work(genre="Corrected genre")
         service.replace(original, corrected)
 
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 1
         assert result[0].genre == "Corrected genre"
 
@@ -84,21 +84,21 @@ class TestUpdate:
         w = make_work()
         service.add(w)
         service.update(w, genre="Science fiction")
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.genre == "Science fiction"
 
     def test_update_is_read(self, service):
         w = make_work(is_read=False)
         service.add(w)
         service.update(w, is_read=True)
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.is_read is True
 
     def test_update_both_fields(self, service):
         w = make_work(genre="Dystopian", is_read=False)
         service.add(w)
         service.update(w, genre="Sci-Fi", is_read=True)
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.genre == "Sci-Fi"
         assert result.is_read is True
 
@@ -119,7 +119,7 @@ class TestUpdate:
         )
         service.add(w)
         service.update(w, genre="Classic")
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 1
         assert result[0].author == "George Orwell"
         assert result[0].title == "1984"
@@ -190,7 +190,7 @@ class TestFind:
         w2 = make_work(author="C", title="D", year=2000)
         service.add(w1)
         service.add(w2)
-        assert len(service.list()) == 2
+        assert len(service.list_all()) == 2
 
     def test_list_empty(self, service):
-        assert service.list() == []
+        assert service.list_all() == []

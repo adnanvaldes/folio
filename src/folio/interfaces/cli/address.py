@@ -165,7 +165,7 @@ def _add(args):
 def _list(args):
     uow = AddressSQLiteUoW(args.db_path)
     svc = AddressService(uow)
-    items = svc.list()
+    items = svc.list_all()
     print_list(items, args.json)
 
 

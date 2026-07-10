@@ -1,6 +1,5 @@
 import datetime as dt
 import sqlite3
-from typing import List
 
 from folio.models import Address
 from folio.repositories import AddressRepository
@@ -57,7 +56,7 @@ class SQLiteAddressRepository(AddressRepository):
                 parts.append(f"{field} = :{field}")
         return " AND ".join(parts)
 
-    def list(self) -> List[Address]:
+    def list_all(self) -> list[Address]:
         rows = self.conn.execute("""
             SELECT start, end, street, city, province, country, postal_code
             FROM address
@@ -129,13 +128,13 @@ class SQLiteAddressRepository(AddressRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Address not found: {old}")
 
-    def find(self, **filters) -> List[Address]:
+    def find(self, **filters) -> list[Address]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
 
         if not filters:
-            return self.list()
+            return self.list_all()
 
         case_insensitive_fields = {
             "street",

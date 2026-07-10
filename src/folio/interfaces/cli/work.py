@@ -137,7 +137,7 @@ def _add(args):
 def _list(args):
     uow = WorkSQLiteUoW(args.db_path)
     svc = WorkService(uow)
-    items = svc.list()
+    items = svc.list_all()
     print_list(items, args.json)
 
 

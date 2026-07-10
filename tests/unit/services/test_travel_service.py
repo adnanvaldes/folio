@@ -26,7 +26,7 @@ class TestAdd:
     def test_add_single_travel(self, service):
         t = make_travel()
         service.add(t)
-        assert t in service.list()
+        assert t in service.list_all()
 
     def test_add_commits_transaction(self, service, fake_uow):
         service.add(make_travel())
@@ -47,7 +47,7 @@ class TestAdd:
         )
         service.add(t1)
         service.add(t2)
-        assert len(service.list()) == 2
+        assert len(service.list_all()) == 2
 
 
 class TestRemove:
@@ -56,7 +56,7 @@ class TestRemove:
         t = make_travel()
         service.add(t)
         service.remove(t)
-        assert service.list() == []
+        assert service.list_all() == []
 
     def test_remove_nonexistent_raises(self, service):
         with pytest.raises(ValueError, match="not found"):
@@ -72,7 +72,7 @@ class TestReplace:
         corrected = make_travel(note="Corrected note")
         service.replace(original, corrected)
 
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 1
         assert result[0].note == "Corrected note"
 

@@ -30,21 +30,21 @@ class TestEmploymentServiceIntegration:
     def test_add_and_list(self, service):
         e = make_employment()
         service.add(e)
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 1
         assert result[0] == e
 
     def test_dates_survive_sqlite_round_trip(self, service):
         e = make_employment(start=dt.date(2023, 12, 25))
         service.add(e)
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert isinstance(result.start, dt.date)
         assert result.start == dt.date(2023, 12, 25)
 
     def test_end_date_round_trips(self, service):
         e = make_employment(end=dt.date(2024, 6, 30))
         service.add(e)
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert isinstance(result.end, dt.date)
         assert result.end == dt.date(2024, 6, 30)
 
@@ -52,7 +52,7 @@ class TestEmploymentServiceIntegration:
         e = make_employment()
         service.add(e)
         service.remove(e)
-        assert service.list() == []
+        assert service.list_all() == []
 
     def test_replace_persists_correctly(self, service):
         original = make_employment(supervisor="Old name")
@@ -61,7 +61,7 @@ class TestEmploymentServiceIntegration:
         corrected = make_employment(supervisor="New name")
         service.replace(original, corrected)
 
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 1
         assert result[0].supervisor == "New name"
 
@@ -69,14 +69,14 @@ class TestEmploymentServiceIntegration:
         e = make_employment()
         service.add(e)
         service.update(e, supervisor="Updated")
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.supervisor == "Updated"
 
     def test_update_end_date(self, service):
         e = make_employment()
         service.add(e)
         service.update(e, end=dt.date(2024, 12, 31))
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.end == dt.date(2024, 12, 31)
 
     def test_find_by_company(self, service):
@@ -99,7 +99,7 @@ class TestEmploymentServiceIntegration:
         service.add(e)
         with pytest.raises(ValueError):
             service.add(e)  # duplicate
-        assert len(service.list()) == 1
+        assert len(service.list_all()) == 1
 
     def test_add_multiple_orders_by_start(self, service):
         e1 = make_employment(start=dt.date(2024, 6, 1))
@@ -108,7 +108,7 @@ class TestEmploymentServiceIntegration:
         service.add(e1)
         service.add(e2)
         service.add(e3)
-        starts = [e.start for e in service.list()]
+        starts = [e.start for e in service.list_all()]
         assert starts == [
             dt.date(2024, 1, 1),
             dt.date(2024, 3, 1),

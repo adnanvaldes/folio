@@ -29,7 +29,7 @@ class TestAddressServiceIntegration:
     def test_add_and_list(self, service):
         addr = make_address()
         service.add(addr)
-        assert addr in service.list()
+        assert addr in service.list_all()
 
     def test_dates_survive_sqlite_round_trip(self, service):
         """
@@ -41,7 +41,7 @@ class TestAddressServiceIntegration:
             end=dt.date(2022, 12, 31),
         )
         service.add(addr)
-        retrieved = service.list()[0]
+        retrieved = service.list_all()[0]
 
         assert isinstance(retrieved.start, dt.date)
         assert isinstance(retrieved.end, dt.date)
@@ -51,13 +51,13 @@ class TestAddressServiceIntegration:
     def test_null_end_survives_round_trip(self, service):
         addr = make_address(end=None)
         service.add(addr)
-        retrieved = service.list()[0]
+        retrieved = service.list_all()[0]
         assert retrieved.end is None
 
     def test_null_province_survives_round_trip(self, service):
         addr = make_address(province=None)
         service.add(addr)
-        retrieved = service.list()[0]
+        retrieved = service.list_all()[0]
         assert retrieved.province is None
 
     def test_automatically_closes_open_address(self, service):
@@ -71,7 +71,7 @@ class TestAddressServiceIntegration:
         )
         service.add(new_addr)
 
-        timeline = service.list()
+        timeline = service.list_all()
         assert len(timeline) == 2
 
         original = next(a for a in timeline if a.street == "123 Main St")
@@ -92,7 +92,7 @@ class TestAddressServiceIntegration:
         service.add(open_addr)
         service.remove(open_addr)
 
-        timeline = service.list()
+        timeline = service.list_all()
         assert len(timeline) == 1
         assert timeline[0].is_open
 
@@ -103,7 +103,7 @@ class TestAddressServiceIntegration:
         corrected = make_address(street="123 Main Street")
         service.replace(original, corrected)
 
-        timeline = service.list()
+        timeline = service.list_all()
         assert len(timeline) == 1
         assert timeline[0].street == "123 Main Street"
 
@@ -138,4 +138,4 @@ class TestAddressServiceIntegration:
             service.add(addr)
 
         # Timeline should be unchanged
-        assert len(service.list()) == 1
+        assert len(service.list_all()) == 1

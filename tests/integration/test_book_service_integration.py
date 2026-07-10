@@ -33,7 +33,7 @@ class TestBookServiceIntegration:
     def test_add_and_list(self, service):
         book = make_book()
         service.add(book)
-        assert book in service.list()
+        assert book in service.list_all()
 
     def test_work_auto_created(self, service):
         new_work = Work(
@@ -45,18 +45,18 @@ class TestBookServiceIntegration:
         )
         book = make_book(work=new_work)
         service.add(book)
-        assert book in service.list()
+        assert book in service.list_all()
 
     def test_null_isbn_survives_round_trip(self, service):
         book = make_book(isbn=None)
         service.add(book)
-        retrieved = service.list()[0]
+        retrieved = service.list_all()[0]
         assert retrieved.isbn is None
 
     def test_null_narrator_survives_round_trip(self, service):
         book = make_book()
         service.add(book)
-        retrieved = service.list()[0]
+        retrieved = service.list_all()[0]
         assert retrieved.narrator is None
 
     def test_find_isbn_none_uses_is_null_in_sql(self, service):
@@ -86,7 +86,7 @@ class TestBookServiceIntegration:
         with pytest.raises(ValueError):
             service.add(book)
 
-        assert len(service.list()) == 1
+        assert len(service.list_all()) == 1
 
     def test_add_isbn_none_exact_duplicate_raises(self, service):
         book = make_book(isbn=None, pages=200)
@@ -98,7 +98,7 @@ class TestBookServiceIntegration:
         book = make_book()
         service.add(book)
         service.remove(book)
-        assert service.list() == []
+        assert service.list_all() == []
 
     def test_replace_persists(self, service):
         original = make_book()
@@ -107,6 +107,6 @@ class TestBookServiceIntegration:
         corrected = make_book(isbn="9780000000026")
         service.replace(original, corrected)
 
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 1
         assert result[0].isbn == "9780000000026"

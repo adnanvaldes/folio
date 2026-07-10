@@ -32,7 +32,7 @@ class TestAdd:
     def test_add_single_book(self, service):
         book = make_book()
         service.add(book)
-        assert book in service.list()
+        assert book in service.list_all()
 
     def test_add_commits_transaction(self, service, fake_uow):
         service.add(make_book())
@@ -54,13 +54,13 @@ class TestAdd:
         )
         book = make_book(work=new_work)
         service.add(book)
-        assert new_work in fake_uow.work.list()
+        assert new_work in fake_uow.work.list_all()
 
     def test_add_reuses_existing_work(self, service, fake_uow):
         fake_uow.work.add(A_WORK)
         book = make_book()
         service.add(book)
-        assert len(fake_uow.work.list()) == 1
+        assert len(fake_uow.work.list_all()) == 1
 
 
 class TestRemove:
@@ -69,7 +69,7 @@ class TestRemove:
         book = make_book()
         service.add(book)
         service.remove(book)
-        assert service.list() == []
+        assert service.list_all() == []
 
     def test_remove_nonexistent_raises(self, service):
         with pytest.raises(ValueError, match="not found"):
@@ -85,7 +85,7 @@ class TestReplace:
         corrected = make_book(isbn="9780000000026")
         service.replace(original, corrected)
 
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 1
         assert result[0].isbn == "9780000000026"
 
@@ -182,7 +182,7 @@ class TestFind:
 class TestList:
 
     def test_list_empty(self, service):
-        assert service.list() == []
+        assert service.list_all() == []
 
     def test_list_returns_all_books(self, service):
         b1 = make_book()
@@ -190,7 +190,7 @@ class TestList:
         service.add(b1)
         service.add(b2)
 
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 2
         assert b1 in result
         assert b2 in result

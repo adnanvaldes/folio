@@ -33,7 +33,7 @@ class TestAdd:
     def test_add_single_address(self, service):
         addr = make_address()
         service.add(addr)
-        assert addr in service.list()
+        assert addr in service.list_all()
 
     def test_add_commits_transaction(self, service, fake_uow):
         service.add(make_address())
@@ -56,7 +56,7 @@ class TestAdd:
         )
         service.add(new_addr)
 
-        timeline = service.list()
+        timeline = service.list_all()
         assert len(timeline) == 2
 
         original = next(a for a in timeline if a.street == "123 Main St")
@@ -91,7 +91,7 @@ class TestAdd:
             end=dt.date(2023, 6, 1),
         )
         service.add(overlapping, replacing=[existing])
-        assert overlapping in service.list()
+        assert overlapping in service.list_all()
 
 
 # ---------------------------------------------------------------------------
@@ -105,7 +105,7 @@ class TestRemove:
         addr = make_address()
         service.add(addr)
         service.remove(addr)
-        assert service.list() == []
+        assert service.list_all() == []
 
     def test_remove_nonexistent_raises(self, service):
         with pytest.raises(ValueError, match="not found"):
@@ -126,7 +126,7 @@ class TestRemove:
 
         service.remove(open_addr)
 
-        timeline = service.list()
+        timeline = service.list_all()
         assert len(timeline) == 1
         assert timeline[0].is_open
         assert timeline[0].street == "123 Main St"
@@ -188,7 +188,7 @@ class TestReplace:
         corrected = make_address(street="123 Main Street")
         service.replace(original, corrected)
 
-        timeline = service.list()
+        timeline = service.list_all()
         assert len(timeline) == 1
         assert timeline[0].street == "123 Main Street"
 

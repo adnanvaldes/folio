@@ -1,5 +1,3 @@
-from typing import List
-
 from folio.models import Book
 from folio.uow import UnitOfWork
 
@@ -27,10 +25,10 @@ class BookService:
         with self.uow:
             self.uow.book.replace(old, new)
 
-    def find(self, **filters) -> List[Book]:
+    def find(self, **filters) -> list[Book]:
         with self.uow:
             return self.uow.book.find(**filters)
 
-    def list(self) -> List[Book]:
+    def list_all(self) -> list[Book]:
         with self.uow:
-            return self.uow.book.list()
+            return self.uow.book.list_all()

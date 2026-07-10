@@ -32,7 +32,7 @@ class TestSQLiteWorkRepositoryAdd:
     def test_add_and_list(self, repo):
         w = make_work()
         repo.add(w)
-        result = repo.list()
+        result = repo.list_all()
         assert len(result) == 1
         assert result[0] == w
 
@@ -56,7 +56,7 @@ class TestSQLiteWorkRepositoryAdd:
         repo.add(w1)
         repo.add(w2)
         repo.add(w3)
-        assert repo.list() == [w3, w2, w1]
+        assert repo.list_all() == [w3, w2, w1]
 
 
 class TestSQLiteWorkRepositoryScalars:
@@ -64,20 +64,20 @@ class TestSQLiteWorkRepositoryScalars:
     def test_is_read_round_trips_as_bool(self, repo):
         w = make_work(is_read=True)
         repo.add(w)
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert isinstance(result.is_read, bool)
         assert result.is_read is True
 
     def test_is_read_false_round_trips(self, repo):
         w = make_work(is_read=False)
         repo.add(w)
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert result.is_read is False
 
     def test_year_none_round_trips(self, repo):
         w = make_work(year=None)
         repo.add(w)
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert result.year is None
 
 
@@ -87,7 +87,7 @@ class TestSQLiteWorkRepositoryRemove:
         w = make_work()
         repo.add(w)
         repo.remove(w)
-        assert repo.list() == []
+        assert repo.list_all() == []
 
     def test_remove_nonexistent_raises(self, repo):
         with pytest.raises(ValueError, match="not found"):
@@ -103,7 +103,7 @@ class TestSQLiteWorkRepositoryReplace:
         corrected = make_work(genre="Corrected")
         repo.replace(original, corrected)
 
-        result = repo.list()
+        result = repo.list_all()
         assert len(result) == 1
         assert result[0].genre == "Corrected"
 
@@ -120,21 +120,21 @@ class TestSQLiteWorkRepositoryUpdate:
         w = make_work()
         repo.add(w)
         repo.update(w, genre="Science fiction")
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert result.genre == "Science fiction"
 
     def test_update_is_read(self, repo):
         w = make_work(is_read=False)
         repo.add(w)
         repo.update(w, is_read=True)
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert result.is_read is True
 
     def test_update_both(self, repo):
         w = make_work(genre="Dystopian", is_read=False)
         repo.add(w)
         repo.update(w, genre="Sci-Fi", is_read=True)
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert result.genre == "Sci-Fi"
         assert result.is_read is True
 
@@ -153,7 +153,7 @@ class TestSQLiteWorkRepositoryUpdate:
         w = make_work()
         repo.add(w)
         repo.update(w, genre="Updated")
-        result = repo.list()
+        result = repo.list_all()
         assert len(result) == 1
         assert result[0].author == "George Orwell"
         assert result[0].title == "1984"

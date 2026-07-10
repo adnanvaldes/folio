@@ -28,7 +28,7 @@ class TestAdd:
     def test_add_single_employment(self, service):
         e = make_employment()
         service.add(e)
-        assert e in service.list()
+        assert e in service.list_all()
 
     def test_add_commits_transaction(self, service, fake_uow):
         service.add(make_employment())
@@ -45,7 +45,7 @@ class TestAdd:
         e2 = make_employment(company="Beta Inc", start=dt.date(2024, 6, 1))
         service.add(e1)
         service.add(e2)
-        assert len(service.list()) == 2
+        assert len(service.list_all()) == 2
 
 
 class TestRemove:
@@ -54,7 +54,7 @@ class TestRemove:
         e = make_employment()
         service.add(e)
         service.remove(e)
-        assert service.list() == []
+        assert service.list_all() == []
 
     def test_remove_nonexistent_raises(self, service):
         with pytest.raises(ValueError, match="not found"):
@@ -70,7 +70,7 @@ class TestReplace:
         corrected = make_employment(supervisor="Corrected name")
         service.replace(original, corrected)
 
-        result = service.list()
+        result = service.list_all()
         assert len(result) == 1
         assert result[0].supervisor == "Corrected name"
 
@@ -87,28 +87,28 @@ class TestUpdate:
         e = make_employment()
         service.add(e)
         service.update(e, supervisor="New Supervisor")
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.supervisor == "New Supervisor"
 
     def test_update_end(self, service):
         e = make_employment()
         service.add(e)
         service.update(e, end=dt.date(2024, 12, 31))
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.end == dt.date(2024, 12, 31)
 
     def test_update_address(self, service):
         e = make_employment()
         service.add(e)
         service.update(e, address="456 Oak Ave")
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.address == "456 Oak Ave"
 
     def test_update_phone(self, service):
         e = make_employment()
         service.add(e)
         service.update(e, phone="555-9999")
-        result = service.list()[0]
+        result = service.list_all()[0]
         assert result.phone == "555-9999"
 
     def test_update_no_fields_raises(self, service):
@@ -170,4 +170,4 @@ class TestList:
         service.add(e1)
         service.add(e2)
         service.add(e3)
-        assert service.list() == [e2, e3, e1]
+        assert service.list_all() == [e2, e3, e1]

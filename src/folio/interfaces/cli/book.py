@@ -174,7 +174,7 @@ def _add(args):
 @handler("list")
 def _list(args):
     svc = BookService(BookSQLiteUoW(args.db_path))
-    items = svc.list()
+    items = svc.list_all()
     print_list(items, args.json)
 
 

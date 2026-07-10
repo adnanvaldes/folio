@@ -1,6 +1,5 @@
 import datetime as dt
 import sqlite3
-from typing import List
 
 from folio.models import Employment
 from folio.repositories import EmploymentRepository
@@ -52,7 +51,7 @@ class SQLiteEmploymentRepository(EmploymentRepository):
                 parts.append(f"{field} = :{field}")
         return " AND ".join(parts)
 
-    def list(self) -> List[Employment]:
+    def list_all(self) -> list[Employment]:
         rows = self.conn.execute("""
             SELECT company, start, end, supervisor, address, phone
             FROM employment
@@ -117,13 +116,13 @@ class SQLiteEmploymentRepository(EmploymentRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Employment not found: {old}")
 
-    def find(self, **filters) -> List[Employment]:
+    def find(self, **filters) -> list[Employment]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
 
         if not filters:
-            return self.list()
+            return self.list_all()
 
         conditions = []
         params = {}

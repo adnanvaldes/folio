@@ -111,7 +111,7 @@ def _add(args):
 def _list(args):
     uow = TravelSQLiteUoW(args.db_path)
     svc = TravelService(uow)
-    items = svc.list()
+    items = svc.list_all()
     print_list(items, args.json)
 
 

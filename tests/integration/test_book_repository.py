@@ -39,7 +39,7 @@ class TestSQLiteBookRepositoryAdd:
     def test_add_and_list(self, repo):
         book = make_book()
         repo.add(book)
-        assert book in repo.list()
+        assert book in repo.list_all()
 
     def test_add_duplicate_raises(self, repo):
         book = make_book()
@@ -73,7 +73,7 @@ class TestSQLiteBookRepositoryAdd:
         work_repo.add(b2.work)
         repo.add(b2)
         repo.add(b1)
-        result = repo.list()
+        result = repo.list_all()
         assert result == [b2, b1]
 
     def test_add_audio_book(self, repo):
@@ -94,7 +94,7 @@ class TestSQLiteBookRepositoryAdd:
             isbn="9780000000019",
         )
         repo.add(book)
-        assert book in repo.list()
+        assert book in repo.list_all()
 
 
 class TestSQLiteBookRepositoryNullHandling:
@@ -102,13 +102,13 @@ class TestSQLiteBookRepositoryNullHandling:
     def test_isbn_none_round_trips_as_none(self, repo):
         book = make_book(isbn=None)
         repo.add(book)
-        retrieved = repo.list()[0]
+        retrieved = repo.list_all()[0]
         assert retrieved.isbn is None
 
     def test_narrator_none_round_trips_as_none(self, repo):
         book = make_book()
         repo.add(book)
-        retrieved = repo.list()[0]
+        retrieved = repo.list_all()[0]
         assert retrieved.narrator is None
 
     def test_narrator_value_round_trips_correctly(self, repo):
@@ -130,7 +130,7 @@ class TestSQLiteBookRepositoryNullHandling:
             narrator="Michael Kramer",
         )
         repo.add(book)
-        retrieved = repo.list()[0]
+        retrieved = repo.list_all()[0]
         assert retrieved.narrator == "Michael Kramer"
 
 
@@ -140,7 +140,7 @@ class TestSQLiteBookRepositoryRemove:
         book = make_book()
         repo.add(book)
         repo.remove(book)
-        assert book not in repo.list()
+        assert book not in repo.list_all()
 
     def test_remove_nonexistent_raises(self, repo):
         book = make_book()
@@ -151,7 +151,7 @@ class TestSQLiteBookRepositoryRemove:
         book = make_book(isbn=None)
         repo.add(book)
         repo.remove(book)
-        assert repo.list() == []
+        assert repo.list_all() == []
 
 
 class TestSQLiteBookRepositoryReplace:
@@ -163,7 +163,7 @@ class TestSQLiteBookRepositoryReplace:
         corrected = make_book(isbn="9780000000026")
         repo.replace(original, corrected)
 
-        result = repo.list()
+        result = repo.list_all()
         assert len(result) == 1
         assert result[0].isbn == "9780000000026"
 
@@ -180,7 +180,7 @@ class TestSQLiteBookRepositoryReplace:
         updated = make_book(isbn="9780765326355")
         repo.replace(book, updated)
 
-        result = repo.list()
+        result = repo.list_all()
         assert result[0].isbn == "9780765326355"
 
 

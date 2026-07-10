@@ -1,5 +1,4 @@
 import sqlite3
-from typing import List
 
 from folio.models import Book, FormatType, Work
 from folio.repositories import BookRepository
@@ -69,7 +68,7 @@ class SQLiteBookRepository(BookRepository):
             JOIN work w ON w.id = b.work_id
         """
 
-    def list(self) -> List[Book]:
+    def list_all(self) -> list[Book]:
         rows = self.conn.execute(f"""
             {self._join_select()}
             ORDER BY LOWER(w.author), LOWER(w.title), w.year,
@@ -149,13 +148,13 @@ class SQLiteBookRepository(BookRepository):
         if cursor.rowcount == 0:
             raise ValueError(f"Book not found: {old}")
 
-    def find(self, **filters) -> List[Book]:
+    def find(self, **filters) -> list[Book]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
 
         if not filters:
-            return self.list()
+            return self.list_all()
 
         conditions = []
         params = {}

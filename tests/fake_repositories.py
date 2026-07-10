@@ -1,5 +1,3 @@
-from typing import List
-
 import dataclasses
 import datetime as dt
 
@@ -18,7 +16,7 @@ class FakeAddressRepository(AddressRepository):
     def __init__(self):
         self._data: set[Address] = set()
 
-    def list(self) -> List[Address]:
+    def list_all(self) -> list[Address]:
         return sorted(self._data)
 
     def add(self, address: Address) -> None:
@@ -37,7 +35,7 @@ class FakeAddressRepository(AddressRepository):
         self._data.discard(old)
         self._data.add(new)
 
-    def find(self, **filters) -> List[Address]:
+    def find(self, **filters) -> list[Address]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -53,7 +51,7 @@ class FakeTravelRepository(TravelRepository):
     def __init__(self):
         self._data: set[Travel] = set()
 
-    def list(self) -> List[Travel]:
+    def list_all(self) -> list[Travel]:
         return sorted(self._data)
 
     def add(self, travel: Travel) -> None:
@@ -72,7 +70,7 @@ class FakeTravelRepository(TravelRepository):
         self._data.discard(old)
         self._data.add(new)
 
-    def find(self, **filters) -> List[Travel]:
+    def find(self, **filters) -> list[Travel]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -88,7 +86,7 @@ class FakeWorkRepository(WorkRepository):
     def __init__(self):
         self._data: set[Work] = set()
 
-    def list(self) -> List[Work]:
+    def list_all(self) -> list[Work]:
         return sorted(self._data)
 
     def add(self, work: Work) -> None:
@@ -107,7 +105,7 @@ class FakeWorkRepository(WorkRepository):
         self._data.discard(old)
         self._data.add(new)
 
-    def find(self, **filters) -> List[Work]:
+    def find(self, **filters) -> list[Work]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -138,7 +136,7 @@ class FakeEmploymentRepository(EmploymentRepository):
     def __init__(self):
         self._data: set[Employment] = set()
 
-    def list(self) -> List[Employment]:
+    def list_all(self) -> list[Employment]:
         return sorted(self._data)
 
     def add(self, employment: Employment) -> None:
@@ -157,7 +155,7 @@ class FakeEmploymentRepository(EmploymentRepository):
         self._data.discard(old)
         self._data.add(new)
 
-    def find(self, **filters) -> List[Employment]:
+    def find(self, **filters) -> list[Employment]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")
@@ -206,7 +204,7 @@ class FakeBookRepository(BookRepository):
     def __init__(self):
         self._data: set[Book] = set()
 
-    def list(self) -> List[Book]:
+    def list_all(self) -> list[Book]:
         return sorted(self._data)
 
     def add(self, book: Book) -> None:
@@ -225,7 +223,7 @@ class FakeBookRepository(BookRepository):
         self._data.discard(old)
         self._data.add(new)
 
-    def find(self, **filters) -> List[Book]:
+    def find(self, **filters) -> list[Book]:
         invalid = set(filters) - self.VALID_FIELDS
         if invalid:
             raise ValueError(f"Invalid filter fields: {invalid}")

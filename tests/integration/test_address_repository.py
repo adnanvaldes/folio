@@ -37,7 +37,7 @@ class TestSQLiteAddressRepositoryAdd:
     def test_add_and_list(self, repo):
         addr = make_address()
         repo.add(addr)
-        assert addr in repo.list()
+        assert addr in repo.list_all()
 
     def test_add_duplicate_raises(self, repo):
         addr = make_address()
@@ -56,7 +56,7 @@ class TestSQLiteAddressRepositoryAdd:
         )
         repo.add(b)
         repo.add(a)
-        result = repo.list()
+        result = repo.list_all()
         assert result == [a, b]
 
 
@@ -69,14 +69,14 @@ class TestSQLiteAddressRepositoryDates:
         """
         addr = make_address(start=dt.date(2020, 1, 1))
         repo.add(addr)
-        retrieved = repo.list()[0]
+        retrieved = repo.list_all()[0]
         assert isinstance(retrieved.start, dt.date)
         assert retrieved.start == dt.date(2020, 1, 1)
 
     def test_end_date_round_trips_as_date_object(self, repo):
         addr = make_address(end=dt.date(2022, 12, 31))
         repo.add(addr)
-        retrieved = repo.list()[0]
+        retrieved = repo.list_all()[0]
         assert isinstance(retrieved.end, dt.date)
         assert retrieved.end == dt.date(2022, 12, 31)
 
@@ -87,7 +87,7 @@ class TestSQLiteAddressRepositoryDates:
         """
         addr = make_address(end=None)
         repo.add(addr)
-        retrieved = repo.list()[0]
+        retrieved = repo.list_all()[0]
         assert retrieved.end is None
 
 
@@ -118,13 +118,13 @@ class TestSQLiteAddressRepositoryNullHandling:
         """
         addr = make_address(province=None)
         repo.add(addr)
-        retrieved = repo.list()[0]
+        retrieved = repo.list_all()[0]
         assert retrieved.province is None
 
     def test_province_value_round_trips_correctly(self, repo):
         addr = make_address(province="BC")
         repo.add(addr)
-        retrieved = repo.list()[0]
+        retrieved = repo.list_all()[0]
         assert retrieved.province == "BC"
 
 
@@ -134,7 +134,7 @@ class TestSQLiteAddressRepositoryRemove:
         addr = make_address()
         repo.add(addr)
         repo.remove(addr)
-        assert addr not in repo.list()
+        assert addr not in repo.list_all()
 
     def test_remove_nonexistent_raises(self, repo):
         addr = make_address()
@@ -149,7 +149,7 @@ class TestSQLiteAddressRepositoryRemove:
         addr = make_address(end=None)
         repo.add(addr)
         repo.remove(addr)
-        assert repo.list() == []
+        assert repo.list_all() == []
 
 
 class TestSQLiteAddressRepositoryReplace:
@@ -161,7 +161,7 @@ class TestSQLiteAddressRepositoryReplace:
         corrected = make_address(street="123 Main Street")
         repo.replace(original, corrected)
 
-        result = repo.list()
+        result = repo.list_all()
         assert len(result) == 1
         assert result[0].street == "123 Main Street"
 
@@ -181,7 +181,7 @@ class TestSQLiteAddressRepositoryReplace:
         closed = make_address(end=dt.date(2022, 12, 31))
         repo.replace(open_addr, closed)
 
-        result = repo.list()
+        result = repo.list_all()
         assert result[0].end == dt.date(2022, 12, 31)
 
 

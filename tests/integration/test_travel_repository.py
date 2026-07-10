@@ -32,7 +32,7 @@ class TestSQLiteTravelRepositoryAdd:
     def test_add_and_list(self, repo):
         t = make_travel()
         repo.add(t)
-        result = repo.list()
+        result = repo.list_all()
         assert len(result) == 1
         assert result[0] == t
 
@@ -49,7 +49,7 @@ class TestSQLiteTravelRepositoryAdd:
         repo.add(t1)
         repo.add(t2)
         repo.add(t3)
-        assert repo.list() == [t2, t3, t1]
+        assert repo.list_all() == [t2, t3, t1]
 
 
 class TestSQLiteTravelRepositoryDates:
@@ -57,7 +57,7 @@ class TestSQLiteTravelRepositoryDates:
     def test_date_round_trips_as_date_object(self, repo):
         t = make_travel()
         repo.add(t)
-        result = repo.list()[0]
+        result = repo.list_all()[0]
         assert isinstance(result.date, dt.date)
         assert result.date == dt.date(2024, 7, 20)
 
@@ -68,7 +68,7 @@ class TestSQLiteTravelRepositoryRemove:
         t = make_travel()
         repo.add(t)
         repo.remove(t)
-        assert repo.list() == []
+        assert repo.list_all() == []
 
     def test_remove_nonexistent_raises(self, repo):
         with pytest.raises(ValueError, match="not found"):
@@ -84,7 +84,7 @@ class TestSQLiteTravelRepositoryReplace:
         corrected = make_travel(note="Corrected")
         repo.replace(original, corrected)
 
-        result = repo.list()
+        result = repo.list_all()
         assert len(result) == 1
         assert result[0].note == "Corrected"
 
