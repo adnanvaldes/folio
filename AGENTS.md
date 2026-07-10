@@ -44,7 +44,7 @@ All are `@dataclasses.dataclass(frozen=True, eq=False)` with custom `__eq__`/`__
 | **Book** | `*Work.identity, format_type.value, isbn` | pages (print/ebook), duration_minutes (audio), narrator |
 
 Identity matching rules:
-- **Travel:** exact match (codes already uppercased in `__post_init__`)
+- **Travel:** case-insensitive via `LOWER()` (codes already uppercased in `__post_init__`)
 - **Address:** case-insensitive text fields via `LOWER()`, NULLs via `IS NULL`
 - **Education:** case-insensitive text fields; all 7 fields are required and identity
 - **Employment:** case-insensitive company name
@@ -142,7 +142,8 @@ All services wrap operations in `with self.uow:` context manager:
 ## Current Git State
 
 ```
-1b17fa0 (HEAD -> main) feat: add filter operators to find across all domains
+82b8fb1 (HEAD -> main) docs: update AGENTS.md for current state
+1b17fa0 feat: add filter operators to find across all domains
 db87299 refactor: replace bare ValueError with domain-specific exceptions
 166fa1c refactor(uow): declare repository properties on UnitOfWork ABC
 43f178a refactor(models): remove redundant .strip() in _identity_fields/_ordering_fields
@@ -151,7 +152,6 @@ d0d541a fix(test): add case-insensitive matching to FakeAddressRepository and Fa
 a2ad07f test(education): add unit and integration tests
 10d47f1 feat(education): add full domain stack
 c020735 update config to use single quotes
-a09ea86 refactor: replace pyyaml with stdlib tomllib for zero runtime deps
 ```
 
 No tags. Branch `main` after history rewrite.
@@ -192,3 +192,9 @@ No tags. Branch `main` after history rewrite.
 | **Identity logic consolidation** | `repositories/sql/sqlite_work_repository.py` + `sqlite_book_repository.py` | Extracted `_work_identity_where()` helper; both `SQLiteWorkRepository.find()` and `SQLiteBookRepository._lookup_work_id()` use it. |
 | **list() → list_all() rename** | all repos, services, CLI handlers, tests | Renamed to eliminate method-name shadowing with builtin `list` type; dropped `typing.List` in favor of builtin `list[X]`, resolving 53 ruff violations. |
 | **main() exception widening** | `interfaces/cli/main.py` | Now catches `TypeError` alongside `ValueError` for friendly error output. |
+| **Travel find case-insensitivity** | `repositories/sql/sqlite_travel_repository.py` | `find()` now uses `LOWER()` on origin/destination, matching Address/Education repos. |
+| **Work/Employment update WHERE** | `repositories/sql/sqlite_work_repository.py`, `sqlite_employment_repository.py` | `update()` WHERE clause narrowed to identity fields only (author/title/year for Work, company/start for Employment) — no longer includes non-identity fields that could cause stale-object `FolioNotFoundError`. |
+| **ValueError catch** | `interfaces/cli/main.py` | Added `ValueError` to caught exceptions so bad user input (e.g. invalid dates) shows a friendly error instead of a traceback. |
+| **Employment.__str__ safety** | `models/employment.py` | `__str__` now wraps `self.duration` in try/except to handle future-dated open-ended records. |
+| **Work genre stripping** | `models/work.py` | `genre` field is now stripped in `__post_init__`, consistent with all other string fields across models. |
+| **Book shared UoW** | `interfaces/cli/book.py` | `_remove` and `_replace` now share one `BookSQLiteUoW` between `WorkService` and `BookService` instead of creating two independent instances. |
