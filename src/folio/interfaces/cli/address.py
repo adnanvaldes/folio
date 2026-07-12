@@ -1,15 +1,9 @@
-import datetime as dt
-from collections.abc import Callable
-
-from folio.exceptions import (
-    FolioAmbiguousQueryError,
-    FolioCancelledError,
-    FolioNotFoundError,
-)
+from folio.exceptions import FolioCancelledError
 from folio.models import Address
 from folio.services import AddressService
 from folio.uow import AddressSQLiteUoW
 
+from .common import find_one, handler, parse_date
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
 
@@ -33,8 +27,8 @@ def _interactive_replace(old):
     province = prompt_field("province", old.province)
     country = prompt_field("country", old.country)
     postal_code = prompt_field("postal_code", old.postal_code)
-    start = prompt_field("start", old.start, _parse_date)
-    end = prompt_field("end", old.end, _parse_date)
+    start = prompt_field("start", old.start, parse_date)
+    end = prompt_field("end", old.end, parse_date)
     new = Address(
         street=street,
         city=city,
@@ -114,21 +108,6 @@ def setup(parser):
         rep.add_argument(f"--{dest.replace('_', '-')}", default=None, dest=dest)
 
 
-def _parse_date(s):
-    if s is None:
-        return None
-    return dt.date.fromisoformat(s)
-
-
-def _find_one(service, **kwargs):
-    results = service.find(**kwargs)
-    if not results:
-        raise FolioNotFoundError("Address not found")
-    if len(results) > 1:
-        raise FolioAmbiguousQueryError(f"Expected one address, found {len(results)}")
-    return results[0]
-
-
 def _make_addr(**kwargs):
     return Address(
         street=kwargs["street"],
@@ -141,17 +120,6 @@ def _make_addr(**kwargs):
     )
 
 
-_HANDLERS: dict[str, Callable] = {}
-
-
-def handler(action):
-    def wrap(fn):
-        _HANDLERS[action] = fn
-        return fn
-
-    return wrap
-
-
 @handler("add")
 def _add(args):
     uow = AddressSQLiteUoW(args.db_path)
@@ -161,8 +129,8 @@ def _add(args):
         city=args.city,
         country=args.country,
         postal_code=args.postal_code,
-        start=_parse_date(args.start),
-        end=_parse_date(args.end),
+        start=parse_date(args.start),
+        end=parse_date(args.end),
         province=args.province,
     )
     svc.add(obj)
@@ -189,11 +157,11 @@ def _find(args):
     for key in ("start", "end"):
         val = getattr(args, key)
         if val is not None:
-            filters[key] = _parse_date(val)
+            filters[key] = parse_date(val)
     if args.before is not None:
-        filters["start__before"] = _parse_date(args.before)
+        filters["start__before"] = parse_date(args.before)
     if args.after is not None:
-        filters["start__after"] = _parse_date(args.after)
+        filters["start__after"] = parse_date(args.after)
     if args.contains is not None:
         for field in ("street", "city", "country", "postal_code", "province"):
             filters[f"{field}__contains"] = args.contains
@@ -205,14 +173,14 @@ def _find(args):
 def _remove(args):
     uow = AddressSQLiteUoW(args.db_path)
     svc = AddressService(uow)
-    obj = _find_one(
+    obj = find_one(
         svc,
         street=args.street,
         city=args.city,
         country=args.country,
         postal_code=args.postal_code,
-        start=_parse_date(args.start),
-        end=_parse_date(args.end),
+        start=parse_date(args.start),
+        end=parse_date(args.end),
         province=args.province,
     )
     svc.remove(obj)
@@ -223,14 +191,14 @@ def _remove(args):
 def _replace(args):
     uow = AddressSQLiteUoW(args.db_path)
     svc = AddressService(uow)
-    old = _find_one(
+    old = find_one(
         svc,
         street=args.street,
         city=args.city,
         country=args.country,
         postal_code=args.postal_code,
-        start=_parse_date(args.start),
-        end=_parse_date(args.end),
+        start=parse_date(args.start),
+        end=parse_date(args.end),
         province=args.province,
     )
     new_fields = (
@@ -254,9 +222,9 @@ def _replace(args):
                 else old.postal_code
             ),
             start=(
-                _parse_date(args.new_start) if args.new_start is not None else old.start
+                parse_date(args.new_start) if args.new_start is not None else old.start
             ),
-            end=_parse_date(args.new_end) if args.new_end is not None else old.end,
+            end=parse_date(args.new_end) if args.new_end is not None else old.end,
             province=(
                 args.new_province if args.new_province is not None else old.province
             ),

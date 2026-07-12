@@ -1,16 +1,9 @@
-import datetime as dt
-from collections.abc import Callable
-
-from folio.exceptions import (
-    FolioAmbiguousQueryError,
-    FolioCancelledError,
-    FolioNotFoundError,
-    FolioValidationError,
-)
+from folio.exceptions import FolioCancelledError, FolioValidationError
 from folio.models import Employment
 from folio.services import EmploymentService
 from folio.uow import EmploymentSQLiteUoW
 
+from .common import find_one, handler, parse_date
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
 
@@ -29,8 +22,8 @@ def _interactive_replace(old):
     )
     print()
     company = prompt_field("company", old.company)
-    start = prompt_field("start", old.start, _parse_date)
-    end = prompt_field("end", old.end, _parse_date)
+    start = prompt_field("start", old.start, parse_date)
+    end = prompt_field("end", old.end, parse_date)
     supervisor = prompt_field("supervisor", old.supervisor)
     address = prompt_field("address", old.address)
     phone = prompt_field("phone", old.phone)
@@ -103,43 +96,17 @@ def setup(parser):
         rep.add_argument(f"--{dest.replace('_', '-')}", default=None, dest=dest)
 
 
-def _parse_date(s):
-    if s is None:
-        return None
-    return dt.date.fromisoformat(s)
-
-
-def _find_one(service, **kwargs):
-    results = service.find(**kwargs)
-    if not results:
-        raise FolioNotFoundError("Record not found")
-    if len(results) > 1:
-        raise FolioAmbiguousQueryError(f"Expected one record, found {len(results)}")
-    return results[0]
-
-
-_HANDLERS: dict[str, Callable] = {}
-
-
-def handler(action):
-    def wrap(fn):
-        _HANDLERS[action] = fn
-        return fn
-
-    return wrap
-
-
 @handler("add")
 def _add(args):
     uow = EmploymentSQLiteUoW(args.db_path)
     svc = EmploymentService(uow)
     obj = Employment(
         company=args.company,
-        start=_parse_date(args.start),
+        start=parse_date(args.start),
         supervisor=args.supervisor,
         address=args.address,
         phone=args.phone,
-        end=_parse_date(args.end),
+        end=parse_date(args.end),
     )
     svc.add(obj)
     print_item(obj, args.json)
@@ -165,11 +132,11 @@ def _find(args):
     for key in ("start", "end"):
         val = getattr(args, key)
         if val is not None:
-            filters[key] = _parse_date(val)
+            filters[key] = parse_date(val)
     if args.before is not None:
-        filters["start__before"] = _parse_date(args.before)
+        filters["start__before"] = parse_date(args.before)
     if args.after is not None:
-        filters["start__after"] = _parse_date(args.after)
+        filters["start__after"] = parse_date(args.after)
     if args.contains is not None:
         for field in ("company", "supervisor", "address", "phone"):
             filters[f"{field}__contains"] = args.contains
@@ -181,7 +148,7 @@ def _find(args):
 def _remove(args):
     uow = EmploymentSQLiteUoW(args.db_path)
     svc = EmploymentService(uow)
-    obj = _find_one(svc, company=args.company, start=_parse_date(args.start))
+    obj = find_one(svc, company=args.company, start=parse_date(args.start))
     svc.remove(obj)
     print_item(obj, args.json, label="Removed")
 
@@ -190,10 +157,10 @@ def _remove(args):
 def _update(args):
     uow = EmploymentSQLiteUoW(args.db_path)
     svc = EmploymentService(uow)
-    old = _find_one(svc, company=args.company, start=_parse_date(args.start))
+    old = find_one(svc, company=args.company, start=parse_date(args.start))
     kwargs = {}
     if args.end is not None:
-        kwargs["end"] = _parse_date(args.end)
+        kwargs["end"] = parse_date(args.end)
     if args.supervisor is not None:
         kwargs["supervisor"] = args.supervisor
     if args.address is not None:
@@ -206,7 +173,7 @@ def _update(args):
             " (use --end, --supervisor, --address, and/or --phone)"
         )
     svc.update(old, **kwargs)
-    updated = _find_one(svc, company=args.company, start=_parse_date(args.start))
+    updated = find_one(svc, company=args.company, start=parse_date(args.start))
     print_item(updated, args.json, label="Updated")
 
 
@@ -214,7 +181,7 @@ def _update(args):
 def _replace(args):
     uow = EmploymentSQLiteUoW(args.db_path)
     svc = EmploymentService(uow)
-    old = _find_one(svc, company=args.company, start=_parse_date(args.start))
+    old = find_one(svc, company=args.company, start=parse_date(args.start))
     has_new = any(
         getattr(args, f, None) is not None
         for f in ("new_company", "new_start", "end", "supervisor", "address", "phone")
@@ -223,14 +190,14 @@ def _replace(args):
         new = Employment(
             company=args.new_company if args.new_company is not None else old.company,
             start=(
-                _parse_date(args.new_start) if args.new_start is not None else old.start
+                parse_date(args.new_start) if args.new_start is not None else old.start
             ),
             supervisor=(
                 args.supervisor if args.supervisor is not None else old.supervisor
             ),
             address=args.address if args.address is not None else old.address,
             phone=args.phone if args.phone is not None else old.phone,
-            end=_parse_date(args.end) if args.end is not None else old.end,
+            end=parse_date(args.end) if args.end is not None else old.end,
         )
     else:
         new = _interactive_replace(old)

@@ -1,26 +1,11 @@
-from collections.abc import Callable
-
-from folio.exceptions import (
-    FolioAmbiguousQueryError,
-    FolioCancelledError,
-    FolioNotFoundError,
-    FolioParseError,
-    FolioValidationError,
-)
+from folio.exceptions import FolioCancelledError, FolioValidationError
 from folio.models import Work
 from folio.services import WorkService
 from folio.uow import WorkSQLiteUoW
 
+from .common import find_one, handler, parse_bool
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
-
-
-def _parse_bool(s):
-    if s.lower() in ("yes", "true", "1", "y"):
-        return True
-    if s.lower() in ("no", "false", "0", "n"):
-        return False
-    raise FolioParseError(f"Invalid boolean: '{s}' (expected yes/no/true/false/1/0)")
 
 
 def _interactive_replace(old):
@@ -40,7 +25,7 @@ def _interactive_replace(old):
     year = prompt_field("year", old.year, int)
     genre = prompt_field("genre", old.genre)
     raw = prompt_field("is_read", "Yes" if old.is_read else "No")
-    is_read = _parse_bool(raw)
+    is_read = parse_bool(raw)
     new = Work(author=author, title=title, year=year, genre=genre, is_read=is_read)
     print()
     print_record(
@@ -112,26 +97,6 @@ def setup(parser):
     rep.add_argument("--is-read", default=None, dest="is_read")
 
 
-def _find_one(service, **kwargs):
-    results = service.find(**kwargs)
-    if not results:
-        raise FolioNotFoundError("Work not found")
-    if len(results) > 1:
-        raise FolioAmbiguousQueryError(f"Expected one work, found {len(results)}")
-    return results[0]
-
-
-_HANDLERS: dict[str, Callable] = {}
-
-
-def handler(action):
-    def wrap(fn):
-        _HANDLERS[action] = fn
-        return fn
-
-    return wrap
-
-
 @handler("add")
 def _add(args):
     uow = WorkSQLiteUoW(args.db_path)
@@ -141,7 +106,7 @@ def _add(args):
         title=args.title,
         year=args.year,
         genre=args.genre,
-        is_read=_parse_bool(args.is_read),
+        is_read=parse_bool(args.is_read),
     )
     svc.add(obj)
     print_item(obj, args.json)
@@ -167,7 +132,7 @@ def _find(args):
     if args.year is not None:
         filters["year"] = args.year
     if args.is_read is not None:
-        filters["is_read"] = _parse_bool(args.is_read)
+        filters["is_read"] = parse_bool(args.is_read)
     if args.before is not None:
         filters["year__before"] = args.before
     if args.after is not None:
@@ -183,7 +148,7 @@ def _find(args):
 def _remove(args):
     uow = WorkSQLiteUoW(args.db_path)
     svc = WorkService(uow)
-    obj = _find_one(svc, author=args.author, title=args.title, year=args.year)
+    obj = find_one(svc, author=args.author, title=args.title, year=args.year)
     svc.remove(obj, force=args.force)
     print_item(obj, args.json, label="Removed")
 
@@ -192,16 +157,16 @@ def _remove(args):
 def _update(args):
     uow = WorkSQLiteUoW(args.db_path)
     svc = WorkService(uow)
-    old = _find_one(svc, author=args.author, title=args.title, year=args.year)
+    old = find_one(svc, author=args.author, title=args.title, year=args.year)
     kwargs = {}
     if args.genre is not None:
         kwargs["genre"] = args.genre
     if args.is_read is not None:
-        kwargs["is_read"] = _parse_bool(args.is_read)
+        kwargs["is_read"] = parse_bool(args.is_read)
     if not kwargs:
         raise FolioValidationError("No fields to update (use --genre and/or --is-read)")
     svc.update(old, **kwargs)
-    updated = _find_one(svc, author=args.author, title=args.title, year=args.year)
+    updated = find_one(svc, author=args.author, title=args.title, year=args.year)
     print_item(updated, args.json, label="Updated")
 
 
@@ -209,7 +174,7 @@ def _update(args):
 def _replace(args):
     uow = WorkSQLiteUoW(args.db_path)
     svc = WorkService(uow)
-    old = _find_one(svc, author=args.author, title=args.title, year=args.year)
+    old = find_one(svc, author=args.author, title=args.title, year=args.year)
     has_new = any(
         getattr(args, f"new_{f}", None) is not None for f in ("author", "title", "year")
     )
@@ -220,7 +185,7 @@ def _replace(args):
             year=args.new_year if args.new_year is not None else old.year,
             genre=args.genre if args.genre is not None else old.genre,
             is_read=(
-                _parse_bool(args.is_read) if args.is_read is not None else old.is_read
+                parse_bool(args.is_read) if args.is_read is not None else old.is_read
             ),
         )
     else:

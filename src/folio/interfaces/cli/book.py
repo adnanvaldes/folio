@@ -1,25 +1,11 @@
-from collections.abc import Callable
-
-from folio.exceptions import (
-    FolioAmbiguousQueryError,
-    FolioCancelledError,
-    FolioNotFoundError,
-    FolioParseError,
-)
+from folio.exceptions import FolioCancelledError, FolioNotFoundError
 from folio.models import Book, FormatType, Work
 from folio.services import BookService, WorkService
 from folio.uow import BookSQLiteUoW
 
+from .common import find_one, handler, parse_bool
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
-
-
-def _parse_bool(s):
-    if s.lower() in ("yes", "true", "1", "y"):
-        return True
-    if s.lower() in ("no", "false", "0", "n"):
-        return False
-    raise FolioParseError(f"Invalid boolean: '{s}' (expected yes/no/true/false/1/0)")
 
 
 def _parse_format(s):
@@ -86,15 +72,6 @@ def _interactive_replace(old, work_svc):
     return new
 
 
-def _find_one_work(service, **kwargs):
-    results = service.find(**kwargs)
-    if not results:
-        raise FolioNotFoundError("Work not found")
-    if len(results) > 1:
-        raise FolioAmbiguousQueryError(f"Expected one work, found {len(results)}")
-    return results[0]
-
-
 def setup(parser):
     ap = parser.add_parser("add", help="Add a book")
     ap.add_argument("author")
@@ -151,17 +128,6 @@ def setup(parser):
     rep.add_argument("--new-narrator", default=None, dest="new_narrator")
 
 
-_HANDLERS: dict[str, Callable] = {}
-
-
-def handler(action):
-    def wrap(fn):
-        _HANDLERS[action] = fn
-        return fn
-
-    return wrap
-
-
 def _make_work(author, title, year, is_read=False):
     return Work(author=author, title=title, year=year, genre=None, is_read=is_read)
 
@@ -170,7 +136,7 @@ def _make_work(author, title, year, is_read=False):
 def _add(args):
     book_uow = BookSQLiteUoW(args.db_path)
     svc = BookService(book_uow)
-    work = _make_work(args.author, args.title, args.year, _parse_bool(args.is_read))
+    work = _make_work(args.author, args.title, args.year, parse_bool(args.is_read))
     fmt = _parse_format(args.format)
     obj = Book(
         work=work,
@@ -223,7 +189,7 @@ def _remove(args):
     uow = BookSQLiteUoW(args.db_path)
     work_svc = WorkService(uow)
     svc = BookService(uow)
-    work = _find_one_work(
+    work = find_one(
         work_svc, author=args.author, title=args.title, year=args.year
     )
     fmt = _parse_format(args.format)
@@ -247,7 +213,7 @@ def _replace(args):
     uow = BookSQLiteUoW(args.db_path)
     work_svc = WorkService(uow)
     svc = BookService(uow)
-    work = _find_one_work(
+    work = find_one(
         work_svc, author=args.author, title=args.title, year=args.year
     )
     fmt = _parse_format(args.format)

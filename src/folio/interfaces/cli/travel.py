@@ -1,15 +1,9 @@
-import datetime as dt
-from collections.abc import Callable
-
-from folio.exceptions import (
-    FolioAmbiguousQueryError,
-    FolioCancelledError,
-    FolioNotFoundError,
-)
+from folio.exceptions import FolioCancelledError
 from folio.models import Travel
 from folio.services import TravelService
 from folio.uow import TravelSQLiteUoW
 
+from .common import find_one, handler, parse_date
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
 
@@ -27,7 +21,7 @@ def _interactive_replace(old):
     print()
     origin = prompt_field("origin", old.origin)
     destination = prompt_field("destination", old.destination)
-    date = prompt_field("date", old.date, _parse_date)
+    date = prompt_field("date", old.date, parse_date)
     note = prompt_field("note", old.note)
     new = Travel(origin=origin, destination=destination, date=date, note=note)
     print()
@@ -77,30 +71,6 @@ def setup(parser):
     rep.add_argument("--new-note", default=None, dest="new_note")
 
 
-def _parse_date(s):
-    return dt.date.fromisoformat(s)
-
-
-def _find_one(service, **kwargs):
-    results = service.find(**kwargs)
-    if not results:
-        raise FolioNotFoundError("Record not found")
-    if len(results) > 1:
-        raise FolioAmbiguousQueryError(f"Expected one record, found {len(results)}")
-    return results[0]
-
-
-_HANDLERS: dict[str, Callable] = {}
-
-
-def handler(action):
-    def wrap(fn):
-        _HANDLERS[action] = fn
-        return fn
-
-    return wrap
-
-
 @handler("add")
 def _add(args):
     uow = TravelSQLiteUoW(args.db_path)
@@ -108,7 +78,7 @@ def _add(args):
     obj = Travel(
         origin=args.origin,
         destination=args.destination,
-        date=_parse_date(args.date),
+        date=parse_date(args.date),
         note=args.note,
     )
     svc.add(obj)
@@ -131,11 +101,11 @@ def _find(args):
     for key in ("origin", "destination", "date", "note"):
         val = getattr(args, key)
         if val is not None:
-            filters[key] = _parse_date(val) if key == "date" else val
+            filters[key] = parse_date(val) if key == "date" else val
     if args.before is not None:
-        filters["date__before"] = _parse_date(args.before)
+        filters["date__before"] = parse_date(args.before)
     if args.after is not None:
-        filters["date__after"] = _parse_date(args.after)
+        filters["date__after"] = parse_date(args.after)
     if args.contains is not None:
         for field in ("origin", "destination", "note"):
             filters[f"{field}__contains"] = args.contains
@@ -147,11 +117,11 @@ def _find(args):
 def _remove(args):
     uow = TravelSQLiteUoW(args.db_path)
     svc = TravelService(uow)
-    obj = _find_one(
+    obj = find_one(
         svc,
         origin=args.origin,
         destination=args.destination,
-        date=_parse_date(args.date),
+        date=parse_date(args.date),
     )
     svc.remove(obj)
     print_item(obj, args.json, label="Removed")
@@ -161,11 +131,11 @@ def _remove(args):
 def _replace(args):
     uow = TravelSQLiteUoW(args.db_path)
     svc = TravelService(uow)
-    old = _find_one(
+    old = find_one(
         svc,
         origin=args.origin,
         destination=args.destination,
-        date=_parse_date(args.date),
+        date=parse_date(args.date),
     )
     has_new = (
         any(
@@ -182,7 +152,7 @@ def _replace(args):
                 if args.new_destination is not None
                 else args.destination
             ),
-            date=_parse_date(args.new_date) if args.new_date is not None else old.date,
+            date=parse_date(args.new_date) if args.new_date is not None else old.date,
             note=args.new_note if args.new_note is not None else old.note,
         )
     else:

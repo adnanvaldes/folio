@@ -1,15 +1,9 @@
-import datetime as dt
-from collections.abc import Callable
-
-from folio.exceptions import (
-    FolioAmbiguousQueryError,
-    FolioCancelledError,
-    FolioNotFoundError,
-)
+from folio.exceptions import FolioCancelledError
 from folio.models import Education
 from folio.services import EducationService
 from folio.uow import EducationSQLiteUoW
 
+from .common import find_one, handler, parse_date
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
 
@@ -29,8 +23,8 @@ def _interactive_replace(old):
     )
     print()
     field = prompt_field("field", old.field)
-    start = prompt_field("start", old.start, _parse_date)
-    end = prompt_field("end", old.end, _parse_date)
+    start = prompt_field("start", old.start, parse_date)
+    end = prompt_field("end", old.end, parse_date)
     school = prompt_field("school", old.school)
     city = prompt_field("city", old.city)
     country = prompt_field("country", old.country)
@@ -114,32 +108,6 @@ def setup(parser):
         rep.add_argument(f"--{dest.replace('_', '-')}", default=None, dest=dest)
 
 
-def _parse_date(s):
-    if s is None:
-        return None
-    return dt.date.fromisoformat(s)
-
-
-def _find_one(service, **kwargs):
-    results = service.find(**kwargs)
-    if not results:
-        raise FolioNotFoundError("Record not found")
-    if len(results) > 1:
-        raise FolioAmbiguousQueryError(f"Expected one record, found {len(results)}")
-    return results[0]
-
-
-_HANDLERS: dict[str, Callable] = {}
-
-
-def handler(action):
-    def wrap(fn):
-        _HANDLERS[action] = fn
-        return fn
-
-    return wrap
-
-
 def _make_edu(**kwargs):
     return Education(
         field=kwargs["field"],
@@ -158,8 +126,8 @@ def _add(args):
     svc = EducationService(uow)
     obj = _make_edu(
         field=args.field,
-        start=_parse_date(args.start),
-        end=_parse_date(args.end),
+        start=parse_date(args.start),
+        end=parse_date(args.end),
         school=args.school,
         city=args.city,
         country=args.country,
@@ -189,11 +157,11 @@ def _find(args):
     for key in ("start", "end"):
         val = getattr(args, key)
         if val is not None:
-            filters[key] = _parse_date(val)
+            filters[key] = parse_date(val)
     if args.before is not None:
-        filters["start__before"] = _parse_date(args.before)
+        filters["start__before"] = parse_date(args.before)
     if args.after is not None:
-        filters["start__after"] = _parse_date(args.after)
+        filters["start__after"] = parse_date(args.after)
     if args.contains is not None:
         for field in ("field", "school", "city", "country", "credential"):
             filters[f"{field}__contains"] = args.contains
@@ -205,11 +173,11 @@ def _find(args):
 def _remove(args):
     uow = EducationSQLiteUoW(args.db_path)
     svc = EducationService(uow)
-    obj = _find_one(
+    obj = find_one(
         svc,
         field=args.field,
-        start=_parse_date(args.start),
-        end=_parse_date(args.end),
+        start=parse_date(args.start),
+        end=parse_date(args.end),
         school=args.school,
         city=args.city,
         country=args.country,
@@ -223,11 +191,11 @@ def _remove(args):
 def _replace(args):
     uow = EducationSQLiteUoW(args.db_path)
     svc = EducationService(uow)
-    old = _find_one(
+    old = find_one(
         svc,
         field=args.field,
-        start=_parse_date(args.start),
-        end=_parse_date(args.end),
+        start=parse_date(args.start),
+        end=parse_date(args.end),
         school=args.school,
         city=args.city,
         country=args.country,
@@ -247,9 +215,9 @@ def _replace(args):
         new = _make_edu(
             field=args.new_field if args.new_field is not None else old.field,
             start=(
-                _parse_date(args.new_start) if args.new_start is not None else old.start
+                parse_date(args.new_start) if args.new_start is not None else old.start
             ),
-            end=_parse_date(args.new_end) if args.new_end is not None else old.end,
+            end=parse_date(args.new_end) if args.new_end is not None else old.end,
             school=args.new_school if args.new_school is not None else old.school,
             city=args.new_city if args.new_city is not None else old.city,
             country=args.new_country if args.new_country is not None else old.country,
