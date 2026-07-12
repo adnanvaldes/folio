@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 
 from folio.exceptions import FolioValidationError
