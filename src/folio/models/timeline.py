@@ -72,9 +72,11 @@ def calculate_new_timeline(
             and existing.is_open
             and new_address.is_open
         ):
-            to_replace.append(
-                (existing, existing.close(end=new_address.start - dt.timedelta(days=1)))
-            )
+            prior_end = new_address.start - dt.timedelta(days=1)
+            if prior_end > existing.start:
+                to_replace.append((existing, existing.close(end=prior_end)))
+            else:
+                to_remove.append(existing)
             continue
 
         needs_confirmation.append(existing)
@@ -106,18 +108,20 @@ def calculate_new_timeline(
                     raise FolioTimelineError(
                         "Cannot split timeline with an open-ended address"
                     )
-                closed_prior = (
-                    existing.close(end=new_address.start - dt.timedelta(days=1))
-                    if existing.is_open
-                    else dataclasses.replace(
-                        existing, end=new_address.start - dt.timedelta(days=1)
-                    )
-                )
+                prior_end = new_address.start - dt.timedelta(days=1)
                 continuation = dataclasses.replace(
                     existing, start=new_address.end + dt.timedelta(days=1)
                 )
                 to_remove.append(existing)
-                to_add.extend([closed_prior, continuation])
+                if prior_end > existing.start:
+                    closed_prior = (
+                        existing.close(end=prior_end)
+                        if existing.is_open
+                        else dataclasses.replace(existing, end=prior_end)
+                    )
+                    to_add.extend([closed_prior, continuation])
+                else:
+                    to_add.append(continuation)
 
             elif kind is _OverlapKind.TRUNCATE_FRONT:
                 if new_address.end is None:
@@ -134,14 +138,16 @@ def calculate_new_timeline(
                 )
 
             elif kind is _OverlapKind.TRUNCATE_BACK:
-                to_replace.append(
-                    (
-                        existing,
-                        dataclasses.replace(
-                            existing, end=new_address.start - dt.timedelta(days=1)
-                        ),
+                trunc_end = new_address.start - dt.timedelta(days=1)
+                if trunc_end > existing.start:
+                    to_replace.append(
+                        (
+                            existing,
+                            dataclasses.replace(existing, end=trunc_end),
+                        )
                     )
-                )
+                else:
+                    to_remove.append(existing)
 
     return TimelineDiff(
         to_add=tuple(to_add),

@@ -410,3 +410,101 @@ class TestClosedIntervalTruncateFront:
         assert replaced.start == dt.date(2021, 7, 1)
         assert replaced.end == existing.end
         assert not diff.to_remove
+
+
+# ---------------------------------------------------------------------------
+# Zero-length edge cases (one-day-adjacent splits)
+# ---------------------------------------------------------------------------
+
+
+class TestZeroLengthEdgeCases:
+    """When existing and new are exactly one day apart, the 'prior' piece
+    would be zero-length. These must not raise FolioValidationError."""
+
+    def test_split_one_day_adjacent_open_existing(self):
+        existing = make_address(
+            start=dt.date(2020, 1, 1),
+            end=None,
+        )
+        new = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 1, 2),
+            end=dt.date(2020, 1, 5),
+        )
+        diff = calculate_new_timeline([existing], new, replacing=[existing])
+
+        assert existing in diff.to_remove
+        assert new in diff.to_add
+        added = list(diff.to_add)
+        assert len(added) == 2
+        assert new in added
+        continuation = next(a for a in added if a != new)
+        assert continuation.start == dt.date(2020, 1, 6)
+        assert continuation.is_open
+
+    def test_split_one_day_adjacent_closed_existing(self):
+        existing = make_address(
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2020, 1, 10),
+        )
+        new = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 1, 2),
+            end=dt.date(2020, 1, 5),
+        )
+        diff = calculate_new_timeline([existing], new, replacing=[existing])
+
+        assert existing in diff.to_remove
+        added = list(diff.to_add)
+        assert len(added) == 2
+        assert new in added
+        continuation = next(a for a in added if a != new)
+        assert continuation.start == dt.date(2020, 1, 6)
+        assert continuation.end == existing.end
+
+    def test_truncate_back_one_day_adjacent(self):
+        existing = make_address(
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2020, 1, 10),
+        )
+        new = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 1, 2),
+            end=dt.date(2020, 1, 5),
+        )
+        diff = calculate_new_timeline([existing], new, replacing=[existing])
+
+        assert existing in diff.to_remove
+        assert new in diff.to_add
+
+    def test_truncate_back_open_one_day_adjacent(self):
+        existing = make_address(
+            start=dt.date(2020, 1, 1),
+            end=dt.date(2020, 1, 10),
+        )
+        new = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 1, 2),
+            end=None,
+        )
+        diff = calculate_new_timeline([existing], new, replacing=[existing])
+
+        assert existing in diff.to_remove
+        assert new in diff.to_add
+        assert not diff.to_replace
+
+    def test_truncate_back_open_both_one_day_adjacent(self):
+        existing = make_address(
+            start=dt.date(2020, 1, 1),
+            end=None,
+        )
+        new = make_address(
+            street="456 Elm St",
+            start=dt.date(2020, 1, 2),
+            end=None,
+        )
+        diff = calculate_new_timeline([existing], new)
+
+        assert existing in diff.to_remove
+        assert new in diff.to_add
+        assert not diff.to_replace
