@@ -196,16 +196,13 @@ class FakeEmploymentRepository(EmploymentRepository):
             raise FolioNotFoundError(f"Employment not found: {employment}")
         if end is None and supervisor is None and address is None and phone is None:
             raise FolioValidationError("No fields to update")
-        kwargs = {}
-        if end is not None:
-            kwargs["end"] = end
-        if supervisor is not None:
-            kwargs["supervisor"] = supervisor.strip()
-        if address is not None:
-            kwargs["address"] = address.strip()
-        if phone is not None:
-            kwargs["phone"] = phone.strip()
-        updated = dataclasses.replace(employment, **kwargs)
+        updated = dataclasses.replace(
+            employment,
+            end=end if end is not None else employment.end,
+            supervisor=supervisor.strip() if supervisor is not None else employment.supervisor,
+            address=address.strip() if address is not None else employment.address,
+            phone=phone.strip() if phone is not None else employment.phone,
+        )
         self._data.discard(employment)
         self._data.add(updated)
 
