@@ -141,16 +141,10 @@ class SQLiteEducationRepository(EducationRepository):
                 params[key] = f"%{value.lower().strip()}%"
             elif op == "before":
                 conditions.append(f"{field} < :{key}")
-                if hasattr(value, "isoformat"):
-                    params[key] = value.isoformat()
-                else:
-                    params[key] = value
+                params[key] = value.isoformat()
             elif op == "after":
                 conditions.append(f"{field} > :{key}")
-                if hasattr(value, "isoformat"):
-                    params[key] = value.isoformat()
-                else:
-                    params[key] = value
+                params[key] = value.isoformat()
             elif value is None:
                 conditions.append(f"{field} IS NULL")
             elif field in case_insensitive_fields:
