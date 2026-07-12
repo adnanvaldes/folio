@@ -83,9 +83,7 @@ class TestAdd:
         assert stored.is_read is True
 
     def test_add_does_not_downgrade_is_read_true_to_false(self, service, fake_uow):
-        read = Work(
-            author="Author", title="Book", year=2020, genre=None, is_read=True
-        )
+        read = Work(author="Author", title="Book", year=2020, genre=None, is_read=True)
         fake_uow.work.add(read)
         unread_book = make_book(
             work=Work(

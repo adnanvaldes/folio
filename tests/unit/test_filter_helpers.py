@@ -1,7 +1,7 @@
 import pytest
 
 from folio.exceptions import FolioInvalidFilterError
-from folio.repositories.sql._filters import (
+from folio.repositories.sql import (
     OPERATORS,
     parse_filter_key,
     validate_filter_fields,

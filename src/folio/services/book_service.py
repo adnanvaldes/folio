@@ -23,9 +23,7 @@ class BookService:
                     else None
                 )
                 is_read = (
-                    True
-                    if book.work.is_read and not existing_work.is_read
-                    else None
+                    True if book.work.is_read and not existing_work.is_read else None
                 )
                 if genre is not None or is_read is not None:
                     self.uow.work.update(existing_work, genre=genre, is_read=is_read)

@@ -16,7 +16,7 @@ from folio.repositories import (
     TravelRepository,
     WorkRepository,
 )
-from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
+from folio.repositories.sql import parse_filter_key, validate_filter_fields
 
 _CMP = {"before": op.lt, "after": op.gt}
 
