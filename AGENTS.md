@@ -13,7 +13,7 @@ Domains: `travel`, `address`, `education`, `employment`, `work`, `book`
 Actions: `add`, `show`, `find`, `remove`, `replace` (+ `update` for work, employment)
 Top-level: `list` (all or filtered by domain names)
 
-**Version:** 1.2.0 | **Python:** >=3.14 | **Deps:** none (stdlib only) | **Optional:** `psycopg[binary]>=3.3` (`pip install folio[postgres]`) | **Dev:** black, mypy, pytest, ruff, pytest-cov
+**Version:** 1.2.1 | **Python:** >=3.14 | **Deps:** none (stdlib only) | **Optional:** `psycopg[binary]>=3.3` (`pip install folio[postgres]`) | **Dev:** black, mypy, pytest, ruff, pytest-cov
 
 ---
 
