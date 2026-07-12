@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from .base import (
     AddressRepository,
     BookRepository,
@@ -5,14 +9,6 @@ from .base import (
     EmploymentRepository,
     TravelRepository,
     WorkRepository,
-)
-from .sql.postgres import (
-    PgAddressRepository,
-    PgBookRepository,
-    PgEducationRepository,
-    PgEmploymentRepository,
-    PgTravelRepository,
-    PgWorkRepository,
 )
 from .sql.sqlite import (
     SQLiteAddressRepository,
@@ -25,21 +21,39 @@ from .sql.sqlite import (
 
 __all__ = [
     "AddressRepository",
+    "BookRepository",
     "EducationRepository",
+    "EmploymentRepository",
     "TravelRepository",
     "WorkRepository",
-    "EmploymentRepository",
-    "BookRepository",
-    "PgTravelRepository",
+    "PgAddressRepository",
+    "PgBookRepository",
     "PgEducationRepository",
     "PgEmploymentRepository",
-    "PgAddressRepository",
+    "PgTravelRepository",
     "PgWorkRepository",
-    "PgBookRepository",
-    "SQLiteTravelRepository",
+    "SQLiteAddressRepository",
+    "SQLiteBookRepository",
     "SQLiteEducationRepository",
     "SQLiteEmploymentRepository",
-    "SQLiteAddressRepository",
+    "SQLiteTravelRepository",
     "SQLiteWorkRepository",
-    "SQLiteBookRepository",
 ]
+
+
+def __getattr__(name: str) -> Any:
+    _pg_classes = {
+        "PgAddressRepository",
+        "PgBookRepository",
+        "PgEducationRepository",
+        "PgEmploymentRepository",
+        "PgTravelRepository",
+        "PgWorkRepository",
+    }
+    if name in _pg_classes:
+        import importlib
+
+        mod = importlib.import_module("folio.repositories.sql.postgres")
+        return getattr(mod, name)
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)
