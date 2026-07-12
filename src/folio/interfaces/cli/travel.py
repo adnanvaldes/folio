@@ -146,11 +146,11 @@ def _replace(args):
     )
     if has_new:
         new = Travel(
-            origin=args.new_origin if args.new_origin is not None else args.origin,
+            origin=args.new_origin if args.new_origin is not None else old.origin,
             destination=(
                 args.new_destination
                 if args.new_destination is not None
-                else args.destination
+                else old.destination
             ),
             date=parse_date(args.new_date) if args.new_date is not None else old.date,
             note=args.new_note if args.new_note is not None else old.note,
