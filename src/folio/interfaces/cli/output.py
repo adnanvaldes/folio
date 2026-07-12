@@ -29,14 +29,14 @@ def _obj_to_dict(obj):
 
 def _travel_rows(travels):
     rows = []
-    for t in travels:
+    for t in sorted(travels):
         rows.append([str(t.date), t.origin, t.destination, t.note])
-    return ["Date", "Origin", "Destination", "Note"], sorted(rows)
+    return ["Date", "Origin", "Destination", "Note"], rows
 
 
 def _address_rows(addresses):
     rows = []
-    for a in addresses:
+    for a in sorted(addresses):
         rows.append(
             [
                 a.street,
@@ -56,12 +56,12 @@ def _address_rows(addresses):
         "Postal Code",
         "Start",
         "End",
-    ], sorted(rows)
+    ], rows
 
 
 def _employment_rows(employments):
     rows = []
-    for e in employments:
+    for e in sorted(employments):
         rows.append(
             [
                 e.company,
@@ -72,12 +72,13 @@ def _employment_rows(employments):
                 e.phone,
             ]
         )
-    return ["Company", "Start", "End", "Supervisor", "Address", "Phone"], sorted(rows)
+    headers = ["Company", "Start", "End", "Supervisor", "Address", "Phone"]
+    return headers, rows
 
 
 def _education_rows(educations):
     rows = []
-    for e in educations:
+    for e in sorted(educations):
         rows.append(
             [
                 e.field,
@@ -97,12 +98,12 @@ def _education_rows(educations):
         "City",
         "Country",
         "Credential",
-    ], sorted(rows)
+    ], rows
 
 
 def _work_rows(works):
     rows = []
-    for w in works:
+    for w in sorted(works):
         rows.append(
             [
                 w.author,
@@ -112,12 +113,12 @@ def _work_rows(works):
                 "Yes" if w.is_read else "No",
             ]
         )
-    return ["Author", "Title", "Year", "Genre", "Read"], sorted(rows)
+    return ["Author", "Title", "Year", "Genre", "Read"], rows
 
 
 def _book_rows(books):
     rows = []
-    for b in books:
+    for b in sorted(books):
         length = str(b.length) if b.length is not None else ""
         rows.append(
             [
@@ -130,9 +131,7 @@ def _book_rows(books):
                 b.narrator or "",
             ]
         )
-    return ["Author", "Title", "Year", "Format", "ISBN", "Length", "Narrator"], sorted(
-        rows
-    )
+    return ["Author", "Title", "Year", "Format", "ISBN", "Length", "Narrator"], rows
 
 
 _ROUTER = {
