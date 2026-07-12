@@ -27,7 +27,9 @@ def _config_path(custom=None):
 def load(custom_path=None):
     path = _config_path(custom_path)
     if not os.path.exists(path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        dirname = os.path.dirname(path)
+        if dirname:
+            os.makedirs(dirname, exist_ok=True)
         db_url = f"sqlite:///{_default_db_path()}"
         with open(path, "w") as f:
             f.write("[database]\n")
