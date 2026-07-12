@@ -1,9 +1,8 @@
 from folio.exceptions import FolioCancelledError
 from folio.models import Address
 from folio.services import AddressService
-from folio.uow import AddressSQLiteUoW
 
-from .common import find_one, handler, parse_date
+from .common import find_one, handler, make_address_uow, parse_date
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
 
@@ -122,7 +121,7 @@ def _make_addr(**kwargs):
 
 @handler("add")
 def _add(args):
-    uow = AddressSQLiteUoW(args.db_path)
+    uow = make_address_uow(args.db_path)
     svc = AddressService(uow)
     obj = _make_addr(
         street=args.street,
@@ -139,7 +138,7 @@ def _add(args):
 
 @handler("list")
 def _list(args):
-    uow = AddressSQLiteUoW(args.db_path)
+    uow = make_address_uow(args.db_path)
     svc = AddressService(uow)
     items = svc.list_all()
     print_list(items, args.json)
@@ -147,7 +146,7 @@ def _list(args):
 
 @handler("find")
 def _find(args):
-    uow = AddressSQLiteUoW(args.db_path)
+    uow = make_address_uow(args.db_path)
     svc = AddressService(uow)
     filters = {}
     for key in ("street", "city", "country", "postal_code", "province"):
@@ -171,7 +170,7 @@ def _find(args):
 
 @handler("remove")
 def _remove(args):
-    uow = AddressSQLiteUoW(args.db_path)
+    uow = make_address_uow(args.db_path)
     svc = AddressService(uow)
     obj = find_one(
         svc,
@@ -189,7 +188,7 @@ def _remove(args):
 
 @handler("replace")
 def _replace(args):
-    uow = AddressSQLiteUoW(args.db_path)
+    uow = make_address_uow(args.db_path)
     svc = AddressService(uow)
     old = find_one(
         svc,

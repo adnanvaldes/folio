@@ -1,9 +1,8 @@
 from folio.exceptions import FolioCancelledError
 from folio.models import Travel
 from folio.services import TravelService
-from folio.uow import TravelSQLiteUoW
 
-from .common import find_one, handler, parse_date
+from .common import find_one, handler, make_travel_uow, parse_date
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
 
@@ -73,7 +72,7 @@ def setup(parser):
 
 @handler("add")
 def _add(args):
-    uow = TravelSQLiteUoW(args.db_path)
+    uow = make_travel_uow(args.db_path)
     svc = TravelService(uow)
     obj = Travel(
         origin=args.origin,
@@ -87,7 +86,7 @@ def _add(args):
 
 @handler("list")
 def _list(args):
-    uow = TravelSQLiteUoW(args.db_path)
+    uow = make_travel_uow(args.db_path)
     svc = TravelService(uow)
     items = svc.list_all()
     print_list(items, args.json)
@@ -95,7 +94,7 @@ def _list(args):
 
 @handler("find")
 def _find(args):
-    uow = TravelSQLiteUoW(args.db_path)
+    uow = make_travel_uow(args.db_path)
     svc = TravelService(uow)
     filters = {}
     for key in ("origin", "destination", "date", "note"):
@@ -115,7 +114,7 @@ def _find(args):
 
 @handler("remove")
 def _remove(args):
-    uow = TravelSQLiteUoW(args.db_path)
+    uow = make_travel_uow(args.db_path)
     svc = TravelService(uow)
     obj = find_one(
         svc,
@@ -129,7 +128,7 @@ def _remove(args):
 
 @handler("replace")
 def _replace(args):
-    uow = TravelSQLiteUoW(args.db_path)
+    uow = make_travel_uow(args.db_path)
     svc = TravelService(uow)
     old = find_one(
         svc,

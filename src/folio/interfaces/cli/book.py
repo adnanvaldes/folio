@@ -1,9 +1,8 @@
 from folio.exceptions import FolioCancelledError, FolioNotFoundError
 from folio.models import Book, FormatType, Work
 from folio.services import BookService, WorkService
-from folio.uow import BookSQLiteUoW
 
-from .common import find_one, handler, parse_bool
+from .common import find_one, handler, make_book_uow, parse_bool
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
 
@@ -135,10 +134,12 @@ def _make_work(author, title, year, genre=None, is_read=False):
 
 @handler("add")
 def _add(args):
-    book_uow = BookSQLiteUoW(args.db_path)
+    book_uow = make_book_uow(args.db_path)
     svc = BookService(book_uow)
     work = _make_work(
-        args.author, args.title, args.year,
+        args.author,
+        args.title,
+        args.year,
         genre=args.genre,
         is_read=parse_bool(args.is_read),
     )
@@ -157,14 +158,14 @@ def _add(args):
 
 @handler("list")
 def _list(args):
-    svc = BookService(BookSQLiteUoW(args.db_path))
+    svc = BookService(make_book_uow(args.db_path))
     items = svc.list_all()
     print_list(items, args.json)
 
 
 @handler("find")
 def _find(args):
-    svc = BookService(BookSQLiteUoW(args.db_path))
+    svc = BookService(make_book_uow(args.db_path))
     filters = {}
     for key in ("author", "title"):
         val = getattr(args, key)
@@ -191,7 +192,7 @@ def _find(args):
 
 @handler("remove")
 def _remove(args):
-    uow = BookSQLiteUoW(args.db_path)
+    uow = make_book_uow(args.db_path)
     work_svc = WorkService(uow)
     svc = BookService(uow)
     work = find_one(work_svc, author=args.author, title=args.title, year=args.year)
@@ -213,7 +214,7 @@ def _remove(args):
 
 @handler("replace")
 def _replace(args):
-    uow = BookSQLiteUoW(args.db_path)
+    uow = make_book_uow(args.db_path)
     work_svc = WorkService(uow)
     svc = BookService(uow)
     work = find_one(work_svc, author=args.author, title=args.title, year=args.year)

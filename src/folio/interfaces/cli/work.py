@@ -1,9 +1,8 @@
 from folio.exceptions import FolioCancelledError, FolioValidationError
 from folio.models import Work
 from folio.services import WorkService
-from folio.uow import WorkSQLiteUoW
 
-from .common import find_one, handler, parse_bool
+from .common import find_one, handler, make_work_uow, parse_bool
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
 
@@ -99,7 +98,7 @@ def setup(parser):
 
 @handler("add")
 def _add(args):
-    uow = WorkSQLiteUoW(args.db_path)
+    uow = make_work_uow(args.db_path)
     svc = WorkService(uow)
     obj = Work(
         author=args.author,
@@ -114,7 +113,7 @@ def _add(args):
 
 @handler("list")
 def _list(args):
-    uow = WorkSQLiteUoW(args.db_path)
+    uow = make_work_uow(args.db_path)
     svc = WorkService(uow)
     items = svc.list_all()
     print_list(items, args.json)
@@ -122,7 +121,7 @@ def _list(args):
 
 @handler("find")
 def _find(args):
-    uow = WorkSQLiteUoW(args.db_path)
+    uow = make_work_uow(args.db_path)
     svc = WorkService(uow)
     filters = {}
     for key in ("author", "title", "genre"):
@@ -146,7 +145,7 @@ def _find(args):
 
 @handler("remove")
 def _remove(args):
-    uow = WorkSQLiteUoW(args.db_path)
+    uow = make_work_uow(args.db_path)
     svc = WorkService(uow)
     obj = find_one(svc, author=args.author, title=args.title, year=args.year)
     svc.remove(obj, force=args.force)
@@ -155,7 +154,7 @@ def _remove(args):
 
 @handler("update")
 def _update(args):
-    uow = WorkSQLiteUoW(args.db_path)
+    uow = make_work_uow(args.db_path)
     svc = WorkService(uow)
     old = find_one(svc, author=args.author, title=args.title, year=args.year)
     kwargs = {}
@@ -172,7 +171,7 @@ def _update(args):
 
 @handler("replace")
 def _replace(args):
-    uow = WorkSQLiteUoW(args.db_path)
+    uow = make_work_uow(args.db_path)
     svc = WorkService(uow)
     old = find_one(svc, author=args.author, title=args.title, year=args.year)
     has_new = any(

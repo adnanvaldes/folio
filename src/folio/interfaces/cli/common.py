@@ -7,6 +7,8 @@ from folio.exceptions import (
     FolioParseError,
 )
 
+from .config import resolve_backend
+
 
 def parse_date(s):
     if s is None:
@@ -40,3 +42,77 @@ def find_one(service, **kwargs):
     if len(results) > 1:
         raise FolioAmbiguousQueryError(f"Expected one record, found {len(results)}")
     return results[0]
+
+
+_UOWS: dict = {}
+
+
+def _load_uows(db_url):
+    if _UOWS:
+        return
+    if resolve_backend(db_url) == "postgres":
+        from folio.uow.postgres.postgres_uow import (
+            AddressPostgresUoW,
+            BookPostgresUoW,
+            EducationPostgresUoW,
+            EmploymentPostgresUoW,
+            TravelPostgresUoW,
+            WorkPostgresUoW,
+        )
+
+        _UOWS.update(
+            address=AddressPostgresUoW,
+            book=BookPostgresUoW,
+            education=EducationPostgresUoW,
+            employment=EmploymentPostgresUoW,
+            travel=TravelPostgresUoW,
+            work=WorkPostgresUoW,
+        )
+    else:
+        from folio.uow import (
+            AddressSQLiteUoW,
+            BookSQLiteUoW,
+            EducationSQLiteUoW,
+            EmploymentSQLiteUoW,
+            TravelSQLiteUoW,
+            WorkSQLiteUoW,
+        )
+
+        _UOWS.update(
+            address=AddressSQLiteUoW,
+            book=BookSQLiteUoW,
+            education=EducationSQLiteUoW,
+            employment=EmploymentSQLiteUoW,
+            travel=TravelSQLiteUoW,
+            work=WorkSQLiteUoW,
+        )
+
+
+def make_travel_uow(db_url):
+    _load_uows(db_url)
+    return _UOWS["travel"](db_url)
+
+
+def make_address_uow(db_url):
+    _load_uows(db_url)
+    return _UOWS["address"](db_url)
+
+
+def make_education_uow(db_url):
+    _load_uows(db_url)
+    return _UOWS["education"](db_url)
+
+
+def make_employment_uow(db_url):
+    _load_uows(db_url)
+    return _UOWS["employment"](db_url)
+
+
+def make_work_uow(db_url):
+    _load_uows(db_url)
+    return _UOWS["work"](db_url)
+
+
+def make_book_uow(db_url):
+    _load_uows(db_url)
+    return _UOWS["book"](db_url)

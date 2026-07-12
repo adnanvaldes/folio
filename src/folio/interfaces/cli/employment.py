@@ -1,9 +1,8 @@
 from folio.exceptions import FolioCancelledError, FolioValidationError
 from folio.models import Employment
 from folio.services import EmploymentService
-from folio.uow import EmploymentSQLiteUoW
 
-from .common import find_one, handler, parse_date
+from .common import find_one, handler, make_employment_uow, parse_date
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
 
@@ -98,7 +97,7 @@ def setup(parser):
 
 @handler("add")
 def _add(args):
-    uow = EmploymentSQLiteUoW(args.db_path)
+    uow = make_employment_uow(args.db_path)
     svc = EmploymentService(uow)
     obj = Employment(
         company=args.company,
@@ -114,7 +113,7 @@ def _add(args):
 
 @handler("list")
 def _list(args):
-    uow = EmploymentSQLiteUoW(args.db_path)
+    uow = make_employment_uow(args.db_path)
     svc = EmploymentService(uow)
     items = svc.list_all()
     print_list(items, args.json)
@@ -122,7 +121,7 @@ def _list(args):
 
 @handler("find")
 def _find(args):
-    uow = EmploymentSQLiteUoW(args.db_path)
+    uow = make_employment_uow(args.db_path)
     svc = EmploymentService(uow)
     filters = {}
     for key in ("company", "supervisor", "address", "phone"):
@@ -146,7 +145,7 @@ def _find(args):
 
 @handler("remove")
 def _remove(args):
-    uow = EmploymentSQLiteUoW(args.db_path)
+    uow = make_employment_uow(args.db_path)
     svc = EmploymentService(uow)
     obj = find_one(svc, company=args.company, start=parse_date(args.start))
     svc.remove(obj)
@@ -155,7 +154,7 @@ def _remove(args):
 
 @handler("update")
 def _update(args):
-    uow = EmploymentSQLiteUoW(args.db_path)
+    uow = make_employment_uow(args.db_path)
     svc = EmploymentService(uow)
     old = find_one(svc, company=args.company, start=parse_date(args.start))
     kwargs = {}
@@ -179,7 +178,7 @@ def _update(args):
 
 @handler("replace")
 def _replace(args):
-    uow = EmploymentSQLiteUoW(args.db_path)
+    uow = make_employment_uow(args.db_path)
     svc = EmploymentService(uow)
     old = find_one(svc, company=args.company, start=parse_date(args.start))
     has_new = any(

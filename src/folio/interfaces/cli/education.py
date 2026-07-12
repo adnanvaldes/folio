@@ -1,9 +1,8 @@
 from folio.exceptions import FolioCancelledError
 from folio.models import Education
 from folio.services import EducationService
-from folio.uow import EducationSQLiteUoW
 
-from .common import find_one, handler, parse_date
+from .common import find_one, handler, make_education_uow, parse_date
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
 
@@ -122,7 +121,7 @@ def _make_edu(**kwargs):
 
 @handler("add")
 def _add(args):
-    uow = EducationSQLiteUoW(args.db_path)
+    uow = make_education_uow(args.db_path)
     svc = EducationService(uow)
     obj = _make_edu(
         field=args.field,
@@ -139,7 +138,7 @@ def _add(args):
 
 @handler("list")
 def _list(args):
-    uow = EducationSQLiteUoW(args.db_path)
+    uow = make_education_uow(args.db_path)
     svc = EducationService(uow)
     items = svc.list_all()
     print_list(items, args.json)
@@ -147,7 +146,7 @@ def _list(args):
 
 @handler("find")
 def _find(args):
-    uow = EducationSQLiteUoW(args.db_path)
+    uow = make_education_uow(args.db_path)
     svc = EducationService(uow)
     filters = {}
     for key in ("field", "school", "city", "country", "credential"):
@@ -171,7 +170,7 @@ def _find(args):
 
 @handler("remove")
 def _remove(args):
-    uow = EducationSQLiteUoW(args.db_path)
+    uow = make_education_uow(args.db_path)
     svc = EducationService(uow)
     obj = find_one(
         svc,
@@ -189,7 +188,7 @@ def _remove(args):
 
 @handler("replace")
 def _replace(args):
-    uow = EducationSQLiteUoW(args.db_path)
+    uow = make_education_uow(args.db_path)
     svc = EducationService(uow)
     old = find_one(
         svc,
