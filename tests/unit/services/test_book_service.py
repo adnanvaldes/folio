@@ -67,6 +67,66 @@ class TestAdd:
         service.add(book)
         assert len(fake_uow.work.list_all()) == 1
 
+    def test_add_upgrades_is_read_false_to_true(self, service, fake_uow):
+        unread = Work(
+            author="Author", title="Book", year=2020, genre=None, is_read=False
+        )
+        fake_uow.work.add(unread)
+        read_book = make_book(
+            work=Work(
+                author="Author", title="Book", year=2020, genre=None, is_read=True
+            ),
+            isbn="9780000000026",
+        )
+        service.add(read_book)
+        stored = fake_uow.work.list_all()[0]
+        assert stored.is_read is True
+
+    def test_add_does_not_downgrade_is_read_true_to_false(self, service, fake_uow):
+        read = Work(
+            author="Author", title="Book", year=2020, genre=None, is_read=True
+        )
+        fake_uow.work.add(read)
+        unread_book = make_book(
+            work=Work(
+                author="Author", title="Book", year=2020, genre=None, is_read=False
+            ),
+            isbn="9780000000026",
+        )
+        service.add(unread_book)
+        stored = fake_uow.work.list_all()[0]
+        assert stored.is_read is True
+
+    def test_add_upgrades_genre_from_none(self, service, fake_uow):
+        no_genre = Work(
+            author="Author", title="Book", year=2020, genre=None, is_read=False
+        )
+        fake_uow.work.add(no_genre)
+        with_genre = make_book(
+            work=Work(
+                author="Author", title="Book", year=2020, genre="Fantasy", is_read=False
+            ),
+            isbn="9780000000026",
+        )
+        service.add(with_genre)
+        stored = fake_uow.work.list_all()[0]
+        assert stored.genre == "Fantasy"
+
+    def test_add_does_not_downgrade_genre(self, service, fake_uow):
+        with_genre = Work(
+            author="Author", title="Book", year=2020, genre="Fantasy", is_read=False
+        )
+        fake_uow.work.add(with_genre)
+        no_genre_book = make_book(
+            work=Work(
+                author="Author", title="Book", year=2020, genre=None, is_read=False
+            ),
+            isbn="9780000000026",
+        )
+        service.add(no_genre_book)
+        stored = fake_uow.work.list_all()[0]
+        assert stored.genre == "Fantasy"
+
 
 class TestRemove:
 

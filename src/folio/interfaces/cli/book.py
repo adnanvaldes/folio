@@ -84,6 +84,7 @@ def setup(parser):
     )
     ap.add_argument("--isbn", default=None)
     ap.add_argument("--narrator", default=None)
+    ap.add_argument("--genre", default=None)
     ap.add_argument("--is-read", default="no", dest="is_read")
 
     parser.add_parser("list", help="List all books")
@@ -128,15 +129,19 @@ def setup(parser):
     rep.add_argument("--new-narrator", default=None, dest="new_narrator")
 
 
-def _make_work(author, title, year, is_read=False):
-    return Work(author=author, title=title, year=year, genre=None, is_read=is_read)
+def _make_work(author, title, year, genre=None, is_read=False):
+    return Work(author=author, title=title, year=year, genre=genre, is_read=is_read)
 
 
 @handler("add")
 def _add(args):
     book_uow = BookSQLiteUoW(args.db_path)
     svc = BookService(book_uow)
-    work = _make_work(args.author, args.title, args.year, parse_bool(args.is_read))
+    work = _make_work(
+        args.author, args.title, args.year,
+        genre=args.genre,
+        is_read=parse_bool(args.is_read),
+    )
     fmt = _parse_format(args.format)
     obj = Book(
         work=work,
