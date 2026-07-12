@@ -1,3 +1,4 @@
+import dataclasses
 import datetime as dt
 import json
 from enum import Enum
@@ -10,7 +11,7 @@ def _obj_to_dict(obj):
         return obj.isoformat()
     if isinstance(obj, Enum):
         return obj.value
-    if hasattr(obj, "__dataclass_fields__"):
+    if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
         d = {}
         for field in obj.__dataclass_fields__:
             val = getattr(obj, field)
@@ -18,7 +19,7 @@ def _obj_to_dict(obj):
                 d[field] = val.isoformat()
             elif isinstance(val, Enum):
                 d[field] = val.value
-            elif hasattr(val, "__dataclass_fields__"):
+            elif dataclasses.is_dataclass(val) and not isinstance(val, type):
                 d[field] = _obj_to_dict(val)
             else:
                 d[field] = val
