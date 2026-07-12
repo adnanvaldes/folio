@@ -13,6 +13,7 @@ from folio.models import Address
 @pytest.fixture
 def repo(pg_conn, _pg_drop_tables):
     from folio.repositories import PgAddressRepository
+
     return PgAddressRepository(pg_conn)
 
 

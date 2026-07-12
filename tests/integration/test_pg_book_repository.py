@@ -11,12 +11,14 @@ from folio.models import Book, FormatType, Work
 @pytest.fixture
 def work_repo(pg_conn, _pg_drop_tables):
     from folio.repositories import PgWorkRepository
+
     return PgWorkRepository(pg_conn)
 
 
 @pytest.fixture
 def repo(pg_conn, _pg_drop_tables):
     from folio.repositories import PgBookRepository, PgWorkRepository
+
     work_repo = PgWorkRepository(pg_conn)
     w = Work(
         author="George Orwell", title="1984", year=1949, genre="Dystopian", is_read=True

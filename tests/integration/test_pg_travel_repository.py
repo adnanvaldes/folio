@@ -13,6 +13,7 @@ from folio.models import Travel
 @pytest.fixture
 def repo(pg_conn, _pg_drop_tables):
     from folio.repositories import PgTravelRepository
+
     return PgTravelRepository(pg_conn)
 
 

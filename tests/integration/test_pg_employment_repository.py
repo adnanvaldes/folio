@@ -13,6 +13,7 @@ from folio.models import Employment
 @pytest.fixture
 def repo(pg_conn, _pg_drop_tables):
     from folio.repositories import PgEmploymentRepository
+
     return PgEmploymentRepository(pg_conn)
 
 

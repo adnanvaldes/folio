@@ -13,6 +13,7 @@ from folio.models import Education
 @pytest.fixture
 def repo(pg_conn, _pg_drop_tables):
     from folio.repositories import PgEducationRepository
+
     return PgEducationRepository(pg_conn)
 
 

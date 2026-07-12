@@ -11,6 +11,7 @@ from folio.models import Work
 @pytest.fixture
 def repo(pg_conn, _pg_drop_tables):
     from folio.repositories import PgWorkRepository
+
     return PgWorkRepository(pg_conn)
 
 
