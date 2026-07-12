@@ -1,5 +1,6 @@
 import psycopg
 import psycopg.rows
+from psycopg.rows import DictRow
 
 from folio.repositories import (
     PgAddressRepository,
@@ -17,10 +18,10 @@ class PostgresUnitOfWork(UnitOfWork):
 
     def __init__(self, dsn: str):
         self.dsn = dsn
+        self.conn: psycopg.Connection[DictRow]
 
     def _start(self):
-        self.conn = psycopg.connect(self.dsn)
-        self.conn.row_factory = psycopg.rows.dict_row
+        self.conn = psycopg.connect(self.dsn, row_factory=psycopg.rows.dict_row)
 
     def commit(self):
         self.conn.commit()

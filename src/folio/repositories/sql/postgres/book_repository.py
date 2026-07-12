@@ -1,4 +1,5 @@
 import psycopg
+from psycopg.rows import DictRow
 
 from folio.exceptions import FolioDuplicateError, FolioNotFoundError
 from folio.models import Book, FormatType, Work
@@ -10,7 +11,7 @@ from .work_repository import _work_identity_where
 
 class PgBookRepository(BookRepository):
 
-    def __init__(self, connection: psycopg.Connection):
+    def __init__(self, connection: psycopg.Connection[DictRow]):
         self.conn = connection
         self._ensure_table()
 
@@ -62,7 +63,7 @@ class PgBookRepository(BookRepository):
             row = cur.fetchone()
         if row is None:
             raise FolioNotFoundError(f"Referenced work does not exist: {work}")
-        return row["id"]  # type: ignore[call-overload]
+        return row["id"]
 
     def _join_select(self) -> str:
         return (
