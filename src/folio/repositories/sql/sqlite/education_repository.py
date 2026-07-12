@@ -4,7 +4,7 @@ import sqlite3
 from folio.exceptions import FolioDuplicateError, FolioNotFoundError
 from folio.models import Education
 from folio.repositories import EducationRepository
-from folio.repositories.sql._filters import (
+from folio.repositories.sql import (
     build_where_clause,
     parse_filter_key,
     validate_filter_fields,

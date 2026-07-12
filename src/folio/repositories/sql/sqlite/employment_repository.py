@@ -8,7 +8,7 @@ from folio.exceptions import (
 )
 from folio.models import Employment
 from folio.repositories import EmploymentRepository
-from folio.repositories.sql._filters import (
+from folio.repositories.sql import (
     build_where_clause,
     parse_filter_key,
     validate_filter_fields,

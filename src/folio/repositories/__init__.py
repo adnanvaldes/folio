@@ -6,12 +6,22 @@ from .base import (
     TravelRepository,
     WorkRepository,
 )
-from .sql.sqlite_address_repository import SQLiteAddressRepository
-from .sql.sqlite_book_repository import SQLiteBookRepository
-from .sql.sqlite_education_repository import SQLiteEducationRepository
-from .sql.sqlite_employment_repository import SQLiteEmploymentRepository
-from .sql.sqlite_travel_repository import SQLiteTravelRepository
-from .sql.sqlite_work_repository import SQLiteWorkRepository
+from .sql.postgres import (
+    PgAddressRepository,
+    PgBookRepository,
+    PgEducationRepository,
+    PgEmploymentRepository,
+    PgTravelRepository,
+    PgWorkRepository,
+)
+from .sql.sqlite import (
+    SQLiteAddressRepository,
+    SQLiteBookRepository,
+    SQLiteEducationRepository,
+    SQLiteEmploymentRepository,
+    SQLiteTravelRepository,
+    SQLiteWorkRepository,
+)
 
 __all__ = [
     "AddressRepository",
@@ -20,6 +30,12 @@ __all__ = [
     "WorkRepository",
     "EmploymentRepository",
     "BookRepository",
+    "PgTravelRepository",
+    "PgEducationRepository",
+    "PgEmploymentRepository",
+    "PgAddressRepository",
+    "PgWorkRepository",
+    "PgBookRepository",
     "SQLiteTravelRepository",
     "SQLiteEducationRepository",
     "SQLiteEmploymentRepository",

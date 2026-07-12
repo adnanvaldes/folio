@@ -3,8 +3,9 @@ import sqlite3
 from folio.exceptions import FolioDuplicateError, FolioNotFoundError
 from folio.models import Book, FormatType, Work
 from folio.repositories import BookRepository
-from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
-from folio.repositories.sql.sqlite_work_repository import _work_identity_where
+from folio.repositories.sql import parse_filter_key, validate_filter_fields
+
+from .work_repository import _work_identity_where
 
 
 class SQLiteBookRepository(BookRepository):
