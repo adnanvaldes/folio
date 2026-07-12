@@ -8,13 +8,12 @@ class BookService:
 
     def add(self, book: Book) -> None:
         with self.uow:
-            work_repo = getattr(self.uow, "work", None)
-            if work_repo is not None and not work_repo.find(
+            if not self.uow.work.find(
                 author=book.work.author,
                 title=book.work.title,
                 year=book.work.year,
             ):
-                work_repo.add(book.work)
+                self.uow.work.add(book.work)
             self.uow.book.add(book)
 
     def remove(self, book: Book) -> None:

@@ -13,21 +13,19 @@ class WorkService:
 
     def remove(self, work: Work, *, force: bool = False) -> None:
         with self.uow:
-            book_repo = getattr(self.uow, "book", None)
-            if book_repo is not None:
-                books = book_repo.find(
-                    author=work.author,
-                    title=work.title,
-                    year=work.year,
-                )
-                if books:
-                    if not force:
-                        raise FolioCascadeError(
-                            f"Cannot remove {work}: {len(books)} book(s) reference it. "
-                            f"Use --force to remove them too."
-                        )
-                    for book in books:
-                        book_repo.remove(book)
+            books = self.uow.book.find(
+                author=work.author,
+                title=work.title,
+                year=work.year,
+            )
+            if books:
+                if not force:
+                    raise FolioCascadeError(
+                        f"Cannot remove {work}: {len(books)} book(s) reference it. "
+                        f"Use --force to remove them too."
+                    )
+                for book in books:
+                    self.uow.book.remove(book)
             self.uow.work.remove(work)
 
     def replace(self, old: Work, new: Work) -> None:

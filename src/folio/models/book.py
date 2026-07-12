@@ -102,7 +102,7 @@ class Book:
         return (
             *self.work._identity_fields(),
             self.format_type.value,
-            (self.isbn or "").lower().strip(),
+            (self.isbn or "").lower(),
         )
 
     def __eq__(self, other: object) -> bool:
@@ -117,7 +117,7 @@ class Book:
         return (
             *self.work._ordering_fields(),
             self.format_type.value,
-            (self.isbn or "").lower().strip(),
+            (self.isbn or "").lower(),
         )
 
     def __lt__(self, other: Book) -> bool:
