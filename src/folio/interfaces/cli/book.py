@@ -189,9 +189,7 @@ def _remove(args):
     uow = BookSQLiteUoW(args.db_path)
     work_svc = WorkService(uow)
     svc = BookService(uow)
-    work = find_one(
-        work_svc, author=args.author, title=args.title, year=args.year
-    )
+    work = find_one(work_svc, author=args.author, title=args.title, year=args.year)
     fmt = _parse_format(args.format)
     isbn = args.isbn or None
     results = svc.find(
@@ -213,9 +211,7 @@ def _replace(args):
     uow = BookSQLiteUoW(args.db_path)
     work_svc = WorkService(uow)
     svc = BookService(uow)
-    work = find_one(
-        work_svc, author=args.author, title=args.title, year=args.year
-    )
+    work = find_one(work_svc, author=args.author, title=args.title, year=args.year)
     fmt = _parse_format(args.format)
     isbn = args.isbn or None
     results = svc.find(

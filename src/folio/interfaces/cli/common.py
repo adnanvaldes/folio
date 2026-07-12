@@ -29,6 +29,7 @@ def handler(action):
     def wrap(fn):
         HANDLERS[action] = fn
         return fn
+
     return wrap
 
 
