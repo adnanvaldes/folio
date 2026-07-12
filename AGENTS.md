@@ -6,10 +6,12 @@ Folio is a personal record-keeping CLI app for tracking travel, addresses, educa
 
 ```
 folio [--config <path>] [--db <path>] [--json] <domain> <action> [args]
+folio [--config <path>] [--db <path>] [--json] list [domains...]
 ```
 
 Domains: `travel`, `address`, `education`, `employment`, `work`, `book`
-Actions: `add`, `list`, `find`, `remove`, `replace` (+ `update` for work, employment)
+Actions: `add`, `show`, `find`, `remove`, `replace` (+ `update` for work, employment)
+Top-level: `list` (all or filtered by domain names)
 
 **Version:** 1.2.0 | **Python:** >=3.14 | **Deps:** none (stdlib only) | **Optional:** `psycopg[binary]>=3.3` (`pip install folio[postgres]`) | **Dev:** black, mypy, pytest, ruff, pytest-cov
 
@@ -189,7 +191,7 @@ All services wrap operations in `with self.uow:` context manager:
 
 ---
 
-## Tests (525 passed, ~1.7s runtime with PG, ~0.5s without)
+## Tests (542 passed, ~1.7s runtime with PG, ~0.5s without)
 
 - **Unit tests** (`tests/unit/`): use `fake_uow` fixture (`FakeUnitOfWork` with in-memory fake repos)
 - **SQLite integration tests** (`tests/integration/`): use `fake_db` fixture (temp SQLite file, cleaned on teardown)
@@ -209,7 +211,7 @@ All services wrap operations in `with self.uow:` context manager:
 | `uv run pytest --cov=folio --cov-report=term-missing` | Coverage report |
 | `uv run black .` | Format code |
 | `uv run ruff check src/ tests/` | Lint (rules: E, F, W, I, UP, SIM, N) |
-| `uv run mypy .` | Type-check (0 errors across 96 source files) |
+| `uv run mypy .` | Type-check (0 errors across 97 source files) |
 | `uv run python -c "import folio; print(folio.__version__)"` | Check version |
 | `FOLIO_PG_DSN="postgresql://..." uv run pytest tests/integration/test_pg_*` | Run PG integration tests |
 
@@ -218,18 +220,16 @@ All services wrap operations in `with self.uow:` context manager:
 ## Current Git State
 
 ```
+843f9fe test(cli): add handler registration and parser build tests
+0ec60cb fix(cli): give each domain module its own _HANDLERS registry
+1436fbb fix(uow): add future annotations to resolve forward reference NameError on Python <3.14
+5d5289f feat(employment): make supervisor, address, and phone optional fields
+a5f9d4d fix(models): add future annotations to resolve forward reference NameError on Python <3.14
 b0d845d fix(mypy): resolve type errors in FakeEmploymentRepository.update
 fd18b3e style: fix line length in PgAddressRepository INSERT
 6813f4f chore: update uv.lock with psycopg dependency
 32026c2 chore: housekeeping - imports, formatting, docs
 0a106b7 test: add PostgreSQL integration tests for all 6 domains
-48b7e94 feat(cli): add lazy UoW factory functions for backend selection
-c19a6fd refactor: update re-exports for new package structure
-50074c5 feat(uow): add PostgreSQL Unit of Work with 6 domain UoW classes
-1847751 feat(repos): add 6 PostgreSQL repository implementations
-9bf61a4 feat(filters): add col() helper and placeholder param to build_where_clause
-faf5d2e feat(config): add psycopg optional dep and config backend support
-cd5c58a Merge branch 'main' of github.com:adnanvaldes/folio actions: update ci permissions
 ```
 
 Branch `main` after history rewrite. Tag: none.
@@ -260,6 +260,8 @@ Branch `main` after history rewrite. Tag: none.
 
 | Change | Files | Description |
 |---|---|---|
+| **Top-level `list` command** | `interfaces/cli/main.py`, `interfaces/cli/output.py` | Added `folio list [domains...]` to list records across all or selected domains. Output grouped by domain with section headers (text) or domain-keyed dict (JSON). |
+| **Domain `list` → `show` rename** | all 6 CLI handlers, `tests/unit/test_cli.py` | Renamed domain-specific `list` action to `show` (`folio travel show`, etc.) to avoid collision with the new top-level `list` command. |
 | **Lazy UoW imports** | `uow/__init__.py`, `interfaces/cli/common.py` | Removed PG UoW imports from `uow/__init__.py`; both SQLite and PG UoW classes are now loaded lazily via a single `_load_uows(db_url)` function in `common.py`, avoiding psycopg import when using SQLite. |
 | **PG reserved keyword quoting** | `repositories/sql/_filters.py`, `repositories/sql/__init__.py`, `repositories/sql/postgres/address_repository.py`, `postgres/education_repository.py`, `postgres/employment_repository.py` | Added `col()` helper that double-quotes PostgreSQL reserved keywords (e.g. `"end"`) in identifier positions. Applied across all PG repos and `build_where_clause`. |
 | **Fixed invalid ISBN in PG tests** | `tests/integration/test_pg_book_repository.py` | Replaced `978-0451524936` (bad checksum) with `9780000000026` to match SQLite tests. |
