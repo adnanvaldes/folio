@@ -199,7 +199,9 @@ class FakeEmploymentRepository(EmploymentRepository):
         updated = dataclasses.replace(
             employment,
             end=end if end is not None else employment.end,
-            supervisor=supervisor.strip() if supervisor is not None else employment.supervisor,
+            supervisor=(
+                supervisor.strip() if supervisor is not None else employment.supervisor
+            ),
             address=address.strip() if address is not None else employment.address,
             phone=phone.strip() if phone is not None else employment.phone,
         )
