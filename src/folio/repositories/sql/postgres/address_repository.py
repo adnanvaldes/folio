@@ -74,7 +74,8 @@ class PgAddressRepository(AddressRepository):
                 cur.execute(
                     f"""
                     INSERT INTO address
-                        (street, city, country, postal_code, province, start, {col("end")})
+                        (street, city, country, postal_code, province,
+                         start, {col("end")})
                     VALUES
                         (%(street)s, %(city)s, %(country)s, %(postal_code)s,
                          %(province)s, %(start)s, %(end)s)
