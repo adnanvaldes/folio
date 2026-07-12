@@ -14,29 +14,12 @@ if TYPE_CHECKING:
 
 class UnitOfWork(ABC):
 
-    @property
-    def travel(self) -> TravelRepository:
-        return getattr(self, "_travel")
-
-    @property
-    def addresses(self) -> AddressRepository:
-        return getattr(self, "_addresses")
-
-    @property
-    def education(self) -> EducationRepository:
-        return getattr(self, "_education")
-
-    @property
-    def employment(self) -> EmploymentRepository:
-        return getattr(self, "_employment")
-
-    @property
-    def work(self) -> WorkRepository:
-        return getattr(self, "_work")
-
-    @property
-    def book(self) -> BookRepository:
-        return getattr(self, "_book")
+    travel: TravelRepository
+    addresses: AddressRepository
+    education: EducationRepository
+    employment: EmploymentRepository
+    work: WorkRepository
+    book: BookRepository
 
     def __enter__(self):
         self._start()

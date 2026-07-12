@@ -21,12 +21,12 @@ class FakeUnitOfWork(UnitOfWork):
     """
 
     def __init__(self):
-        self._addresses = FakeAddressRepository()
-        self._travel = FakeTravelRepository()
-        self._work = FakeWorkRepository()
-        self._education = FakeEducationRepository()
-        self._employment = FakeEmploymentRepository()
-        self._book = FakeBookRepository()
+        self.addresses = FakeAddressRepository()
+        self.travel = FakeTravelRepository()
+        self.work = FakeWorkRepository()
+        self.education = FakeEducationRepository()
+        self.employment = FakeEmploymentRepository()
+        self.book = FakeBookRepository()
         self.committed = False
 
     def _start(self):

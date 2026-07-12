@@ -29,42 +29,42 @@ class SQLiteUnitOfWork(UnitOfWork):
 class TravelSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
-        self._travel = repo.SQLiteTravelRepository(self.conn)
+        self.travel = repo.SQLiteTravelRepository(self.conn)
         return self
 
 
 class EmploymentSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
-        self._employment = repo.SQLiteEmploymentRepository(self.conn)
+        self.employment = repo.SQLiteEmploymentRepository(self.conn)
         return self
 
 
 class EducationSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
-        self._education = repo.SQLiteEducationRepository(self.conn)
+        self.education = repo.SQLiteEducationRepository(self.conn)
         return self
 
 
 class AddressSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
-        self._addresses = repo.SQLiteAddressRepository(self.conn)
+        self.addresses = repo.SQLiteAddressRepository(self.conn)
         return self
 
 
 class WorkSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
-        self._work = repo.SQLiteWorkRepository(self.conn)
-        self._book = repo.SQLiteBookRepository(self.conn)
+        self.work = repo.SQLiteWorkRepository(self.conn)
+        self.book = repo.SQLiteBookRepository(self.conn)
         return self
 
 
 class BookSQLiteUoW(SQLiteUnitOfWork):
     def _start(self):
         super()._start()
-        self._book = repo.SQLiteBookRepository(self.conn)
-        self._work = repo.SQLiteWorkRepository(self.conn)
+        self.book = repo.SQLiteBookRepository(self.conn)
+        self.work = repo.SQLiteWorkRepository(self.conn)
         return self
