@@ -1,7 +1,5 @@
 import os
 
-import psycopg
-import psycopg.rows
 import pytest
 
 PG_DSN = os.environ.get("FOLIO_PG_DSN")
@@ -14,6 +12,9 @@ def pg_conn():
     """
     if not PG_DSN:
         pytest.skip("FOLIO_PG_DSN not set")
+    import psycopg
+    import psycopg.rows
+
     conn = psycopg.connect(PG_DSN)
     conn.row_factory = psycopg.rows.dict_row
     yield conn
@@ -27,6 +28,8 @@ def _pg_drop_tables():
     if not PG_DSN:
         yield
         return
+    import psycopg
+
     conn = psycopg.connect(PG_DSN)
     conn.autocommit = True
     with conn.cursor() as cur:
