@@ -45,6 +45,3 @@ def resolve_backend(url: str) -> str:
     if url.startswith("postgresql://") or url.startswith("postgres://"):
         return "postgres"
     return "sqlite"
-
-
-

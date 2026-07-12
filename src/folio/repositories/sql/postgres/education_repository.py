@@ -29,7 +29,7 @@ class PgEducationRepository(EducationRepository):
                 "    country      TEXT NOT NULL,"
                 "    credential   TEXT NOT NULL,"
                 '    CHECK("end" >= start),'
-                "    UNIQUE(field, start, \"end\", school, city, country, credential)"
+                '    UNIQUE(field, start, "end", school, city, country, credential)'
                 ")"
             )
 
