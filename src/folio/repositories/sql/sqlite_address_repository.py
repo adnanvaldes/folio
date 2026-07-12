@@ -4,7 +4,11 @@ import sqlite3
 from folio.exceptions import FolioDuplicateError, FolioNotFoundError
 from folio.models import Address
 from folio.repositories import AddressRepository
-from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
+from folio.repositories.sql._filters import (
+    build_where_clause,
+    parse_filter_key,
+    validate_filter_fields,
+)
 
 
 class SQLiteAddressRepository(AddressRepository):
@@ -46,18 +50,6 @@ class SQLiteAddressRepository(AddressRepository):
             "end": address.end.isoformat() if address.end else None,
         }
 
-    def _where_clause(self, params: dict) -> str:
-        """
-        Build a WHERE clause that handles NULL values.
-        """
-        parts = []
-        for field, value in params.items():
-            if value is None:
-                parts.append(f"{field} IS NULL")
-            else:
-                parts.append(f"{field} = :{field}")
-        return " AND ".join(parts)
-
     def list_all(self) -> list[Address]:
         rows = self.conn.execute("""
             SELECT start, end, street, city, province, country, postal_code
@@ -95,7 +87,7 @@ class SQLiteAddressRepository(AddressRepository):
     def remove(self, address: Address) -> None:
         params = self._to_params(address)
         cursor = self.conn.execute(
-            f"DELETE FROM address WHERE {self._where_clause(params)}",
+            f"DELETE FROM address WHERE {build_where_clause(params)}",
             {k: v for k, v in params.items() if v is not None},
         )
         if cursor.rowcount == 0:

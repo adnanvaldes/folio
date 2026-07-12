@@ -8,7 +8,11 @@ from folio.exceptions import (
 )
 from folio.models import Employment
 from folio.repositories import EmploymentRepository
-from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
+from folio.repositories.sql._filters import (
+    build_where_clause,
+    parse_filter_key,
+    validate_filter_fields,
+)
 
 
 class SQLiteEmploymentRepository(EmploymentRepository):
@@ -48,15 +52,6 @@ class SQLiteEmploymentRepository(EmploymentRepository):
             "phone": employment.phone,
         }
 
-    def _where_clause(self, params: dict) -> str:
-        parts = []
-        for field, value in params.items():
-            if value is None:
-                parts.append(f"{field} IS NULL")
-            else:
-                parts.append(f"{field} = :{field}")
-        return " AND ".join(parts)
-
     def list_all(self) -> list[Employment]:
         rows = self.conn.execute("""
             SELECT company, start, end, supervisor, address, phone
@@ -87,7 +82,7 @@ class SQLiteEmploymentRepository(EmploymentRepository):
     def remove(self, employment: Employment) -> None:
         params = self._to_params(employment)
         cursor = self.conn.execute(
-            f"DELETE FROM employment WHERE {self._where_clause(params)}",
+            f"DELETE FROM employment WHERE {build_where_clause(params)}",
             {k: v for k, v in params.items() if v is not None},
         )
         if cursor.rowcount == 0:

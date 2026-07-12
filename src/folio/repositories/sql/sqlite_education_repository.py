@@ -4,7 +4,11 @@ import sqlite3
 from folio.exceptions import FolioDuplicateError, FolioNotFoundError
 from folio.models import Education
 from folio.repositories import EducationRepository
-from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
+from folio.repositories.sql._filters import (
+    build_where_clause,
+    parse_filter_key,
+    validate_filter_fields,
+)
 
 
 class SQLiteEducationRepository(EducationRepository):
@@ -46,15 +50,6 @@ class SQLiteEducationRepository(EducationRepository):
             "credential": education.credential,
         }
 
-    def _where_clause(self, params: dict) -> str:
-        parts = []
-        for field, value in params.items():
-            if value is None:
-                parts.append(f"{field} IS NULL")
-            else:
-                parts.append(f"{field} = :{field}")
-        return " AND ".join(parts)
-
     def list_all(self) -> list[Education]:
         rows = self.conn.execute("""
             SELECT field, start, end, school, city, country, credential
@@ -92,7 +87,7 @@ class SQLiteEducationRepository(EducationRepository):
     def remove(self, education: Education) -> None:
         params = self._to_params(education)
         cursor = self.conn.execute(
-            f"DELETE FROM education WHERE {self._where_clause(params)}",
+            f"DELETE FROM education WHERE {build_where_clause(params)}",
             params,
         )
         if cursor.rowcount == 0:

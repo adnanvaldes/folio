@@ -7,7 +7,11 @@ from folio.exceptions import (
 )
 from folio.models import Work
 from folio.repositories import WorkRepository
-from folio.repositories.sql._filters import parse_filter_key, validate_filter_fields
+from folio.repositories.sql._filters import (
+    build_where_clause,
+    parse_filter_key,
+    validate_filter_fields,
+)
 
 
 def _work_identity_where(
@@ -69,15 +73,6 @@ class SQLiteWorkRepository(WorkRepository):
             "is_read": int(work.is_read),
         }
 
-    def _where_clause(self, params: dict) -> str:
-        parts = []
-        for field, value in params.items():
-            if value is None:
-                parts.append(f"{field} IS NULL")
-            else:
-                parts.append(f"{field} = :{field}")
-        return " AND ".join(parts)
-
     def list_all(self) -> list[Work]:
         rows = self.conn.execute("""
             SELECT author, title, year, genre, is_read
@@ -109,7 +104,7 @@ class SQLiteWorkRepository(WorkRepository):
     def remove(self, work: Work) -> None:
         params = self._to_params(work)
         cursor = self.conn.execute(
-            f"DELETE FROM work WHERE {self._where_clause(params)}",
+            f"DELETE FROM work WHERE {build_where_clause(params)}",
             {k: v for k, v in params.items() if v is not None},
         )
         if cursor.rowcount == 0:

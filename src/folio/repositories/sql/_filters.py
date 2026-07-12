@@ -22,3 +22,13 @@ def validate_filter_fields(filters: dict, valid_fields: set[str]) -> None:
             invalid.add(key)
     if invalid:
         raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
+
+
+def build_where_clause(params: dict) -> str:
+    parts = []
+    for field, value in params.items():
+        if value is None:
+            parts.append(f"{field} IS NULL")
+        else:
+            parts.append(f"{field} = :{field}")
+    return " AND ".join(parts)
