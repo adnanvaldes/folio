@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import datetime as dt
 
@@ -8,9 +10,9 @@ from folio.exceptions import FolioValidationError
 class Employment:
     company: str
     start: dt.date
-    supervisor: str
-    address: str
-    phone: str
+    supervisor: str = ""
+    address: str = ""
+    phone: str = ""
     end: dt.date | None = None
 
     def __post_init__(self):
@@ -21,12 +23,6 @@ class Employment:
 
         if not self.company:
             raise FolioValidationError("Company is required")
-        if not self.supervisor:
-            raise FolioValidationError("Supervisor is required")
-        if not self.address:
-            raise FolioValidationError("Address is required")
-        if not self.phone:
-            raise FolioValidationError("Phone is required")
 
         if not isinstance(self.start, dt.date):
             raise TypeError(f"start must be a datetime.date, got {type(self.start)}")

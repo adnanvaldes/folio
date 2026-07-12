@@ -53,18 +53,6 @@ class TestEmploymentConstruction:
         with pytest.raises(FolioValidationError, match="Company is required"):
             make_employment(company="")
 
-    def test_rejects_empty_supervisor(self):
-        with pytest.raises(FolioValidationError, match="Supervisor is required"):
-            make_employment(supervisor="")
-
-    def test_rejects_empty_address(self):
-        with pytest.raises(FolioValidationError, match="Address is required"):
-            make_employment(address="")
-
-    def test_rejects_empty_phone(self):
-        with pytest.raises(FolioValidationError, match="Phone is required"):
-            make_employment(phone="")
-
     def test_rejects_non_date_start(self):
         with pytest.raises(TypeError, match="start must be a datetime.date"):
             make_employment(start="2024-01-01")

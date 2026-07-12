@@ -55,9 +55,9 @@ def setup(parser):
     ap.add_argument("company")
     ap.add_argument("start", help="ISO-8601 date")
     ap.add_argument("--end", default=None, help="ISO-8601 date (omit if current)")
-    ap.add_argument("--supervisor", required=True)
-    ap.add_argument("--address", required=True)
-    ap.add_argument("--phone", required=True)
+    ap.add_argument("--supervisor", default="")
+    ap.add_argument("--address", default="")
+    ap.add_argument("--phone", default="")
 
     parser.add_parser("list", help="List all employment records")
 
