@@ -8,11 +8,11 @@ from folio.exceptions import (
     FolioNotFoundError,
 )
 from folio.models import Address
-from folio.repositories import PgAddressRepository
 
 
 @pytest.fixture
 def repo(pg_conn, _pg_drop_tables):
+    from folio.repositories import PgAddressRepository
     return PgAddressRepository(pg_conn)
 
 

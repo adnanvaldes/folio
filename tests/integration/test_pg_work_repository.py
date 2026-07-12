@@ -6,11 +6,11 @@ from folio.exceptions import (
     FolioNotFoundError,
 )
 from folio.models import Work
-from folio.repositories import PgWorkRepository
 
 
 @pytest.fixture
 def repo(pg_conn, _pg_drop_tables):
+    from folio.repositories import PgWorkRepository
     return PgWorkRepository(pg_conn)
 
 

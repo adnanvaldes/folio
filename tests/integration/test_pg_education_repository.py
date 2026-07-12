@@ -8,11 +8,11 @@ from folio.exceptions import (
     FolioNotFoundError,
 )
 from folio.models import Education
-from folio.repositories import PgEducationRepository
 
 
 @pytest.fixture
 def repo(pg_conn, _pg_drop_tables):
+    from folio.repositories import PgEducationRepository
     return PgEducationRepository(pg_conn)
 
 

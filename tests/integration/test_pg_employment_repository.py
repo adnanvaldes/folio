@@ -8,11 +8,11 @@ from folio.exceptions import (
     FolioNotFoundError,
 )
 from folio.models import Employment
-from folio.repositories import PgEmploymentRepository
 
 
 @pytest.fixture
 def repo(pg_conn, _pg_drop_tables):
+    from folio.repositories import PgEmploymentRepository
     return PgEmploymentRepository(pg_conn)
 
 
