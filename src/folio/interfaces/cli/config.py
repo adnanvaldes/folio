@@ -1,16 +1,7 @@
 import os
 import tomllib
 
-
-def _data_dir():
-    xdg = os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
-    return os.path.join(xdg, "folio")
-
-
-def _default_db_path():
-    d = _data_dir()
-    os.makedirs(d, exist_ok=True)
-    return os.path.join(d, "folio.db")
+from folio.config import _default_db_path
 
 
 def _config_dir():
@@ -39,12 +30,21 @@ def load(custom_path=None):
         return tomllib.load(f) or {}
 
 
-def db_path(config, cli_db=None):
+def resolve_db_url(config, cli_db=None):
+    """Return the full database URL/path."""
     if cli_db:
         return cli_db
     url = config.get("database", {}).get("url")
     if not url:
         return _default_db_path()
-    if url.startswith("sqlite:///"):
-        return url[len("sqlite:///") :]
     return url
+
+
+def resolve_backend(url: str) -> str:
+    """Return 'postgres' or 'sqlite' based on URL scheme."""
+    if url.startswith("postgresql://") or url.startswith("postgres://"):
+        return "postgres"
+    return "sqlite"
+
+
+

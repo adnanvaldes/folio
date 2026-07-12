@@ -46,7 +46,7 @@ def main():
     args.json = args.json or has_json
 
     config = cfg.load(args.config)
-    args.db_path = cfg.db_path(config, args.db)
+    args.db_path = cfg.resolve_db_url(config, args.db)
 
     mod = DOMAINS[args.domain]
     handler = mod.HANDLERS.get(args.action)
