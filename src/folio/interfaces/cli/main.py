@@ -49,7 +49,7 @@ def main():
     args.db_path = cfg.resolve_db_url(config, args.db)
 
     mod = DOMAINS[args.domain]
-    handler = mod.HANDLERS.get(args.action)
+    handler = mod._HANDLERS.get(args.action)
     if handler is None:
         parser.print_help()
         sys.exit(1)

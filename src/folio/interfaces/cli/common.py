@@ -1,5 +1,4 @@
 import datetime as dt
-from collections.abc import Callable
 
 from folio.exceptions import (
     FolioAmbiguousQueryError,
@@ -22,17 +21,6 @@ def parse_bool(s):
     if s.lower() in ("no", "false", "0", "n"):
         return False
     raise FolioParseError(f"Invalid boolean: '{s}' (expected yes/no/true/false/1/0)")
-
-
-HANDLERS: dict[str, Callable] = {}
-
-
-def handler(action):
-    def wrap(fn):
-        HANDLERS[action] = fn
-        return fn
-
-    return wrap
 
 
 def find_one(service, **kwargs):

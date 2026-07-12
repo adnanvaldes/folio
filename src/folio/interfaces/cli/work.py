@@ -1,10 +1,21 @@
+from collections.abc import Callable
+
 from folio.exceptions import FolioCancelledError, FolioValidationError
 from folio.models import Work
 from folio.services import WorkService
 
-from .common import find_one, handler, make_work_uow, parse_bool
+from .common import find_one, make_work_uow, parse_bool
 from .interactive import confirm, print_record, prompt_field
 from .output import print_item, print_list
+
+_HANDLERS: dict[str, Callable] = {}
+
+
+def handler(action: str):
+    def wrap(fn):
+        _HANDLERS[action] = fn
+        return fn
+    return wrap
 
 
 def _interactive_replace(old):
