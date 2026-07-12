@@ -156,6 +156,24 @@ def print_list(items, json_output):
     _print_table(headers, rows)
 
 
+def print_domain_list(results, json_output):
+    if json_output:
+        out = {}
+        for domain, items in results.items():
+            out[domain] = [_obj_to_dict(i) for i in items]
+        print(json.dumps(out, indent=2, default=str))
+        return
+    first = True
+    for domain, items in results.items():
+        if not items:
+            continue
+        if not first:
+            print()
+        first = False
+        print(f"=== {domain.capitalize()} ===")
+        print_list(items, json_output)
+
+
 def print_item(item, json_output, label="Added"):
     if json_output:
         print(json.dumps(_obj_to_dict(item), indent=2, default=str))

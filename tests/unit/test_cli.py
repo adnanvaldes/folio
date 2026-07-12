@@ -4,12 +4,12 @@ from folio.interfaces.cli import address, book, education, employment, travel, w
 from folio.interfaces.cli.main import _build_parser
 
 _DOMAINS = {
-    "travel": (travel, {"add", "list", "find", "remove", "replace"}),
-    "address": (address, {"add", "list", "find", "remove", "replace"}),
-    "education": (education, {"add", "list", "find", "remove", "replace"}),
-    "employment": (employment, {"add", "list", "find", "remove", "replace", "update"}),
-    "work": (work, {"add", "list", "find", "remove", "replace", "update"}),
-    "book": (book, {"add", "list", "find", "remove", "replace"}),
+    "travel": (travel, {"add", "show", "find", "remove", "replace"}),
+    "address": (address, {"add", "show", "find", "remove", "replace"}),
+    "education": (education, {"add", "show", "find", "remove", "replace"}),
+    "employment": (employment, {"add", "show", "find", "remove", "replace", "update"}),
+    "work": (work, {"add", "show", "find", "remove", "replace", "update"}),
+    "book": (book, {"add", "show", "find", "remove", "replace"}),
 }
 
 
@@ -41,8 +41,6 @@ class TestParserBuilds:
     def test_parser_has_all_domains(self):
         parser = _build_parser()
         choices = [
-            a.dest
-            for a in parser._subparsers._actions
-            if hasattr(a, "_parser_class")
+            a.dest for a in parser._subparsers._actions if hasattr(a, "_parser_class")
         ]
         assert "domain" in choices

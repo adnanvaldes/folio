@@ -15,6 +15,7 @@ def handler(action: str):
     def wrap(fn):
         _HANDLERS[action] = fn
         return fn
+
     return wrap
 
 
@@ -70,7 +71,7 @@ def setup(parser):
     ap.add_argument("--address", default="")
     ap.add_argument("--phone", default="")
 
-    parser.add_parser("list", help="List all employment records")
+    parser.add_parser("show", help="Show all employment records")
 
     fp = parser.add_parser("find", help="Search employment records")
     fp.add_argument("--company", default=None)
@@ -122,8 +123,8 @@ def _add(args):
     print_item(obj, args.json)
 
 
-@handler("list")
-def _list(args):
+@handler("show")
+def _show(args):
     uow = make_employment_uow(args.db_path)
     svc = EmploymentService(uow)
     items = svc.list_all()

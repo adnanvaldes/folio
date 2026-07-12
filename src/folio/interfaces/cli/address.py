@@ -15,6 +15,7 @@ def handler(action: str):
     def wrap(fn):
         _HANDLERS[action] = fn
         return fn
+
     return wrap
 
 
@@ -75,7 +76,7 @@ def setup(parser):
     ap.add_argument("--end", default=None, help="ISO-8601 date (omit if current)")
     ap.add_argument("--province", default=None)
 
-    parser.add_parser("list", help="List all addresses")
+    parser.add_parser("show", help="Show all addresses")
 
     fp = parser.add_parser("find", help="Search addresses")
     fp.add_argument("--street", default=None)
@@ -147,8 +148,8 @@ def _add(args):
     print_item(obj, args.json)
 
 
-@handler("list")
-def _list(args):
+@handler("show")
+def _show(args):
     uow = make_address_uow(args.db_path)
     svc = AddressService(uow)
     items = svc.list_all()

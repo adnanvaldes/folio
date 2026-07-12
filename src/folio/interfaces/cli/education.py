@@ -15,6 +15,7 @@ def handler(action: str):
     def wrap(fn):
         _HANDLERS[action] = fn
         return fn
+
     return wrap
 
 
@@ -75,7 +76,7 @@ def setup(parser):
     ap.add_argument("country", help="Country")
     ap.add_argument("credential", help="Credential type (e.g. Certificate)")
 
-    parser.add_parser("list", help="List all education records")
+    parser.add_parser("show", help="Show all education records")
 
     fp = parser.add_parser("find", help="Search education records")
     fp.add_argument("--field", default=None)
@@ -147,8 +148,8 @@ def _add(args):
     print_item(obj, args.json)
 
 
-@handler("list")
-def _list(args):
+@handler("show")
+def _show(args):
     uow = make_education_uow(args.db_path)
     svc = EducationService(uow)
     items = svc.list_all()

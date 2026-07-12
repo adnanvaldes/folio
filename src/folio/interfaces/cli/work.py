@@ -15,6 +15,7 @@ def handler(action: str):
     def wrap(fn):
         _HANDLERS[action] = fn
         return fn
+
     return wrap
 
 
@@ -60,7 +61,7 @@ def setup(parser):
     ap.add_argument("--genre", default=None)
     ap.add_argument("--is-read", default="no", dest="is_read")
 
-    parser.add_parser("list", help="List all works")
+    parser.add_parser("show", help="Show all works")
 
     fp = parser.add_parser("find", help="Search works")
     fp.add_argument("--author", default=None)
@@ -122,8 +123,8 @@ def _add(args):
     print_item(obj, args.json)
 
 
-@handler("list")
-def _list(args):
+@handler("show")
+def _show(args):
     uow = make_work_uow(args.db_path)
     svc = WorkService(uow)
     items = svc.list_all()

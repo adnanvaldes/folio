@@ -15,6 +15,7 @@ def handler(action: str):
     def wrap(fn):
         _HANDLERS[action] = fn
         return fn
+
     return wrap
 
 
@@ -55,7 +56,7 @@ def setup(parser):
     ap.add_argument("date", help="ISO-8601 date (YYYY-MM-DD)")
     ap.add_argument("--note", default="", help="Optional note")
 
-    parser.add_parser("list", help="List all travel records")
+    parser.add_parser("show", help="Show all travel records")
 
     fp = parser.add_parser("find", help="Search travel records")
     fp.add_argument("--origin", default=None)
@@ -95,8 +96,8 @@ def _add(args):
     print_item(obj, args.json)
 
 
-@handler("list")
-def _list(args):
+@handler("show")
+def _show(args):
     uow = make_travel_uow(args.db_path)
     svc = TravelService(uow)
     items = svc.list_all()
