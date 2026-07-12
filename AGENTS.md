@@ -11,7 +11,7 @@ folio [--config <path>] [--db <path>] [--json] <domain> <action> [args]
 Domains: `travel`, `address`, `education`, `employment`, `work`, `book`
 Actions: `add`, `list`, `find`, `remove`, `replace` (+ `update` for work, employment)
 
-**Version:** 1.1.0 | **Python:** >=3.14 | **Deps:** none (stdlib only) | **Optional:** `psycopg[binary]>=3.3` (`pip install folio[postgres]`) | **Dev:** black, mypy, pytest, ruff, pytest-cov
+**Version:** 1.2.0 | **Python:** >=3.14 | **Deps:** none (stdlib only) | **Optional:** `psycopg[binary]>=3.3` (`pip install folio[postgres]`) | **Dev:** black, mypy, pytest, ruff, pytest-cov
 
 ---
 
@@ -189,7 +189,7 @@ All services wrap operations in `with self.uow:` context manager:
 
 ---
 
-## Tests (607 passed, ~1.7s runtime with PG, ~0.5s without)
+## Tests (525 passed, ~1.7s runtime with PG, ~0.5s without)
 
 - **Unit tests** (`tests/unit/`): use `fake_uow` fixture (`FakeUnitOfWork` with in-memory fake repos)
 - **SQLite integration tests** (`tests/integration/`): use `fake_db` fixture (temp SQLite file, cleaned on teardown)
@@ -209,7 +209,7 @@ All services wrap operations in `with self.uow:` context manager:
 | `uv run pytest --cov=folio --cov-report=term-missing` | Coverage report |
 | `uv run black .` | Format code |
 | `uv run ruff check src/ tests/` | Lint (rules: E, F, W, I, UP, SIM, N) |
-| `uv run mypy src/` | Type-check (0 errors across 54 source files) |
+| `uv run mypy .` | Type-check (0 errors across 96 source files) |
 | `uv run python -c "import folio; print(folio.__version__)"` | Check version |
 | `FOLIO_PG_DSN="postgresql://..." uv run pytest tests/integration/test_pg_*` | Run PG integration tests |
 
@@ -218,28 +218,27 @@ All services wrap operations in `with self.uow:` context manager:
 ## Current Git State
 
 ```
-cd5c58a (HEAD -> main) Merge branch 'main' of github.com:adnanvaldes/folio actions: update ci permissions
-11c900a Potential fix for code scanning alert no. 1: Workflow does not contain permissions
-8c24c55 feat(services): one-directional upgrade of is_read and genre on book add
-162b8c7 fix(cli): use found record fields in travel replace fallback instead of raw args
-154b2fb fix(models): skip zero-length address pieces in timeline SPLIT and TRUNCATE_BACK
-70c1fe2 fix(cli): guard os.makedirs against empty dirname for relative --config paths
-e1bd5fa chore: format source code with black
-b17790b refactor(models): drop frozen=True, replace object.__setattr__ with direct assignment
-fb9eec8 refactor(cli): replace hasattr duck-typing with dataclasses.is_dataclass() in output
-ce12582 refactor(repos): extract build_where_clause to _filters.py, remove 5 duplicate _where_clause methods
+b0d845d fix(mypy): resolve type errors in FakeEmploymentRepository.update
+fd18b3e style: fix line length in PgAddressRepository INSERT
+6813f4f chore: update uv.lock with psycopg dependency
+32026c2 chore: housekeeping - imports, formatting, docs
+0a106b7 test: add PostgreSQL integration tests for all 6 domains
+48b7e94 feat(cli): add lazy UoW factory functions for backend selection
+c19a6fd refactor: update re-exports for new package structure
+50074c5 feat(uow): add PostgreSQL Unit of Work with 6 domain UoW classes
+1847751 feat(repos): add 6 PostgreSQL repository implementations
+9bf61a4 feat(filters): add col() helper and placeholder param to build_where_clause
+faf5d2e feat(config): add psycopg optional dep and config backend support
+cd5c58a Merge branch 'main' of github.com:adnanvaldes/folio actions: update ci permissions
 ```
 
-No tags. Branch `main` after history rewrite.
-
-**Uncommitted changes:** PostgreSQL backend, repo directory restructuring, import cleanup, lazy UoW imports, PG reserved keyword quoting. Run `git status` to see full diff.
+Branch `main` after history rewrite. Tag: none.
 
 ---
 
 ## Next Steps / Roadmap
 
 ### Immediate
-- **Commit PostgreSQL backend** — stage all changes, write commit message, optionally tag and release v1.2.0
 - **Release workflow** — `.github/workflows/release.yml` to auto-build and publish on tag push
 
 ### Features
@@ -282,3 +281,4 @@ No tags. Branch `main` after history rewrite.
 | **Employment.__str__ safety** | `models/employment.py` | `__str__` now wraps `self.duration` in try/except to handle future-dated open-ended records. |
 | **Work genre stripping** | `models/work.py` | `genre` field is now stripped in `__post_init__`, consistent with all other string fields across models. |
 | **Book shared UoW** | `interfaces/cli/book.py` | `_remove` and `_replace` now share one `BookSQLiteUoW` between `WorkService` and `BookService` instead of creating two independent instances. |
+| **mypy: FakeEmploymentRepository.update** | `tests/fake_repositories.py` | Replaced dict-based kwargs with explicit named-arg pass-through to satisfy mypy narrowing for `dataclasses.replace`. |
