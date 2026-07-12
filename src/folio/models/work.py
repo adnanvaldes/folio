@@ -3,7 +3,7 @@ import dataclasses
 from folio.exceptions import FolioValidationError
 
 
-@dataclasses.dataclass(frozen=True, eq=False)
+@dataclasses.dataclass(eq=False)
 class Work:
     author: str
     title: str
@@ -12,10 +12,10 @@ class Work:
     is_read: bool
 
     def __post_init__(self):
-        object.__setattr__(self, "author", self.author.strip())
-        object.__setattr__(self, "title", self.title.strip())
+        self.author = self.author.strip()
+        self.title = self.title.strip()
         if self.genre is not None:
-            object.__setattr__(self, "genre", self.genre.strip())
+            self.genre = self.genre.strip()
 
         if not self.author:
             raise FolioValidationError("Author is required")

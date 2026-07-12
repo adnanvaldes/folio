@@ -1,5 +1,3 @@
-import dataclasses
-
 import pytest
 
 from folio.exceptions import FolioValidationError
@@ -54,24 +52,6 @@ class TestWorkConstruction:
     def test_genre_none_allowed(self):
         w = make_work(genre=None)
         assert w.genre is None
-
-
-class TestWorkImmutability:
-
-    def test_cannot_mutate_author(self):
-        w = make_work()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            w.author = "New Author"
-
-    def test_cannot_mutate_title(self):
-        w = make_work()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            w.title = "New Title"
-
-    def test_cannot_mutate_is_read(self):
-        w = make_work()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            w.is_read = False
 
 
 class TestWorkIdentity:

@@ -4,7 +4,7 @@ import datetime as dt
 from folio.exceptions import FolioValidationError
 
 
-@dataclasses.dataclass(frozen=True, eq=False)
+@dataclasses.dataclass(eq=False)
 class Employment:
     company: str
     start: dt.date
@@ -14,10 +14,10 @@ class Employment:
     end: dt.date | None = None
 
     def __post_init__(self):
-        object.__setattr__(self, "company", self.company.strip())
-        object.__setattr__(self, "supervisor", self.supervisor.strip())
-        object.__setattr__(self, "address", self.address.strip())
-        object.__setattr__(self, "phone", self.phone.strip())
+        self.company = self.company.strip()
+        self.supervisor = self.supervisor.strip()
+        self.address = self.address.strip()
+        self.phone = self.phone.strip()
 
         if not self.company:
             raise FolioValidationError("Company is required")

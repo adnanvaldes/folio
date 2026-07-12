@@ -4,7 +4,7 @@ import datetime as dt
 from folio.exceptions import FolioValidationError
 
 
-@dataclasses.dataclass(frozen=True, eq=False)
+@dataclasses.dataclass(eq=False)
 class Travel:
     origin: str
     destination: str
@@ -12,10 +12,10 @@ class Travel:
     note: str
 
     def __post_init__(self):
-        object.__setattr__(self, "origin", self.origin.strip().upper())
-        object.__setattr__(self, "destination", self.destination.strip().upper())
+        self.origin = self.origin.strip().upper()
+        self.destination = self.destination.strip().upper()
 
-        object.__setattr__(self, "note", self.note.strip())
+        self.note = self.note.strip()
 
         if not self.origin:
             raise FolioValidationError("Origin is required")

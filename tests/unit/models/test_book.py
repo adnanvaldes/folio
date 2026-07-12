@@ -1,5 +1,3 @@
-import dataclasses
-
 import pytest
 
 from folio.exceptions import FolioValidationError
@@ -134,24 +132,6 @@ class TestBookConstruction:
                 duration_minutes=552.5,
                 isbn="9780000000019",
             )
-
-
-class TestBookImmutability:
-
-    def test_cannot_mutate_work(self):
-        book = make_book()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            book.work = AUDIO_WORK
-
-    def test_cannot_mutate_format_type(self):
-        book = make_book()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            book.format_type = FormatType.EBOOK
-
-    def test_cannot_mutate_isbn(self):
-        book = make_book()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            book.isbn = "9780000000026"
 
 
 class TestBookIdentity:
@@ -295,7 +275,7 @@ class TestBookOrdering:
         expected = (
             *book.work._ordering_fields(),
             book.format_type.value,
-            (book.isbn or "").lower().strip(),
+            (book.isbn or "").lower(),
         )
         assert book._ordering_fields() == expected
 

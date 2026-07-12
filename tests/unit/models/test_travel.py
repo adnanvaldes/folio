@@ -1,4 +1,3 @@
-import dataclasses
 import datetime as dt
 
 import pytest
@@ -73,24 +72,6 @@ class TestTravelConstruction:
     def test_rejects_long_destination(self):
         with pytest.raises(FolioValidationError, match="must be 3 letters"):
             make_travel(destination="CANA")
-
-
-class TestTravelImmutability:
-
-    def test_cannot_mutate_origin(self):
-        t = make_travel()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            t.origin = "MEX"
-
-    def test_cannot_mutate_date(self):
-        t = make_travel()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            t.date = dt.date(2025, 1, 1)
-
-    def test_cannot_mutate_note(self):
-        t = make_travel()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            t.note = "Changed"
 
 
 class TestTravelIdentity:

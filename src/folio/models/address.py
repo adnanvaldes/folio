@@ -4,7 +4,7 @@ import datetime as dt
 from folio.exceptions import FolioStateConflictError, FolioValidationError
 
 
-@dataclasses.dataclass(frozen=True, eq=False)
+@dataclasses.dataclass(eq=False)
 class Address:
     """
     Represents a primary living address and period
@@ -19,13 +19,13 @@ class Address:
     province: str | None = None
 
     def __post_init__(self):
-        object.__setattr__(self, "street", self.street.strip())
-        object.__setattr__(self, "city", self.city.strip())
-        object.__setattr__(self, "country", self.country.strip())
-        object.__setattr__(self, "postal_code", self.postal_code.strip())
+        self.street = self.street.strip()
+        self.city = self.city.strip()
+        self.country = self.country.strip()
+        self.postal_code = self.postal_code.strip()
 
         prov = self.province.strip() if self.province else None
-        object.__setattr__(self, "province", prov or None)
+        self.province = prov or None
 
         if not self.street:
             raise FolioValidationError("Street is required")

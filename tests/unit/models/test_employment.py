@@ -1,4 +1,3 @@
-import dataclasses
 import datetime as dt
 
 import pytest
@@ -88,29 +87,6 @@ class TestEmploymentConstruction:
         d = dt.date(2024, 1, 1)
         e = make_employment(start=d, end=d)
         assert e.end == d
-
-
-class TestEmploymentImmutability:
-
-    def test_cannot_mutate_company(self):
-        e = make_employment()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            e.company = "New Corp"
-
-    def test_cannot_mutate_start(self):
-        e = make_employment()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            e.start = dt.date(2025, 1, 1)
-
-    def test_cannot_mutate_supervisor(self):
-        e = make_employment()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            e.supervisor = "New Person"
-
-    def test_cannot_mutate_end(self):
-        e = make_employment()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            e.end = dt.date(2024, 6, 1)
 
 
 class TestEmploymentIdentity:

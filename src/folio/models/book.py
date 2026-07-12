@@ -55,7 +55,7 @@ class FormatType(Enum):
     AUDIO = "audio"
 
 
-@dataclasses.dataclass(frozen=True, eq=False)
+@dataclasses.dataclass(eq=False)
 class Book:
     work: Work
     format_type: FormatType
@@ -75,9 +75,9 @@ class Book:
         isbn = self.isbn.strip() if self.isbn else None
         if isbn:
             isbn = validate_isbn(isbn)
-        object.__setattr__(self, "isbn", isbn or None)
+        self.isbn = isbn or None
         narrator = self.narrator.strip() if self.narrator else None
-        object.__setattr__(self, "narrator", narrator or None)
+        self.narrator = narrator or None
 
         if self.pages is not None and not isinstance(self.pages, int):
             raise TypeError(f"pages must be an int or None, got {type(self.pages)}")

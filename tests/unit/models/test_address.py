@@ -1,4 +1,3 @@
-import dataclasses
 import datetime as dt
 
 import pytest
@@ -110,24 +109,6 @@ class TestAddressConstruction:
     def test_open_address_valid(self):
         addr = make_address(end=None)
         assert addr.end is None
-
-
-class TestAddressImmutability:
-
-    def test_cannot_mutate_street(self):
-        addr = make_address()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            addr.street = "456 Elm St"
-
-    def test_cannot_mutate_start(self):
-        addr = make_address()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            addr.start = dt.date(2021, 1, 1)
-
-    def test_cannot_mutate_end(self):
-        addr = make_address()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            addr.end = dt.date(2023, 1, 1)
 
 
 class TestAddressIdentity:

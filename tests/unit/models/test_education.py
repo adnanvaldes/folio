@@ -1,4 +1,3 @@
-import dataclasses
 import datetime as dt
 
 import pytest
@@ -94,29 +93,6 @@ class TestEducationConstruction:
         d = dt.date(2020, 9, 1)
         e = make_education(start=d, end=d)
         assert e.end == d
-
-
-class TestEducationImmutability:
-
-    def test_cannot_mutate_field(self):
-        e = make_education()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            e.field = "New Field"
-
-    def test_cannot_mutate_start(self):
-        e = make_education()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            e.start = dt.date(2025, 1, 1)
-
-    def test_cannot_mutate_end(self):
-        e = make_education()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            e.end = dt.date(2025, 1, 1)
-
-    def test_cannot_mutate_school(self):
-        e = make_education()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            e.school = "New School"
 
 
 class TestEducationIdentity:

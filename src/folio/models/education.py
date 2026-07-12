@@ -4,7 +4,7 @@ import datetime as dt
 from folio.exceptions import FolioValidationError
 
 
-@dataclasses.dataclass(frozen=True, eq=False)
+@dataclasses.dataclass(eq=False)
 class Education:
     field: str
     start: dt.date
@@ -15,11 +15,11 @@ class Education:
     credential: str
 
     def __post_init__(self):
-        object.__setattr__(self, "field", self.field.strip())
-        object.__setattr__(self, "school", self.school.strip())
-        object.__setattr__(self, "city", self.city.strip())
-        object.__setattr__(self, "country", self.country.strip())
-        object.__setattr__(self, "credential", self.credential.strip())
+        self.field = self.field.strip()
+        self.school = self.school.strip()
+        self.city = self.city.strip()
+        self.country = self.country.strip()
+        self.credential = self.credential.strip()
 
         if not self.field:
             raise FolioValidationError("Field is required")
