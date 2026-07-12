@@ -2,6 +2,14 @@ from folio.exceptions import FolioInvalidFilterError
 
 OPERATORS = {"before", "after", "contains"}
 
+PG_RESERVED = {"end"}
+
+
+def col(name: str) -> str:
+    if name in PG_RESERVED:
+        return f'"{name}"'
+    return name
+
 
 def parse_filter_key(key: str) -> tuple[str, str | None]:
     """Split 'field__op' into (field, op). No suffix returns (key, None)."""
@@ -24,11 +32,11 @@ def validate_filter_fields(filters: dict, valid_fields: set[str]) -> None:
         raise FolioInvalidFilterError(f"Invalid filter fields: {invalid}")
 
 
-def build_where_clause(params: dict) -> str:
+def build_where_clause(params: dict, placeholder: str = ":{field}") -> str:
     parts = []
     for field, value in params.items():
         if value is None:
-            parts.append(f"{field} IS NULL")
+            parts.append(f"{col(field)} IS NULL")
         else:
-            parts.append(f"{field} = :{field}")
+            parts.append(f"{col(field)} = {placeholder.format(field=field)}")
     return " AND ".join(parts)
